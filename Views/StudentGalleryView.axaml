@@ -1,0 +1,175 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SchoolOrganizer.ViewModels"
+             xmlns:models="using:SchoolOrganizer.Models"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SchoolOrganizer.Views.StudentGalleryView"
+             x:DataType="vm:StudentGalleryViewModel">
+
+  <Design.DataContext>
+    <vm:StudentGalleryViewModel/>
+  </Design.DataContext>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- Header and Filters -->
+    <Border Grid.Row="0" Background="#f5f5f5" Padding="20">
+      <StackPanel>
+        <TextBlock Text="Student Gallery" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+        
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+
+          <!-- Search Box -->
+          <TextBox Grid.Column="0" 
+                   Text="{Binding SearchText}" 
+                   Watermark="Search students..." 
+                   Margin="0,0,10,0"/>
+
+          <!-- Class Filter -->
+          <TextBlock Grid.Column="1" Text="Class:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+          <ComboBox Grid.Column="2" 
+                    ItemsSource="{Binding AvailableClasses}"
+                    SelectedItem="{Binding SelectedClass}"
+                    Margin="0,0,10,0"/>
+
+          <!-- Refresh Button -->
+          <Button Grid.Column="3" 
+                  Content="Refresh" 
+                  Command="{Binding RefreshCommand}"
+                  Padding="15,5"/>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <!-- Student Gallery -->
+    <ScrollViewer Grid.Row="1" Padding="20">
+      <Panel>
+        <!-- Loading Indicator -->
+        <Border IsVisible="{Binding IsLoading}" 
+                Background="#80FFFFFF" 
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="Loading students..." FontSize="16" HorizontalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Students Grid -->
+        <ItemsControl ItemsSource="{Binding Students}" IsVisible="{Binding !IsLoading}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="models:Student">
+              <Border Background="White" 
+                      CornerRadius="8" 
+                      Margin="10" 
+                      Padding="15"
+                      BoxShadow="0 2 8 0 #20000000"
+                      Width="280"
+                      Cursor="Hand">
+                <Border.Styles>
+                  <Style Selector="Border:pointerover">
+                    <Setter Property="BoxShadow" Value="0 4 16 0 #30000000"/>
+                  </Style>
+                </Border.Styles>
+
+                <!-- Click handled via Button instead of Interaction.Behaviors -->
+                <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
+                        CommandParameter="{Binding}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="0">
+                  <Button.Template>
+                    <ControlTemplate>
+                      <ContentPresenter Content="{TemplateBinding Content}"/>
+                    </ControlTemplate>
+                  </Button.Template>
+
+                  <StackPanel>
+                    <!-- Student Image -->
+                    <Border Width="200" Height="200" CornerRadius="100" ClipToBounds="True" Margin="0,0,0,15">
+                      <Image Source="{Binding PictureUrl}" 
+                             Stretch="UniformToFill"/>
+                    </Border>
+
+                    <!-- Student Info -->
+                    <StackPanel>
+                      <TextBlock Text="{Binding Name}" 
+                                 FontSize="18" 
+                                 FontWeight="Bold" 
+                                 HorizontalAlignment="Center"
+                                 Margin="0,0,0,5"/>
+                      
+                      <TextBlock Text="{Binding ClassName}" 
+                                 FontSize="14" 
+                                 Foreground="#666"
+                                 HorizontalAlignment="Center"
+                                 Margin="0,0,0,5"/>
+                      
+                      <TextBlock Text="{Binding Mentor, StringFormat='Mentor: {0}'}" 
+                                 FontSize="12" 
+                                 Foreground="#888"
+                                 HorizontalAlignment="Center"
+                                 TextWrapping="Wrap"/>
+                    </StackPanel>
+                  </StackPanel>
+                </Button>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Panel>
+    </ScrollViewer>
+
+    <!-- Selected Student Details -->
+    <Border Grid.Row="2" 
+            Background="#e8f4fd" 
+            Padding="20"
+            IsVisible="{Binding SelectedStudent, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <StackPanel>
+        <TextBlock Text="Selected Student Details" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="Bold" Margin="0,0,10,0"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedStudent.Name}" Margin="0,0,20,0"/>
+          
+          <TextBlock Grid.Row="0" Grid.Column="2" Text="Email:" FontWeight="Bold" Margin="0,0,10,0"/>
+          <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding SelectedStudent.Email}"/>
+
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Class:" FontWeight="Bold" Margin="0,0,10,0"/>
+          <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedStudent.ClassName}" Margin="0,0,20,0"/>
+          
+          <TextBlock Grid.Row="1" Grid.Column="2" Text="Mentor:" FontWeight="Bold" Margin="0,0,10,0"/>
+          <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudent.Mentor}"/>
+        </Grid>
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

@@ -1,0 +1,81 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SchoolOrganizer.ViewModels"
+        xmlns:views="using:SchoolOrganizer.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="SchoolOrganizer.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="School Organizer"
+        MinWidth="800"
+        MinHeight="600">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Navigation Menu -->
+        <Border Grid.Row="0" Background="#2c3e50" Padding="20,10">
+            <StackPanel Orientation="Horizontal" Spacing="20">
+                <TextBlock Text="School Organizer" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           Foreground="White" 
+                           VerticalAlignment="Center"/>
+                
+                <Button Content="Home" 
+                        Command="{Binding NavigateToHomeCommand}"
+                        Background="Transparent"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="15,5"/>
+                
+                <Button Content="Student Gallery" 
+                        Command="{Binding NavigateToStudentGalleryCommand}"
+                        Background="Transparent"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="15,5"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Content Area -->
+        <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}">
+            <ContentControl.DataTemplates>
+                <!-- Template for StudentGalleryViewModel -->
+                <DataTemplate DataType="vm:StudentGalleryViewModel">
+                    <views:StudentGalleryView/>
+                </DataTemplate>
+                
+                <!-- Template for HomeViewModel -->
+                <DataTemplate DataType="vm:HomeViewModel">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+                        <TextBlock Text="{Binding Title}" 
+                                   FontSize="32" 
+                                   FontWeight="Bold" 
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding Message}" 
+                                   FontSize="16" 
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"/>
+                        <Button Content="Go to Student Gallery" 
+                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigateToStudentGalleryCommand}"
+                                Padding="20,10"
+                                FontSize="14"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ContentControl.DataTemplates>
+        </ContentControl>
+    </Grid>
+
+</Window>
