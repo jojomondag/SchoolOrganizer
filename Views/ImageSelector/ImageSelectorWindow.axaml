@@ -1,0 +1,300 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SchoolOrganizer.ViewModels"
+        xmlns:local="using:SchoolOrganizer.Views.ImageSelector"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="SchoolOrganizer.Views.ImageSelector.ImageSelectorWindow"
+        x:DataType="vm:ImageSelectorViewModel"
+        Title="Select Profile Image"
+        Width="800"
+        Height="600"
+        MinWidth="600"
+        MinHeight="400"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <local:FileNameConverter x:Key="FileNameConverter"/>
+        <local:ImagePathConverter x:Key="ImagePathConverter"/>
+        <local:AsyncImagePathConverter x:Key="AsyncImagePathConverter"/>
+    </Window.Resources>
+
+    <Design.DataContext>
+        <vm:ImageSelectorViewModel/>
+    </Design.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#f5f5f5" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Select Profile Image" FontSize="20" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBlock Text="Choose an existing image or browse for a new one" FontSize="14" Foreground="#666"/>
+                </StackPanel>
+
+                <Button Grid.Column="1" 
+                        Content="Browse..." 
+                        Command="{Binding BrowseForImageCommand}"
+                        Background="#3498db"
+                        Foreground="White"
+                        Padding="20,10"
+                        CornerRadius="5"
+                        FontWeight="SemiBold"/>
+            </Grid>
+        </Border>
+
+        <!-- Image Gallery -->
+        <ScrollViewer Grid.Row="1" Grid.Column="0" Padding="20">
+            <Panel>
+                <!-- Loading Indicator -->
+                <Border IsVisible="{Binding IsLoading}" 
+                        Background="#80FFFFFF" 
+                        HorizontalAlignment="Stretch" 
+                        VerticalAlignment="Stretch">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Loading images..." FontSize="16" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- No Images Message -->
+                <StackPanel IsVisible="{Binding !IsLoading}"
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center">
+                    <StackPanel.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="!IsLoading"/>
+                            <Binding Path="AvailableImages.Count" Converter="{x:Static ObjectConverters.Equal}" ConverterParameter="0"/>
+                        </MultiBinding>
+                    </StackPanel.IsVisible>
+                    <TextBlock Text="No images available" FontSize="16" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Text="Click 'Browse...' to add images" FontSize="14" Foreground="#666" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Images Grid -->
+                <ItemsControl ItemsSource="{Binding AvailableImages}" 
+                              IsVisible="{Binding !IsLoading}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" ItemWidth="150" ItemHeight="180"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                                <Border Background="White" 
+                                        CornerRadius="8" 
+                                        Margin="10" 
+                                        Padding="10"
+                                        BoxShadow="0 2 8 0 #20000000"
+                                        Cursor="Hand">
+                                    <Border.Styles>
+                                        <Style Selector="Border:pointerover">
+                                            <Setter Property="BoxShadow" Value="0 4 16 0 #30000000"/>
+                                        </Style>
+                                    </Border.Styles>                                <Button Command="{Binding $parent[ItemsControl].((vm:ImageSelectorViewModel)DataContext).SelectImageCommand}"
+                                        CommandParameter="{Binding}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0">
+                                    <Button.Template>
+                                        <ControlTemplate>
+                                            <ContentPresenter Content="{TemplateBinding Content}"/>
+                                        </ControlTemplate>
+                                    </Button.Template>
+
+                                    <StackPanel>
+                                        <!-- Image Preview -->
+                                        <Border Width="120" Height="120" CornerRadius="8" ClipToBounds="True" Margin="0,0,0,10">
+                                            <Grid>
+                                                <Image Source="{Binding Converter={StaticResource AsyncImagePathConverter}}" 
+                                                       Stretch="UniformToFill"/>
+                                                
+                                                <!-- Remove Button -->
+                                                <Button Width="24" Height="24"
+                                                        Background="#e74c3c"
+                                                        Foreground="White"
+                                                        CornerRadius="12"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Top"
+                                                        Margin="5"
+                                                        Padding="0"
+                                                        Command="{Binding $parent[ItemsControl].((vm:ImageSelectorViewModel)DataContext).RemoveImageCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Remove image">
+                                                    <TextBlock Text="×" 
+                                                               FontSize="16" 
+                                                               FontWeight="Bold"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Image Name -->
+                                        <TextBlock Text="{Binding Converter={StaticResource FileNameConverter}}"
+                                                   FontSize="12" 
+                                                   HorizontalAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   MaxLines="2"
+                                                   TextTrimming="CharacterEllipsis"/>
+
+                                        <!-- Selection Indicator -->
+                                        <Border Width="20" Height="20" 
+                                                CornerRadius="10" 
+                                                Background="#27ae60" 
+                                                HorizontalAlignment="Center"
+                                                Margin="0,5,0,0">
+                                            <Border.IsVisible>
+                                                <Binding Path="$parent[ItemsControl].((vm:ImageSelectorViewModel)DataContext).SelectedImagePath" 
+                                                         Converter="{x:Static ObjectConverters.Equal}" 
+                                                         ConverterParameter="{Binding}"/>
+                                            </Border.IsVisible>
+                                            <TextBlock Text="✓" 
+                                                       Foreground="White" 
+                                                       FontSize="12" 
+                                                       FontWeight="Bold"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Button>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Panel>
+        </ScrollViewer>
+
+        <!-- Preview Panel -->
+        <Border Grid.Row="1" Grid.Column="1" Background="#f9f9f9" Padding="20" Margin="0,20,20,20">
+            <StackPanel>
+                <TextBlock Text="Preview" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+                
+                <!-- Large Preview Image -->
+                <Border Width="260" Height="260" 
+                        CornerRadius="8" 
+                        Background="White"
+                        ClipToBounds="True"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,20">
+                    <Border.IsVisible>
+                        <Binding Path="PreviewImagePath" Converter="{x:Static StringConverters.IsNotNullOrEmpty}"/>
+                    </Border.IsVisible>
+                    <Image Source="{Binding PreviewImagePath, Converter={StaticResource ImagePathConverter}}" 
+                           Stretch="UniformToFill"/>
+                </Border>
+
+                <!-- No Preview Message -->
+                <Border Width="260" Height="260" 
+                        CornerRadius="8" 
+                        Background="White"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,20">
+                    <Border.IsVisible>
+                        <Binding Path="PreviewImagePath" Converter="{x:Static StringConverters.IsNullOrEmpty}"/>
+                    </Border.IsVisible>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="No Image Selected" 
+                                   FontSize="16" 
+                                   Foreground="#999"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Click an image to preview" 
+                                   FontSize="12" 
+                                   Foreground="#bbb"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Image Details -->
+                <StackPanel IsVisible="{Binding PreviewImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="Image Details" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                    
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="SemiBold" Margin="0,0,10,5"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                   Text="{Binding PreviewImagePath, Converter={StaticResource FileNameConverter}}" 
+                                   TextWrapping="Wrap" 
+                                   Margin="0,0,0,5"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Path:" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" 
+                                   Text="{Binding PreviewImagePath}" 
+                                   TextWrapping="Wrap"
+                                   FontSize="10"
+                                   Foreground="#666"/>
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Footer Buttons -->
+        <Border Grid.Row="2" Grid.ColumnSpan="2" Background="#f5f5f5" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Selected Image Info -->
+                <StackPanel Grid.Column="0" VerticalAlignment="Center"
+                           IsVisible="{Binding SelectedImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="Selected:" FontSize="12" Foreground="#666"/>
+                    <TextBlock Text="{Binding SelectedImagePath, Converter={StaticResource FileNameConverter}}"
+                               FontSize="14" FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <!-- Action Buttons -->
+                <Button Grid.Column="1" 
+                        Content="Cancel" 
+                        Command="{Binding CancelCommand}"
+                        Background="Transparent"
+                        BorderBrush="#bdc3c7"
+                        BorderThickness="1"
+                        Padding="20,10"
+                        Margin="0,0,10,0"
+                        CornerRadius="5"/>
+
+                <Button Grid.Column="2" 
+                        Content="Select" 
+                        Command="{Binding ConfirmSelectionCommand}"
+                        Background="#27ae60"
+                        Foreground="White"
+                        Padding="20,10"
+                        CornerRadius="5"
+                        FontWeight="SemiBold">
+                    <Button.IsEnabled>
+                        <Binding Path="SelectedImagePath" Converter="{x:Static StringConverters.IsNotNullOrEmpty}"/>
+                    </Button.IsEnabled>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

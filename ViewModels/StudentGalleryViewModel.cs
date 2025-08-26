@@ -31,6 +31,12 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [ObservableProperty]
     private bool isLoading = false;
 
+    // Event for requesting image selection
+    public event EventHandler? AddStudentRequested;
+    
+    // Event for requesting image selection for a specific student
+    public event EventHandler<Student>? StudentImageChangeRequested;
+
     public StudentGalleryViewModel()
     {
         _ = LoadStudents();
@@ -76,7 +82,15 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [RelayCommand]
     private void SelectStudent(Student? student)
     {
-        SelectedStudent = student;
+        System.Diagnostics.Debug.WriteLine($"SelectStudent called with: {student?.Name ?? "null"}");
+        
+        if (student != null)
+        {
+            SelectedStudent = student;
+            System.Diagnostics.Debug.WriteLine($"About to invoke StudentImageChangeRequested for: {student.Name}");
+            // Request image selection for this student
+            StudentImageChangeRequested?.Invoke(this, student);
+        }
     }
 
     [RelayCommand]
@@ -162,5 +176,101 @@ public partial class StudentGalleryViewModel : ViewModelBase
     private async Task Refresh()
     {
         await LoadStudents();
+    }
+
+    [RelayCommand]
+    private void AddStudent()
+    {
+        // Notify the view to show the image selector
+        AddStudentRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    public async Task UpdateStudentImage(Student student, string newImagePath)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"UpdateStudentImage called for: {student.Name} with image: {newImagePath}");
+            
+            // Find and update the student in the current Students collection
+            var studentInCollection = Students.FirstOrDefault(s => s.Id == student.Id);
+            if (studentInCollection != null)
+            {
+                // Update the student in the collection (this will trigger UI updates)
+                studentInCollection.PictureUrl = newImagePath;
+                System.Diagnostics.Debug.WriteLine($"Updated student in collection: {student.Name} -> {newImagePath}");
+                
+                // Also update the passed student object
+                student.PictureUrl = newImagePath;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Could not find student {student.Name} (ID: {student.Id}) in collection");
+            }
+
+            // Save the updated students list to JSON
+            await SaveStudentsToJson(studentInCollection ?? student);
+            
+            System.Diagnostics.Debug.WriteLine($"Student image update completed for: {student.Name}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error updating student image: {ex.Message}");
+        }
+    }
+
+    private async Task SaveStudentsToJson(Student updatedStudent)
+    {
+        try
+        {
+            var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
+            
+            // Convert all students to a list for serialization
+            var allStudents = await LoadAllStudentsFromJson();
+            
+            // Find and update the student in the complete list
+            var studentToUpdate = allStudents.FirstOrDefault(s => s.Id == updatedStudent.Id);
+            if (studentToUpdate != null)
+            {
+                studentToUpdate.PictureUrl = updatedStudent.PictureUrl;
+                System.Diagnostics.Debug.WriteLine($"Updated student {updatedStudent.Name} with image: {updatedStudent.PictureUrl}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Could not find student with ID {updatedStudent.Id} to update");
+            }
+
+            var jsonContent = JsonSerializer.Serialize(allStudents, new JsonSerializerOptions 
+            { 
+                WriteIndented = true 
+            });
+            
+            await File.WriteAllTextAsync(jsonPath, jsonContent);
+            System.Diagnostics.Debug.WriteLine($"Successfully saved students to JSON");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving students to JSON: {ex.Message}");
+        }
+    }
+
+    private async Task<List<Student>> LoadAllStudentsFromJson()
+    {
+        try
+        {
+            var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
+            
+            if (File.Exists(jsonPath))
+            {
+                var jsonContent = await File.ReadAllTextAsync(jsonPath);
+                var studentList = JsonSerializer.Deserialize<List<Student>>(jsonContent);
+                return studentList ?? new List<Student>();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading all students from JSON: {ex.Message}");
+        }
+        
+        return new List<Student>();
     }
 }

@@ -1,0 +1,25 @@
+Image Selector Demo Instructions
+================================
+
+1. The Image Selector has been successfully created and integrated!
+
+2. To test the image selector:
+   - The application should be running now
+   - Click the "Add Student" button in the Student Gallery
+   - The Image Selector window will open
+
+3. Image Selector Features:
+   - Browse for new images using the "Browse..." button
+   - Images are automatically copied to this ProfileImages folder
+   - Select images from the gallery view
+   - Confirm selection with the "Select" button
+
+4. To add sample images for testing:
+   - Copy any JPG, PNG, or other image files to this folder
+   - Refresh the image selector to see them appear
+
+5. File Structure:
+   - Images are stored in: Data/ProfileImages/
+   - Supported formats: .jpg, .jpeg, .png, .bmp, .gif, .webp
+
+The image selector is fully functional and ready to use!
