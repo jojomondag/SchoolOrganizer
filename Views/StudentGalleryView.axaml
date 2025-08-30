@@ -10,9 +10,7 @@
              x:DataType="vm:StudentGalleryViewModel"
              x:Name="GalleryView">
 
-  <UserControl.Resources>
-    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
-  </UserControl.Resources>
+
 
   <Design.DataContext>
     <vm:StudentGalleryViewModel/>
@@ -119,11 +117,7 @@
                   </Button.Template>
 
                   <StackPanel>
-                    <!-- Student Image -->
-                    <Border Width="200" Height="200" CornerRadius="100" ClipToBounds="True" Margin="0,0,0,15">
-                      <Image Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}" 
-                             Stretch="UniformToFill"/>
-                    </Border>
+
 
                     <!-- Student Info -->
                     <StackPanel>
