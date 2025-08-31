@@ -1,0 +1,10 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ext="using:ImageSelector"
+        x:Class="SchoolOrganizer.Views.ImageCropWindow"
+        Width="1000" Height="700"
+        Title="Crop Profile Image">
+  <ext:ImageSelectorView/>
+</Window>
+
+

@@ -34,6 +34,8 @@ public partial class StudentGalleryViewModel : ViewModelBase
     // Event for requesting image selection
     public event EventHandler? AddStudentRequested;
     
+    // Event raised when a student's image should be changed (on card click)
+    public event EventHandler<Student>? StudentImageChangeRequested;
 
 
     public StudentGalleryViewModel()
@@ -86,7 +88,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
         if (student != null)
         {
             SelectedStudent = student;
-
+            StudentImageChangeRequested?.Invoke(this, student);
         }
     }
 
@@ -169,20 +171,31 @@ public partial class StudentGalleryViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
-    private async Task Refresh()
-    {
-        await LoadStudents();
-    }
 
     [RelayCommand]
     private void AddStudent()
     {
-        // Notify the view to show the image selector
         AddStudentRequested?.Invoke(this, EventArgs.Empty);
     }
 
+    public async Task UpdateStudentImage(Student student, string newImagePath)
+    {
+        try
+        {
+            var studentInCollection = Students.FirstOrDefault(s => s.Id == student.Id);
+            if (studentInCollection != null)
+            {
+                studentInCollection.PictureUrl = newImagePath;
+            }
+            student.PictureUrl = newImagePath;
 
+            await SaveStudentsToJson(studentInCollection ?? student);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error updating student image: {ex.Message}");
+        }
+    }
 
     private async Task SaveStudentsToJson(Student updatedStudent)
     {
@@ -197,7 +210,8 @@ public partial class StudentGalleryViewModel : ViewModelBase
             var studentToUpdate = allStudents.FirstOrDefault(s => s.Id == updatedStudent.Id);
             if (studentToUpdate != null)
             {
-                System.Diagnostics.Debug.WriteLine($"Updated student {updatedStudent.Name}");
+                studentToUpdate.PictureUrl = updatedStudent.PictureUrl;
+                System.Diagnostics.Debug.WriteLine($"Updated student {updatedStudent.Name} with new image");
             }
             else
             {

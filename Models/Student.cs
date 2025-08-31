@@ -11,6 +11,9 @@ public partial class Student : ObservableObject
     [ObservableProperty]
     private string name = string.Empty;
 
+    [ObservableProperty]
+    private string pictureUrl = string.Empty;
+
 
     [ObservableProperty]
     private string className = string.Empty;
@@ -33,6 +36,7 @@ public partial class Student : ObservableObject
     {
         Id = id;
         Name = name;
+        PictureUrl = string.Empty;
         ClassName = className;
         Mentor = mentor;
         Email = email;

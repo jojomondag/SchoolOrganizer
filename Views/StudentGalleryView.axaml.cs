@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using SchoolOrganizer.ViewModels;
+using System.Threading.Tasks;
 
 
 namespace SchoolOrganizer.Views;
@@ -25,6 +26,7 @@ public partial class StudentGalleryView : UserControl
         {
             System.Diagnostics.Debug.WriteLine("Unsubscribing from old ViewModel");
             oldViewModel.AddStudentRequested -= HandleAddStudentRequested;
+            oldViewModel.StudentImageChangeRequested -= HandleStudentImageChangeRequested;
         }
         
         // Subscribe to new ViewModel
@@ -32,6 +34,7 @@ public partial class StudentGalleryView : UserControl
         {
             System.Diagnostics.Debug.WriteLine("ViewModel found via DataContextChanged, subscribing to events");
             viewModel.AddStudentRequested += HandleAddStudentRequested;
+            viewModel.StudentImageChangeRequested += HandleStudentImageChangeRequested;
             
             // Store reference for cleanup
             Tag = viewModel;
@@ -57,6 +60,30 @@ public partial class StudentGalleryView : UserControl
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error adding student: {ex.Message}");
+        }
+    }
+
+    private async void HandleStudentImageChangeRequested(object? sender, SchoolOrganizer.Models.Student student)
+    {
+        await HandleStudentImageChange(student);
+    }
+
+    private async Task HandleStudentImageChange(SchoolOrganizer.Models.Student student)
+    {
+        try
+        {
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            if (parentWindow == null) return;
+
+            var newPath = await ImageCropWindow.ShowAsync(parentWindow);
+            if (!string.IsNullOrEmpty(newPath) && DataContext is StudentGalleryViewModel vm)
+            {
+                await vm.UpdateStudentImage(student, newPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error changing image: {ex.Message}");
         }
     }
 }

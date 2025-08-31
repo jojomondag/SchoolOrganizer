@@ -10,8 +10,10 @@
              x:DataType="vm:StudentGalleryViewModel"
              x:Name="GalleryView">
 
-
-
+  <UserControl.Resources>
+    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
+    <views:StringIsNullOrWhiteSpaceConverter x:Key="IsNullOrWhiteSpace"/>
+  </UserControl.Resources>
   <Design.DataContext>
     <vm:StudentGalleryViewModel/>
   </Design.DataContext>
@@ -34,7 +36,6 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
 
           <!-- Search Box -->
@@ -50,15 +51,8 @@
                     SelectedItem="{Binding SelectedClass}"
                     Margin="0,0,10,0"/>
 
-          <!-- Refresh Button -->
-          <Button Grid.Column="3" 
-                  Content="Refresh" 
-                  Command="{Binding RefreshCommand}"
-                  Padding="15,5"
-                  Margin="0,0,10,0"/>
-          
           <!-- Add Student Button -->
-          <Button Grid.Column="4" 
+          <Button Grid.Column="3" 
                   Content="Add Student" 
                   Command="{Binding AddStudentCommand}"
                   Background="#27ae60"
@@ -82,10 +76,10 @@
         </Border>
 
         <!-- Students Grid -->
-        <ItemsControl x:Name="StudentCards" ItemsSource="{Binding Students}" IsVisible="{Binding !IsLoading}">
+        <ItemsControl x:Name="ProfileCards" ItemsSource="{Binding Students}" IsVisible="{Binding !IsLoading}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal"/>
+              <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
 
@@ -94,53 +88,70 @@
               <Border Background="White" 
                       CornerRadius="8" 
                       Margin="10" 
-                      Padding="15"
+                      Padding="20,15"
                       BoxShadow="0 2 8 0 #20000000"
-                      Width="280"
-                      Cursor="Hand">
-                <Border.Styles>
-                  <Style Selector="Border:pointerover">
-                    <Setter Property="BoxShadow" Value="0 4 16 0 #30000000"/>
-                  </Style>
-                </Border.Styles>
+                      Width="220"
+                      HorizontalAlignment="Center">
 
-                <!-- Click handled via Button instead of Interaction.Behaviors -->
-                <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
-                        CommandParameter="{Binding}"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Padding="0">
-                  <Button.Template>
-                    <ControlTemplate>
-                      <ContentPresenter Content="{TemplateBinding Content}"/>
-                    </ControlTemplate>
-                  </Button.Template>
 
-                  <StackPanel>
-
+                <StackPanel HorizontalAlignment="Center">
+                    <!-- Student Image with Click Handler -->
+                    <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
+                            CommandParameter="{Binding}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Cursor="Hand"
+                            Name="ImageButton">
+                        <Button.Styles>
+                            <Style Selector="Button#ImageButton /template/ Ellipse#HoverRing">
+                                <Setter Property="StrokeThickness" Value="0"/>
+                                <Setter Property="Stroke" Value="#666666"/>
+                                <Setter Property="Fill" Value="Transparent"/>
+                            </Style>
+                            <Style Selector="Button#ImageButton:pointerover /template/ Ellipse#HoverRing">
+                                <Setter Property="StrokeThickness" Value="3"/>
+                            </Style>
+                        </Button.Styles>
+                        <Button.Template>
+                            <ControlTemplate>
+                                <Grid Width="180" Height="180" Margin="0,0,0,15" HorizontalAlignment="Center">
+                                    <Border CornerRadius="90" ClipToBounds="True" Background="#EEE">
+                                        <Grid>
+                                            <Image Source="{Binding $parent[Button].((models:Student)DataContext).PictureUrl, Converter={StaticResource UniversalImageConverter}}" 
+                                                   Stretch="UniformToFill"/>
+                                            <TextBlock Text="?" FontSize="72" FontWeight="Bold" Foreground="#888"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       IsVisible="{Binding $parent[Button].((models:Student)DataContext).PictureUrl, Converter={StaticResource IsNullOrWhiteSpace}}"/>
+                                        </Grid>
+                                    </Border>
+                                    <Ellipse Name="HoverRing" IsHitTestVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                                </Grid>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
 
                     <!-- Student Info -->
                     <StackPanel>
-                      <TextBlock Text="{Binding Name}" 
-                                 FontSize="18" 
-                                 FontWeight="Bold" 
-                                 HorizontalAlignment="Center"
-                                 Margin="0,0,0,5"/>
-                      
-                      <TextBlock Text="{Binding ClassName}" 
-                                 FontSize="14" 
-                                 Foreground="#666"
-                                 HorizontalAlignment="Center"
-                                 Margin="0,0,0,5"/>
-                      
-                      <TextBlock Text="{Binding Mentor, StringFormat='Mentor: {0}'}" 
-                                 FontSize="12" 
-                                 Foreground="#888"
-                                 HorizontalAlignment="Center"
-                                 TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Name}" 
+                                   FontSize="18" 
+                                   FontWeight="Bold" 
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,5"/>
+                        
+                        <TextBlock Text="{Binding ClassName}" 
+                                   FontSize="14" 
+                                   Foreground="#666"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,5"/>
+                        
+                        <TextBlock Text="{Binding Mentor, StringFormat='Mentor: {0}'}" 
+                                   FontSize="12" 
+                                   Foreground="#888"
+                                   HorizontalAlignment="Center"
+                                   TextWrapping="Wrap"/>
                     </StackPanel>
-                  </StackPanel>
-                </Button>
+                </StackPanel>
               </Border>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
