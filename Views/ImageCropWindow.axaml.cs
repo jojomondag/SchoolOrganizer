@@ -31,7 +31,7 @@ public partial class ImageCropWindow : Window
         return dialog.SavedImagePath;
     }
 
-    private async Task<string?> PrepareSavePath()
+    private Task<string?> PrepareSavePath()
     {
         try
         {
@@ -45,11 +45,11 @@ public partial class ImageCropWindow : Window
             // Generate unique filename
             var fileName = $"student_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.png";
             var path = Path.Combine(imagesDir, fileName);
-            return path;
+            return Task.FromResult<string?>(path);
         }
         catch
         {
-            return null;
+            return Task.FromResult<string?>(null);
         }
     }
 }
