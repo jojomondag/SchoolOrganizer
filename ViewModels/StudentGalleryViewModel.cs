@@ -36,6 +36,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
     
     // Event raised when a student's image should be changed (on card click)
     public event EventHandler<Student>? StudentImageChangeRequested;
+    public event EventHandler<Student>? EditStudentRequested;
 
 
     public StudentGalleryViewModel()
@@ -90,6 +91,12 @@ public partial class StudentGalleryViewModel : ViewModelBase
             SelectedStudent = student;
             StudentImageChangeRequested?.Invoke(this, student);
         }
+    }
+
+    [RelayCommand]
+    private void EditStudent(Student student)
+    {
+        EditStudentRequested?.Invoke(this, student);
     }
 
     [RelayCommand]
@@ -200,6 +207,26 @@ public partial class StudentGalleryViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error adding new student: {ex.Message}");
+        }
+    }
+
+    public async Task UpdateExistingStudentAsync(Student student, string name, string className, string mentor, string email, DateTime enrollmentDate, string picturePath)
+    {
+        try
+        {
+            student.Name = name;
+            student.ClassName = className;
+            student.Mentor = mentor;
+            student.Email = email;
+            student.EnrollmentDate = enrollmentDate;
+            student.PictureUrl = picturePath ?? string.Empty;
+
+            UpdateAvailableClasses();
+            await SaveStudentsCollectionToJson();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error updating student: {ex.Message}");
         }
     }
 

@@ -94,7 +94,20 @@
                       HorizontalAlignment="Center">
 
 
-                <StackPanel HorizontalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Edit button in top-right -->
+                    <Button Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,8"
+                            Width="24" Height="24" Content="✎" FontSize="12"
+                            Background="#f0f0f0" BorderBrush="#ccc" Cursor="Hand"
+                            Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).EditStudentCommand}"
+                            CommandParameter="{Binding}"/>
+
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center">
                     <!-- Student Image with Click Handler -->
                     <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
                             CommandParameter="{Binding}"
@@ -151,7 +164,8 @@
                                    HorizontalAlignment="Center"
                                    TextWrapping="Wrap"/>
                     </StackPanel>
-                </StackPanel>
+                    </StackPanel>
+                </Grid>
               </Border>
             </DataTemplate>
           </ItemsControl.ItemTemplate>

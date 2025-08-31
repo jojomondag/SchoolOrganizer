@@ -13,7 +13,7 @@
 
   <Border Padding="20">
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*">
-      <TextBlock Text="Add Student" FontSize="20" FontWeight="Bold"/>
+      <TextBlock Text="Add Student" FontSize="20" FontWeight="Bold" Name="TitleText"/>
 
       <Grid Grid.Row="1" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,15,0,0">
         <!-- Inputs -->
@@ -21,10 +21,12 @@
         <TextBox   Grid.Row="0" Grid.Column="0" Margin="0,22,0,10" Name="NameBox"/>
 
         <TextBlock Grid.Row="1" Grid.Column="0" Text="Class"/>
-        <TextBox   Grid.Row="1" Grid.Column="0" Margin="0,22,0,10" Name="ClassBox"/>
+        <ComboBox Grid.Row="1" Grid.Column="0" Margin="0,22,0,10" Name="ClassBox"
+                  ItemsSource="{Binding AvailableClasses}"/>
 
         <TextBlock Grid.Row="2" Grid.Column="0" Text="Mentor"/>
-        <TextBox   Grid.Row="2" Grid.Column="0" Margin="0,22,0,10" Name="MentorBox"/>
+        <ComboBox Grid.Row="2" Grid.Column="0" Margin="0,22,0,10" Name="MentorBox"
+                  ItemsSource="{Binding AvailableMentors}"/>
 
         <TextBlock Grid.Row="3" Grid.Column="0" Text="Email"/>
         <TextBox   Grid.Row="3" Grid.Column="0" Margin="0,22,0,10" Name="EmailBox"/>
@@ -47,7 +49,7 @@
       <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,12,0,0">
         <TextBlock Name="ValidationText" Foreground="#c0392b" VerticalAlignment="Center" Margin="0,0,12,0"/>
         <Button Content="Cancel" Click="OnCancelClick"/>
-        <Button Content="Add"  Click="OnAddClick" Background="#27ae60" Foreground="White"/>
+        <Button Content="Add"  Click="OnAddClick" Background="#27ae60" Foreground="White" Name="PrimaryButton"/>
       </StackPanel>
     </Grid>
   </Border>
