@@ -178,6 +178,53 @@ public partial class StudentGalleryViewModel : ViewModelBase
         AddStudentRequested?.Invoke(this, EventArgs.Empty);
     }
 
+    public async Task AddNewStudentAsync(string name, string className, string mentor, string email, DateTime enrollmentDate, string picturePath)
+    {
+        try
+        {
+            var newStudent = new Student
+            {
+                Id = await GenerateNextStudentIdAsync(),
+                Name = name,
+                ClassName = className,
+                Mentor = mentor,
+                Email = email,
+                EnrollmentDate = enrollmentDate,
+                PictureUrl = picturePath ?? string.Empty
+            };
+
+            Students.Add(newStudent);
+            UpdateAvailableClasses();
+            await SaveStudentsCollectionToJson();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error adding new student: {ex.Message}");
+        }
+    }
+
+    private async Task<int> GenerateNextStudentIdAsync()
+    {
+        var all = await LoadAllStudentsFromJson();
+        var maxId = all.Any() ? all.Max(s => s.Id) : 0;
+        return maxId + 1;
+    }
+
+    private async Task SaveStudentsCollectionToJson()
+    {
+        try
+        {
+            var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
+            var list = Students.ToList();
+            var jsonContent = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(jsonPath, jsonContent);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving students collection: {ex.Message}");
+        }
+    }
+
     public async Task UpdateStudentImage(Student student, string newImagePath)
     {
         try

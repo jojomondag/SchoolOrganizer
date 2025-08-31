@@ -54,8 +54,23 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
-            // TODO: Implement student creation logic
             System.Diagnostics.Debug.WriteLine("Add student requested");
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            if (parentWindow == null || ViewModel == null) return;
+
+            var addWindow = new AddStudentWindow();
+            var result = await addWindow.ShowDialog<AddStudentWindow.AddedStudentResult?>(parentWindow);
+            if (result != null)
+            {
+                await ViewModel.AddNewStudentAsync(
+                    result.Name,
+                    result.ClassName,
+                    result.Mentor,
+                    result.Email,
+                    result.EnrollmentDate,
+                    result.PicturePath
+                );
+            }
         }
         catch (Exception ex)
         {

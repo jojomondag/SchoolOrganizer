@@ -1,0 +1,56 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:SchoolOrganizer.Views"
+        x:Class="SchoolOrganizer.Views.AddStudentWindow"
+        x:DataType="views:AddStudentWindow+AddStudentState"
+        Width="480" Height="560"
+        CanResize="False"
+        Title="Add New Student">
+
+  <Window.Resources>
+    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
+  </Window.Resources>
+
+  <Border Padding="20">
+    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*">
+      <TextBlock Text="Add Student" FontSize="20" FontWeight="Bold"/>
+
+      <Grid Grid.Row="1" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,15,0,0">
+        <!-- Inputs -->
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Name"/>
+        <TextBox   Grid.Row="0" Grid.Column="0" Margin="0,22,0,10" Name="NameBox"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Class"/>
+        <TextBox   Grid.Row="1" Grid.Column="0" Margin="0,22,0,10" Name="ClassBox"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Mentor"/>
+        <TextBox   Grid.Row="2" Grid.Column="0" Margin="0,22,0,10" Name="MentorBox"/>
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Email"/>
+        <TextBox   Grid.Row="3" Grid.Column="0" Margin="0,22,0,10" Name="EmailBox"/>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Enrollment Date"/>
+        <DatePicker Grid.Row="4" Grid.Column="0" Margin="0,22,0,10" Name="EnrollmentPicker"/>
+
+        <!-- Image -->
+        <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <Border Width="100" Height="100" CornerRadius="50" ClipToBounds="True" Background="#EEE">
+            <Grid>
+              <Image Source="{Binding SelectedImagePath, Converter={StaticResource UniversalImageConverter}}" Stretch="UniformToFill"/>
+              <TextBlock Text="?" FontSize="36" FontWeight="Bold" Foreground="#888" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsImageMissing}"/>
+            </Grid>
+          </Border>
+          <Button Content="Choose/Crop Image" Click="OnChooseImageClick"/>
+        </StackPanel>
+      </Grid>
+
+      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,12,0,0">
+        <TextBlock Name="ValidationText" Foreground="#c0392b" VerticalAlignment="Center" Margin="0,0,12,0"/>
+        <Button Content="Cancel" Click="OnCancelClick"/>
+        <Button Content="Add"  Click="OnAddClick" Background="#27ae60" Foreground="White"/>
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>
+
+
