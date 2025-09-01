@@ -89,7 +89,6 @@ public partial class StudentGalleryViewModel : ViewModelBase
         if (student != null)
         {
             SelectedStudent = student;
-            StudentImageChangeRequested?.Invoke(this, student);
         }
     }
 
@@ -97,6 +96,18 @@ public partial class StudentGalleryViewModel : ViewModelBase
     private void EditStudent(Student student)
     {
         EditStudentRequested?.Invoke(this, student);
+    }
+
+    [RelayCommand]
+    private void ChangeImage(Student student)
+    {
+        StudentImageChangeRequested?.Invoke(this, student);
+    }
+
+    [RelayCommand]
+    private void DeselectStudent()
+    {
+        SelectedStudent = null;
     }
 
     [RelayCommand]
