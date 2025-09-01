@@ -63,8 +63,11 @@
     </Border>
 
     <!-- Student Gallery -->
-    <ScrollViewer Grid.Row="1" Padding="20">
-      <Panel>
+    <ScrollViewer Grid.Row="1" 
+                  Padding="20" 
+                  VerticalScrollBarVisibility="Visible" 
+                  HorizontalScrollBarVisibility="Disabled">
+      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <!-- Loading Indicator -->
         <Border IsVisible="{Binding IsLoading}" 
                 Background="#80FFFFFF" 
@@ -76,10 +79,18 @@
         </Border>
 
         <!-- Students Grid -->
-        <ItemsControl x:Name="ProfileCards" ItemsSource="{Binding Students}" IsVisible="{Binding !IsLoading}">
+        <ItemsControl x:Name="ProfileCards" 
+                      ItemsSource="{Binding Students}" 
+                      IsVisible="{Binding !IsLoading}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      MinHeight="800">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+              <WrapPanel Orientation="Horizontal" 
+                         HorizontalAlignment="Center"
+                         MinWidth="800"
+                         VerticalAlignment="Stretch"/>
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
 
@@ -170,7 +181,7 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-      </Panel>
+      </Grid>
     </ScrollViewer>
 
     <!-- Selected Student Details -->

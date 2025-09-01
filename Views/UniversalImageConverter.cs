@@ -21,6 +21,8 @@ public class UniversalImageConverter : IValueConverter
 
                 if (File.Exists(path))
                 {
+                    // Create a new Bitmap instance to ensure the UI updates
+                    // This helps when the same file path is used but the content has changed
                     return new Bitmap(path);
                 }
             }

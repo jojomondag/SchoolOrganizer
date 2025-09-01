@@ -259,8 +259,23 @@ public partial class StudentGalleryViewModel : ViewModelBase
             var studentInCollection = Students.FirstOrDefault(s => s.Id == student.Id);
             if (studentInCollection != null)
             {
+                // Update the student in the collection
                 studentInCollection.PictureUrl = newImagePath;
+                
+                // Force the UI to refresh by triggering a collection change notification
+                // This is a workaround for when property changes in collection items don't trigger UI updates
+                OnPropertyChanged(nameof(Students));
+                
+                // Also try to force a refresh of the specific student item
+                // This can help with binding issues in some cases
+                var index = Students.IndexOf(studentInCollection);
+                if (index >= 0)
+                {
+                    Students[index] = studentInCollection;
+                }
             }
+            
+            // Also update the passed student object
             student.PictureUrl = newImagePath;
 
             await SaveStudentsToJson(studentInCollection ?? student);
