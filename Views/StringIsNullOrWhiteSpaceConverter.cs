@@ -12,7 +12,7 @@ public class StringIsNullOrWhiteSpaceConverter : IValueConverter
         return string.IsNullOrWhiteSpace(text);
     }
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => value;
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => value;
 }
 
 

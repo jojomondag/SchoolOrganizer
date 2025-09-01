@@ -1,6 +1,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 
@@ -81,6 +82,18 @@ public partial class AddStudentWindow : Window
         if (!string.IsNullOrWhiteSpace(path))
         {
             state.SelectedImagePath = path;
+            // Force a refresh in case the file isn't immediately readable
+            _ = Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(150);
+                var current = state.SelectedImagePath;
+                if (string.Equals(current, path, StringComparison.Ordinal))
+                {
+                    state.SelectedImagePath = string.Empty;
+                    await System.Threading.Tasks.Task.Delay(1);
+                    state.SelectedImagePath = path;
+                }
+            });
         }
     }
 
