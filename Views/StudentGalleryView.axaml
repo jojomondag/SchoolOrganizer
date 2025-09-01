@@ -13,6 +13,18 @@
   <UserControl.Resources>
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
     <views:StringIsNullOrWhiteSpaceConverter x:Key="IsNullOrWhiteSpace"/>
+    <views:StudentSelectionBrushConverter x:Key="StudentSelectionBrushConverter"/>
+    <ControlTemplate x:Key="FlatButtonTemplate">
+      <Border Background="{TemplateBinding Background}"
+              BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}"
+              CornerRadius="{TemplateBinding CornerRadius}">
+        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                          Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"/>
+      </Border>
+    </ControlTemplate>
   </UserControl.Resources>
   <Design.DataContext>
     <vm:StudentGalleryViewModel/>
@@ -68,7 +80,25 @@
                   VerticalScrollBarVisibility="Auto" 
                   HorizontalScrollBarVisibility="Disabled"
                   VerticalAlignment="Stretch">
-      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
+      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinHeight="400">
+        <!-- Background button for deselection -->
+        <Button Background="Transparent"
+                BorderThickness="0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Command="{Binding DeselectStudentCommand}"
+                Cursor="Arrow"
+                Template="{StaticResource FlatButtonTemplate}">
+          <Button.Styles>
+            <Style Selector="Button:pointerover">
+              <Setter Property="Background" Value="Transparent"/>
+            </Style>
+            <Style Selector="Button:pressed">
+              <Setter Property="Background" Value="Transparent"/>
+            </Style>
+          </Button.Styles>
+        </Button>
+        
         <!-- Loading Indicator -->
         <Border IsVisible="{Binding IsLoading}" 
                 Background="#80FFFFFF" 
@@ -100,87 +130,101 @@
               <Border Background="White" 
                       CornerRadius="8" 
                       Margin="10" 
-                      Padding="20,15"
+                      Padding="0"
                       BoxShadow="0 2 8 0 #20000000"
                       MinWidth="220"
                       MaxWidth="240"
                       HorizontalAlignment="Center"
-                      VerticalAlignment="Top">
+                      VerticalAlignment="Top"
+                      Cursor="Hand"
+                      BorderThickness="2">
+                <Border.BorderBrush>
+                  <MultiBinding Converter="{StaticResource StudentSelectionBrushConverter}">
+                    <Binding Path="$parent[UserControl].((vm:StudentGalleryViewModel)DataContext).SelectedStudent"/>
+                    <Binding Path="."/>
+                  </MultiBinding>
+                </Border.BorderBrush>
 
+                <!-- Clickable area for the entire card (fills entire border) -->
+                <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
+                        CommandParameter="{Binding}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="20,15"
+                        Cursor="Hand"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Name="CardButton"
+                        Template="{StaticResource FlatButtonTemplate}">
+                  <Button.Styles>
+                    <Style Selector="Button:pointerover">
+                      <Setter Property="Background" Value="Transparent"/>
+                    </Style>
+                    <Style Selector="Button:pressed">
+                      <Setter Property="Background" Value="Transparent"/>
+                    </Style>
+                  </Button.Styles>
+                    
+                    <Grid>
+                        <!-- Card Content -->
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <!-- Student Image -->
+                            <Grid Width="180" Height="180" Margin="0,8,0,15" HorizontalAlignment="Center">
+                                <Border CornerRadius="90" ClipToBounds="True" Background="#EEE">
+                                    <Grid>
+                                        <Image Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}" 
+                                               Stretch="UniformToFill"/>
+                                        <TextBlock Text="?" FontSize="72" FontWeight="Bold" Foreground="#888"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   IsVisible="{Binding PictureUrl, Converter={StaticResource IsNullOrWhiteSpace}}"/>
+                                    </Grid>
+                                </Border>
+                                
+                                <!-- Clickable overlay for image change -->
+                                <Button Background="Transparent"
+                                        BorderThickness="0"
+                                        Width="180" Height="180"
+                                        CornerRadius="90"
+                                        Cursor="Hand"
+                                        Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).ChangeImageCommand}"
+                                        CommandParameter="{Binding}"
+                                        ToolTip.Tip="Click to change image"
+                                        Template="{StaticResource FlatButtonTemplate}">
+                                  <Button.Styles>
+                                    <Style Selector="Button:pointerover">
+                                      <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                    <Style Selector="Button:pressed">
+                                      <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                  </Button.Styles>
+                                </Button>
+                            </Grid>
 
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Edit button in top-right -->
-                    <Button Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,8"
-                            Width="24" Height="24" Content="✎" FontSize="12"
-                            Background="#f0f0f0" BorderBrush="#ccc" Cursor="Hand"
-                            Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).EditStudentCommand}"
-                            CommandParameter="{Binding}"/>
-
-                    <StackPanel Grid.Row="1" HorizontalAlignment="Center">
-                    <!-- Student Image with Click Handler -->
-                    <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
-                            CommandParameter="{Binding}"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Padding="0"
-                            Cursor="Hand"
-                            Name="ImageButton">
-                        <Button.Styles>
-                            <Style Selector="Button#ImageButton /template/ Ellipse#HoverRing">
-                                <Setter Property="StrokeThickness" Value="0"/>
-                                <Setter Property="Stroke" Value="#666666"/>
-                                <Setter Property="Fill" Value="Transparent"/>
-                            </Style>
-                            <Style Selector="Button#ImageButton:pointerover /template/ Ellipse#HoverRing">
-                                <Setter Property="StrokeThickness" Value="3"/>
-                            </Style>
-                        </Button.Styles>
-                        <Button.Template>
-                            <ControlTemplate>
-                                <Grid Width="180" Height="180" Margin="0,0,0,15" HorizontalAlignment="Center">
-                                    <Border CornerRadius="90" ClipToBounds="True" Background="#EEE">
-                                        <Grid>
-                                            <Image Source="{Binding $parent[Button].((models:Student)DataContext).PictureUrl, Converter={StaticResource UniversalImageConverter}}" 
-                                                   Stretch="UniformToFill"/>
-                                            <TextBlock Text="?" FontSize="72" FontWeight="Bold" Foreground="#888"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       IsVisible="{Binding $parent[Button].((models:Student)DataContext).PictureUrl, Converter={StaticResource IsNullOrWhiteSpace}}"/>
-                                        </Grid>
-                                    </Border>
-                                    <Ellipse Name="HoverRing" IsHitTestVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                                </Grid>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-
-                    <!-- Student Info -->
-                    <StackPanel Margin="0,0,0,10">
-                        <TextBlock Text="{Binding Name}" 
-                                   FontSize="18" 
-                                   FontWeight="Bold" 
-                                   HorizontalAlignment="Center"
-                                   Margin="0,0,0,5"/>
-                        
-                        <TextBlock Text="{Binding ClassName}" 
-                                   FontSize="14" 
-                                   Foreground="#666"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,0,0,5"/>
-                        
-                        <TextBlock Text="{Binding Mentor, StringFormat='Mentor: {0}'}" 
-                                   FontSize="12" 
-                                   Foreground="#888"
-                                   HorizontalAlignment="Center"
-                                   TextWrapping="Wrap"
-                                   Margin="0,0,0,5"/>
-                    </StackPanel>
-                    </StackPanel>
-                </Grid>
+                            <!-- Student Info -->
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock Text="{Binding Name}" 
+                                           FontSize="18" 
+                                           FontWeight="Bold" 
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,5"/>
+                                
+                                <TextBlock Text="{Binding ClassName}" 
+                                           FontSize="14" 
+                                           Foreground="#666"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,5"/>
+                                
+                                <TextBlock Text="{Binding Mentor, StringFormat='Mentor: {0}'}" 
+                                           FontSize="12" 
+                                           Foreground="#888"
+                                           HorizontalAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,5"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Button>
               </Border>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
@@ -190,36 +234,53 @@
 
     <!-- Selected Student Details -->
     <Border Grid.Row="2" 
-            Background="#e8f4fd" 
+            Background="Transparent" 
             Padding="20"
             IsVisible="{Binding SelectedStudent, Converter={x:Static ObjectConverters.IsNotNull}}">
-      <StackPanel>
-        <TextBlock Text="Selected Student Details" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+      <Border Background="White"
+              CornerRadius="8"
+              Padding="16"
+              BoxShadow="0 2 8 0 #20000000">
         <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-          </Grid.RowDefinitions>
+          <Button Content="✎"
+                  Width="24" Height="24"
+                  Background="#f0f0f0" BorderBrush="#ccc"
+                  HorizontalAlignment="Left" VerticalAlignment="Top"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                  Padding="0"
+                  Command="{Binding EditStudentCommand}"
+                  CommandParameter="{Binding SelectedStudent}"
+                  Template="{StaticResource FlatButtonTemplate}"/>
+          <StackPanel Margin="0,32,0,0">
+            <TextBlock Text="Selected Student Details" FontSize="18" FontWeight="Bold"/>
+            <Separator Margin="0,8,0,8"/>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
 
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="Bold" Margin="0,0,10,0"/>
-          <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedStudent.Name}" Margin="0,0,20,0"/>
-          
-          <TextBlock Grid.Row="0" Grid.Column="2" Text="Email:" FontWeight="Bold" Margin="0,0,10,0"/>
-          <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding SelectedStudent.Email}"/>
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="Bold" Margin="0,0,10,0"/>
+              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedStudent.Name}" Margin="0,0,20,0"/>
+              
+              <TextBlock Grid.Row="0" Grid.Column="2" Text="Email:" FontWeight="Bold" Margin="0,0,10,0"/>
+              <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding SelectedStudent.Email}"/>
 
-          <TextBlock Grid.Row="1" Grid.Column="0" Text="Class:" FontWeight="Bold" Margin="0,0,10,0"/>
-          <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedStudent.ClassName}" Margin="0,0,20,0"/>
-          
-          <TextBlock Grid.Row="1" Grid.Column="2" Text="Mentor:" FontWeight="Bold" Margin="0,0,10,0"/>
-          <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudent.Mentor}"/>
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="Class:" FontWeight="Bold" Margin="0,0,10,0"/>
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedStudent.ClassName}" Margin="0,0,20,0"/>
+              
+              <TextBlock Grid.Row="1" Grid.Column="2" Text="Mentor:" FontWeight="Bold" Margin="0,0,10,0"/>
+              <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudent.Mentor}"/>
+            </Grid>
+          </StackPanel>
         </Grid>
-      </StackPanel>
+      </Border>
     </Border>
   </Grid>
 </UserControl>
