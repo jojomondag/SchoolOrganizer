@@ -22,7 +22,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto" MinHeight="0"/>
     </Grid.RowDefinitions>
 
     <!-- Header and Filters -->
@@ -65,9 +65,10 @@
     <!-- Student Gallery -->
     <ScrollViewer Grid.Row="1" 
                   Padding="20" 
-                  VerticalScrollBarVisibility="Visible" 
-                  HorizontalScrollBarVisibility="Disabled">
-      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                  VerticalScrollBarVisibility="Auto" 
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalAlignment="Stretch">
+      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
         <!-- Loading Indicator -->
         <Border IsVisible="{Binding IsLoading}" 
                 Background="#80FFFFFF" 
@@ -83,14 +84,14 @@
                       ItemsSource="{Binding Students}" 
                       IsVisible="{Binding !IsLoading}"
                       HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch"
-                      MinHeight="800">
+                      VerticalAlignment="Top"
+                      Margin="0,0,0,20">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel Orientation="Horizontal" 
                          HorizontalAlignment="Center"
                          MinWidth="800"
-                         VerticalAlignment="Stretch"/>
+                         ItemWidth="260"/>
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
 
@@ -101,8 +102,10 @@
                       Margin="10" 
                       Padding="20,15"
                       BoxShadow="0 2 8 0 #20000000"
-                      Width="220"
-                      HorizontalAlignment="Center">
+                      MinWidth="220"
+                      MaxWidth="240"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Top">
 
 
                 <Grid>
@@ -156,7 +159,7 @@
                     </Button>
 
                     <!-- Student Info -->
-                    <StackPanel>
+                    <StackPanel Margin="0,0,0,10">
                         <TextBlock Text="{Binding Name}" 
                                    FontSize="18" 
                                    FontWeight="Bold" 
@@ -173,7 +176,8 @@
                                    FontSize="12" 
                                    Foreground="#888"
                                    HorizontalAlignment="Center"
-                                   TextWrapping="Wrap"/>
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,5"/>
                     </StackPanel>
                     </StackPanel>
                 </Grid>
