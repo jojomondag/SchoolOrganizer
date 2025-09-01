@@ -13,7 +13,8 @@
   <ItemGroup>
     <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
-    <Content Include="Data\students.json">
+
+    <Content Include="Data\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -26,6 +27,7 @@
     <Page Remove="External/**" />
     <AvaloniaXaml Remove="External/**" />
     <AvaloniaResource Remove="External/**" />
+    <AvaloniaResource Remove="External/ImageSelector/App.axaml" />
   </ItemGroup>
 
   <ItemGroup>
