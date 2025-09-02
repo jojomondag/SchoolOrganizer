@@ -46,8 +46,6 @@
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
 
           <!-- Search Box -->
@@ -56,15 +54,8 @@
                    Watermark="Search students..." 
                    Margin="0,0,10,0"/>
 
-          <!-- Class Filter -->
-          <TextBlock Grid.Column="1" Text="Class:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-          <ComboBox Grid.Column="2" 
-                    ItemsSource="{Binding AvailableClasses}"
-                    SelectedItem="{Binding SelectedClass}"
-                    Margin="0,0,10,0"/>
-
           <!-- Add Student Button -->
-          <Button Grid.Column="3" 
+          <Button Grid.Column="1" 
                   Content="Add Student" 
                   Command="{Binding AddStudentCommand}"
                   Background="#27ae60"

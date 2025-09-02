@@ -61,7 +61,7 @@ public partial class StudentGalleryView : UserControl
             if (parentWindow == null || ViewModel == null) return;
 
             var addWindow = new AddStudentWindow();
-            addWindow.LoadOptionsFromStudents(ViewModel.Students);
+            addWindow.LoadOptionsFromStudents(ViewModel.AllStudents);
             var result = await addWindow.ShowDialog<AddStudentWindow.AddedStudentResult?>(parentWindow);
             if (result != null)
             {
@@ -92,8 +92,7 @@ public partial class StudentGalleryView : UserControl
         {
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             if (parentWindow == null) return;
-
-            var newPath = await ImageCropWindow.ShowAsync(parentWindow);
+            var newPath = await ImageCropWindow.ShowForStudentAsync(parentWindow, student.Id);
             if (!string.IsNullOrEmpty(newPath) && DataContext is StudentGalleryViewModel vm)
             {
                 await vm.UpdateStudentImage(student, newPath);
@@ -118,7 +117,7 @@ public partial class StudentGalleryView : UserControl
             if (parentWindow == null || ViewModel == null) return;
 
             var editWindow = new AddStudentWindow();
-            editWindow.LoadOptionsFromStudents(ViewModel.Students);
+            editWindow.LoadOptionsFromStudents(ViewModel.AllStudents);
             editWindow.InitializeForEdit(student);
             var result = await editWindow.ShowDialog<AddStudentWindow.AddedStudentResult?>(parentWindow);
             if (result != null)
