@@ -58,6 +58,8 @@ public partial class AddStudentWindow : Window
         EmailBox.Text = student.Email;
         EnrollmentPicker.SelectedDate = new DateTimeOffset(student.EnrollmentDate);
         state.SelectedImagePath = student.PictureUrl;
+        // Store the context student to enable preloading original image when clicking avatar
+        Tag = student;
     }
 
     public void LoadOptionsFromStudents(System.Collections.Generic.IEnumerable<Models.Student> students)
@@ -78,7 +80,15 @@ public partial class AddStudentWindow : Window
     private async void OnChooseImageClick(object? sender, RoutedEventArgs e)
     {
         var parentWindow = this;
-        var path = await ImageCropWindow.ShowAsync(parentWindow);
+        string? path;
+        if (string.Equals(TitleText.Text, "Edit Student", StringComparison.OrdinalIgnoreCase) && Tag is SchoolOrganizer.Models.Student ctx)
+        {
+            path = await ImageCropWindow.ShowForStudentAsync(parentWindow, ctx.Id);
+        }
+        else
+        {
+            path = await ImageCropWindow.ShowAsync(parentWindow);
+        }
         if (!string.IsNullOrWhiteSpace(path))
         {
             state.SelectedImagePath = path;

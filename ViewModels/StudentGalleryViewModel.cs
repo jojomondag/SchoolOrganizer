@@ -8,11 +8,19 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SchoolOrganizer.Models;
+using SchoolOrganizer.Services;
 
 namespace SchoolOrganizer.ViewModels;
 
 public partial class StudentGalleryViewModel : ViewModelBase
 {
+    private readonly StudentSearchService searchService = new();
+
+    // Full, unfiltered dataset kept in-memory
+    private ObservableCollection<Student> allStudents = new();
+
+    public ObservableCollection<Student> AllStudents => allStudents;
+
     [ObservableProperty]
     private ObservableCollection<Student> students = new();
 
@@ -22,11 +30,6 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [ObservableProperty]
     private string searchText = string.Empty;
 
-    [ObservableProperty]
-    private string selectedClass = "All Classes";
-
-    [ObservableProperty]
-    private ObservableCollection<string> availableClasses = new();
 
     [ObservableProperty]
     private bool isLoading = false;
@@ -57,16 +60,18 @@ public partial class StudentGalleryViewModel : ViewModelBase
                 var jsonContent = await File.ReadAllTextAsync(jsonPath);
                 var studentList = JsonSerializer.Deserialize<List<Student>>(jsonContent);
                 
+                allStudents.Clear();
                 Students.Clear();
                 if (studentList != null)
                 {
                     foreach (var student in studentList)
                     {
-                        Students.Add(student);
+                        allStudents.Add(student);
                     }
                 }
-                
-                UpdateAvailableClasses();
+
+                // Initial populate based on current query (may be empty)
+                await ApplySearchImmediate();
             }
         }
         catch (Exception ex)
@@ -110,82 +115,44 @@ public partial class StudentGalleryViewModel : ViewModelBase
         SelectedStudent = null;
     }
 
-    [RelayCommand]
-    private void FilterByClass(string className)
-    {
-        SelectedClass = className;
-        ApplyFilters();
-    }
-
     partial void OnSearchTextChanged(string value)
     {
-        ApplyFilters();
+        _ = ApplySearchDebounced();
     }
 
-    partial void OnSelectedClassChanged(string value)
-    {
-        ApplyFilters();
-    }
+    private System.Threading.CancellationTokenSource? searchCts;
 
-    private void ApplyFilters()
+    private async Task ApplySearchImmediate()
     {
-        // This is a simplified filtering approach
-        // In a more complex scenario, you might want to use CollectionView filtering
-        // For now, we'll reload and filter the data
-        _ = LoadAndFilterStudents();
-    }
-
-    private async Task LoadAndFilterStudents()
-    {
-        IsLoading = true;
         try
         {
-            var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
-            
-            if (File.Exists(jsonPath))
+            var results = searchService.Search(allStudents, SearchText);
+            Students.Clear();
+            foreach (var s in results)
             {
-                var jsonContent = await File.ReadAllTextAsync(jsonPath);
-                var studentList = JsonSerializer.Deserialize<List<Student>>(jsonContent);
-                
-                if (studentList != null)
-                {
-                    // Apply filters
-                    var filteredStudents = studentList.Where(s =>
-                        (string.IsNullOrEmpty(SearchText) || s.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase)) &&
-                        (SelectedClass == "All Classes" || s.ClassName == SelectedClass)
-                    );
-
-                    Students.Clear();
-                    foreach (var student in filteredStudents)
-                    {
-                        Students.Add(student);
-                    }
-                }
+                Students.Add(s);
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error filtering students: {ex.Message}");
-        }
-        finally
-        {
-            IsLoading = false;
+            System.Diagnostics.Debug.WriteLine($"Search error: {ex.Message}");
         }
     }
 
-    private void UpdateAvailableClasses()
+    private async Task ApplySearchDebounced(int delayMs = 250)
     {
-        AvailableClasses.Clear();
-        AvailableClasses.Add("All Classes");
-        
-        var uniqueClasses = Students
-            .Select(s => s.ClassName)
-            .Distinct()
-            .OrderBy(c => c);
-
-        foreach (var className in uniqueClasses)
+        searchCts?.Cancel();
+        var cts = new System.Threading.CancellationTokenSource();
+        searchCts = cts;
+        try
         {
-            AvailableClasses.Add(className);
+            await Task.Delay(delayMs, cts.Token);
+            if (cts.IsCancellationRequested) return;
+            await ApplySearchImmediate();
+        }
+        catch (TaskCanceledException)
+        {
+            // ignore
         }
     }
 
@@ -211,9 +178,9 @@ public partial class StudentGalleryViewModel : ViewModelBase
                 PictureUrl = picturePath ?? string.Empty
             };
 
-            Students.Add(newStudent);
-            UpdateAvailableClasses();
-            await SaveStudentsCollectionToJson();
+            allStudents.Add(newStudent);
+            await ApplySearchImmediate();
+            await SaveAllStudentsToJson();
         }
         catch (Exception ex)
         {
@@ -232,8 +199,20 @@ public partial class StudentGalleryViewModel : ViewModelBase
             student.EnrollmentDate = enrollmentDate;
             student.PictureUrl = picturePath ?? string.Empty;
 
-            UpdateAvailableClasses();
-            await SaveStudentsCollectionToJson();
+            // Ensure the AllStudents collection reflects the same object state
+            var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
+            if (inAll != null)
+            {
+                inAll.Name = student.Name;
+                inAll.ClassName = student.ClassName;
+                inAll.Mentor = student.Mentor;
+                inAll.Email = student.Email;
+                inAll.EnrollmentDate = student.EnrollmentDate;
+                inAll.PictureUrl = student.PictureUrl;
+            }
+
+            await ApplySearchImmediate();
+            await SaveAllStudentsToJson();
         }
         catch (Exception ex)
         {
@@ -248,12 +227,12 @@ public partial class StudentGalleryViewModel : ViewModelBase
         return maxId + 1;
     }
 
-    private async Task SaveStudentsCollectionToJson()
+    private async Task SaveAllStudentsToJson()
     {
         try
         {
             var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
-            var list = Students.ToList();
+            var list = allStudents.ToList();
             var jsonContent = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(jsonPath, jsonContent);
         }
@@ -289,7 +268,13 @@ public partial class StudentGalleryViewModel : ViewModelBase
             // Also update the passed student object
             student.PictureUrl = newImagePath;
 
-            await SaveStudentsToJson(studentInCollection ?? student);
+            // Update in allStudents as well
+            var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
+            if (inAll != null)
+            {
+                inAll.PictureUrl = newImagePath;
+            }
+            await SaveAllStudentsToJson();
         }
         catch (Exception ex)
         {
@@ -297,40 +282,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
         }
     }
 
-    private async Task SaveStudentsToJson(Student updatedStudent)
-    {
-        try
-        {
-            var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
-            
-            // Convert all students to a list for serialization
-            var allStudents = await LoadAllStudentsFromJson();
-            
-            // Find and update the student in the complete list
-            var studentToUpdate = allStudents.FirstOrDefault(s => s.Id == updatedStudent.Id);
-            if (studentToUpdate != null)
-            {
-                studentToUpdate.PictureUrl = updatedStudent.PictureUrl;
-                System.Diagnostics.Debug.WriteLine($"Updated student {updatedStudent.Name} with new image");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"Could not find student with ID {updatedStudent.Id} to update");
-            }
-
-            var jsonContent = JsonSerializer.Serialize(allStudents, new JsonSerializerOptions 
-            { 
-                WriteIndented = true 
-            });
-            
-            await File.WriteAllTextAsync(jsonPath, jsonContent);
-            System.Diagnostics.Debug.WriteLine($"Successfully saved students to JSON");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error saving students to JSON: {ex.Message}");
-        }
-    }
+    // Removed per new unified save method
 
     private async Task<List<Student>> LoadAllStudentsFromJson()
     {

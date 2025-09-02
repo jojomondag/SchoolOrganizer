@@ -15,34 +15,43 @@
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*">
       <TextBlock Text="Add Student" FontSize="20" FontWeight="Bold" Name="TitleText"/>
 
-      <Grid Grid.Row="1" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,15,0,0">
-        <!-- Inputs -->
+      <Grid Grid.Row="1" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,15,0,0">
+        <!-- Left column: Inputs -->
         <TextBlock Grid.Row="0" Grid.Column="0" Text="Name"/>
         <TextBox   Grid.Row="0" Grid.Column="0" Margin="0,22,0,10" Name="NameBox"/>
 
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Class"/>
-        <ComboBox Grid.Row="1" Grid.Column="0" Margin="0,22,0,10" Name="ClassBox"
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Email"/>
+        <TextBox   Grid.Row="1" Grid.Column="0" Margin="0,22,0,10" Name="EmailBox"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Class"/>
+        <ComboBox Grid.Row="2" Grid.Column="0" Margin="0,22,0,10" Name="ClassBox"
                   ItemsSource="{Binding AvailableClasses}"/>
 
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="Mentor"/>
-        <ComboBox Grid.Row="2" Grid.Column="0" Margin="0,22,0,10" Name="MentorBox"
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Mentor"/>
+        <ComboBox Grid.Row="3" Grid.Column="0" Margin="0,22,0,10" Name="MentorBox"
                   ItemsSource="{Binding AvailableMentors}"/>
-
-        <TextBlock Grid.Row="3" Grid.Column="0" Text="Email"/>
-        <TextBox   Grid.Row="3" Grid.Column="0" Margin="0,22,0,10" Name="EmailBox"/>
 
         <TextBlock Grid.Row="4" Grid.Column="0" Text="Enrollment Date"/>
         <DatePicker Grid.Row="4" Grid.Column="0" Margin="0,22,0,10" Name="EnrollmentPicker"/>
 
-        <!-- Image -->
-        <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-          <Border Width="100" Height="100" CornerRadius="50" ClipToBounds="True" Background="#EEE">
-            <Grid>
-              <Image Source="{Binding SelectedImagePath, Converter={StaticResource UniversalImageConverter}}" Stretch="UniformToFill"/>
-              <TextBlock Text="?" FontSize="36" FontWeight="Bold" Foreground="#888" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsImageMissing}"/>
-            </Grid>
-          </Border>
-          <Button Content="Choose/Crop Image" Click="OnChooseImageClick"/>
+        <!-- Right column: Image & Action -->
+        <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="5" Orientation="Vertical" Spacing="12" VerticalAlignment="Top" Margin="16,0,0,0">
+          <Grid Width="120" Height="120">
+            <Border Width="120" Height="120" CornerRadius="60" ClipToBounds="True" Background="#EEE">
+              <Grid>
+                <Image Source="{Binding SelectedImagePath, Converter={StaticResource UniversalImageConverter}}" Stretch="UniformToFill"/>
+                <TextBlock Text="?" FontSize="36" FontWeight="Bold" Foreground="#888" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsImageMissing}"/>
+              </Grid>
+            </Border>
+            <!-- Transparent clickable overlay to trigger image selection/cropping -->
+            <Button Background="Transparent"
+                    BorderThickness="0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Cursor="Hand"
+                    Click="OnChooseImageClick"
+                    ToolTip.Tip="Click to choose/crop image"/>
+          </Grid>
         </StackPanel>
       </Grid>
 
