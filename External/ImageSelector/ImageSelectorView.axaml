@@ -1,0 +1,244 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="ImageSelector.ImageSelectorView">
+    
+    <Grid UseLayoutRounding="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+
+
+        <!-- Content area: left image, right sidebar -->
+        <Grid Name="ContentGrid" Grid.Row="1" Margin="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="320"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Main image display area -->
+            <Border Name="MainImageArea"
+                    Grid.Column="0"
+                    Margin="0,0,24,0"
+                    BorderBrush="#1F000000"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Background="#FFFFFFFF"
+                    ClipToBounds="True"
+                    Cursor="Hand"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch">
+                <Grid Name="ImageContainer">
+                    <!-- Background when no image -->
+                    <Grid Name="BackgroundPattern"
+                          IsVisible="True">
+                        <TextBlock Text="Click here to select an image"
+                                   Foreground="#7F000000"
+                                   FontSize="14"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Image display -->
+                    <Image Name="MainImage"
+                           Stretch="Uniform"
+                           IsVisible="False"/>
+
+                    <!-- Crop overlay -->
+                    <Grid Name="CropOverlay"
+                          IsVisible="False"
+                          Background="Transparent">
+                        <!-- Single path overlay with even-odd hole -->
+                        <Path Name="OverlayCutout"
+                              Fill="#66000000"
+                              StrokeThickness="0"
+                              IsHitTestVisible="False"/>
+
+                        <Grid Name="SelectionGroup"
+                              Width="200"
+                              Height="200"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Top">
+                            <Border Name="CropSelection"
+                                    BorderBrush="White"
+                                    BorderThickness="2"
+                                    Background="Transparent"
+                                    CornerRadius="4"/>
+                            <Canvas Name="HandlesLayer">
+                                <Border Name="HandleTopLeft"
+                                        Width="14" Height="14"
+                                        Background="White"
+                                        BorderBrush="DarkGray"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        Cursor="Hand"/>
+                                <Border Name="HandleTopRight"
+                                        Width="14" Height="14"
+                                        Background="White"
+                                        BorderBrush="DarkGray"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        Cursor="Hand"/>
+                                <Border Name="HandleBottomLeft"
+                                        Width="14" Height="14"
+                                        Background="White"
+                                        BorderBrush="DarkGray"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        Cursor="Hand"/>
+                                <Border Name="HandleBottomRight"
+                                        Width="14" Height="14"
+                                        Background="White"
+                                        BorderBrush="DarkGray"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        Cursor="Hand"/>
+
+                                <!-- Rotate handles (appear near corners when hovering slightly outside) -->
+                                <Border Name="RotateTopLeft"
+                                        Width="14" Height="14"
+                                        Background="White"
+                                        BorderBrush="DarkGray"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        IsVisible="False"
+                                        Cursor="Hand">
+                                    <TextBlock Text="↻"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Margin="0,1,0,0"/>
+                                </Border>
+                                <Border Name="RotateTopRight"
+                                        Width="14" Height="14"
+                                        Background="White"
+                                        BorderBrush="DarkGray"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        IsVisible="False"
+                                        Cursor="Hand">
+                                    <TextBlock Text="↻"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Margin="0,1,0,0"/>
+                                </Border>
+                                <Border Name="RotateBottomLeft"
+                                        Width="14" Height="14"
+                                        Background="White"
+                                        BorderBrush="DarkGray"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        IsVisible="False"
+                                        Cursor="Hand">
+                                    <TextBlock Text="↻"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Margin="0,1,0,0"/>
+                                </Border>
+                                <Border Name="RotateBottomRight"
+                                        Width="14" Height="14"
+                                        Background="White"
+                                        BorderBrush="DarkGray"
+                                        BorderThickness="1"
+                                        CornerRadius="7"
+                                        IsVisible="False"
+                                        Cursor="Hand">
+                                    <TextBlock Text="↻"
+                                               FontSize="10"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Margin="0,1,0,0"/>
+                                </Border>
+                            </Canvas>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Sidebar: preview and actions -->
+            <StackPanel Grid.Column="1" Spacing="16" HorizontalAlignment="Stretch">
+                <!-- Back button -->
+                <Button Name="BackButton"
+                        Content="← Back"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Foreground="#666666"
+                        FontSize="12"
+                        HorizontalAlignment="Left"
+                        Padding="8,4"
+                        Margin="16,0,0,8"
+                        IsVisible="True"
+                        Opacity="0"
+                        IsHitTestVisible="False"
+                        Click="BackButton_Click">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover">
+                            <Setter Property="Foreground" Value="#333333"/>
+                            <Setter Property="Background" Value="#F5F5F5"/>
+                        </Style>
+                    </Button.Styles>
+                </Button>
+
+                <!-- Preview -->
+                <Border Width="180" Height="180"
+                        CornerRadius="90"
+                        ClipToBounds="True"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Padding="0"
+                        Background="#F0F0F0"
+                        HorizontalAlignment="Center">
+                    <Grid>
+                        <Image Name="PreviewImage"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"
+                               IsVisible="False"/>
+                        <!-- Overlay ring to ensure consistent thin border over the image -->
+                        <Border BorderBrush="#1F000000"
+                                BorderThickness="1"
+                                CornerRadius="90"
+                                Background="Transparent"
+                                IsHitTestVisible="False"/>
+                    </Grid>
+                </Border>
+
+                <!-- Action buttons - using more width -->
+                <Grid HorizontalAlignment="Stretch" Margin="16,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Name="ResetButton"
+                            Grid.Column="0"
+                            Content="Reset"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            IsEnabled="False"
+                            Click="ResetButton_Click"/>
+                    <Button Name="SaveButton"
+                            Grid.Column="2"
+                            Content="Save"
+                            Classes="accent"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            IsEnabled="False"
+                            Click="SaveButton_Click"/>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
