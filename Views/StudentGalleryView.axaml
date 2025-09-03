@@ -38,29 +38,65 @@
     </Grid.RowDefinitions>
 
     <!-- Header and Filters -->
-    <Border Grid.Row="0" Background="White" Padding="20">
-      <StackPanel>
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-          </Grid.ColumnDefinitions>
+    <Border Grid.Row="0" Background="White" Padding="24,20">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
 
-          <!-- Search Box -->
-          <TextBox Grid.Column="0" 
-                   Text="{Binding SearchText}" 
-                   Watermark="Search students..." 
-                   Margin="0,0,10,0"/>
+        <!-- Search Box with Icon -->
+        <Border Grid.Column="0" 
+                Background="#f8f9fa" 
+                BorderBrush="#e0e0e0" 
+                BorderThickness="1" 
+                CornerRadius="25" 
+                Padding="16,0" 
+                Margin="0,0,16,0">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Search Icon -->
+            <TextBlock Grid.Column="0" 
+                       Text="🔍" 
+                       FontSize="14" 
+                       Foreground="#999" 
+                       VerticalAlignment="Center" 
+                       Margin="0,0,12,0"/>
+            
+            <!-- Search TextBox -->
+            <TextBox Grid.Column="1" 
+                     Name="SearchTextBox"
+                     Text="{Binding SearchText, Mode=TwoWay}" 
+                     Watermark="Search students by name, class, or mentor..." 
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Padding="0,12"
+                     FontSize="14"/>
+          </Grid>
+        </Border>
 
-          <!-- Add Student Button -->
-          <Button Grid.Column="1" 
-                  Content="Add Student" 
-                  Command="{Binding AddStudentCommand}"
-                  Background="#27ae60"
-                  Foreground="White"
-                  Padding="15,5"/>
-        </Grid>
-      </StackPanel>
+        <!-- Add Student Button -->
+        <Button Grid.Column="1" 
+                Content="Add Student" 
+                Command="{Binding AddStudentCommand}"
+                Background="#3b536b"
+                Foreground="White"
+                BorderThickness="0"
+                CornerRadius="8"
+                Padding="20,12"
+                FontWeight="SemiBold"
+                FontSize="14">
+          <Button.Styles>
+            <Style Selector="Button:pointerover">
+              <Setter Property="Background" Value="#2c3e50"/>
+            </Style>
+          </Button.Styles>
+        </Button>
+      </Grid>
     </Border>
 
     <!-- Student Gallery -->
@@ -131,7 +167,9 @@
                       HorizontalAlignment="Center"
                       VerticalAlignment="Top"
                       Cursor="Hand"
-                      BorderThickness="2">
+                      BorderThickness="2"
+                      Width="240"
+                      Height="NaN">
                 <Border.BorderBrush>
                   <MultiBinding Converter="{StaticResource StudentSelectionBrushConverter}">
                     <Binding Path="$parent[UserControl].((vm:StudentGalleryViewModel)DataContext).SelectedStudent"/>
@@ -140,11 +178,11 @@
                 </Border.BorderBrush>
 
                 <!-- Clickable area for the entire card (fills entire border) -->
-                <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
+                <Button                         Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
                         CommandParameter="{Binding}"
                         Background="Transparent"
                         BorderThickness="0"
-                        Padding="20,15"
+                        Padding="18,13.5"
                         Cursor="Hand"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
@@ -165,14 +203,21 @@
                             <!-- Student Image -->
                             <Grid x:Name="ImageContainer" 
                                   Margin="0,8,0,15" 
-                                  HorizontalAlignment="Center">
+                                  HorizontalAlignment="Center"
+                                  Width="168"
+                                  Height="168">
                                 <Border x:Name="ImageBorder" 
                                         ClipToBounds="True" 
-                                        Background="#EEE">
+                                        Background="#EEE"
+                                        Width="168"
+                                        Height="168"
+                                        CornerRadius="84">
                                     <Grid>
                                         <Ellipse x:Name="ProfileEllipse"
                                                  HorizontalAlignment="Center"
-                                                 VerticalAlignment="Center">
+                                                 VerticalAlignment="Center"
+                                                 Width="168"
+                                                 Height="168">
                                             <Ellipse.Fill>
                                                 <ImageBrush Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}"
                                                             Stretch="UniformToFill"
@@ -186,6 +231,7 @@
                                                    Foreground="#888"
                                                    HorizontalAlignment="Center" 
                                                    VerticalAlignment="Center"
+                                                   FontSize="67"
                                                    IsVisible="{Binding PictureUrl, Converter={StaticResource IsNullOrWhiteSpace}}"/>
                                     </Grid>
                                 </Border>
@@ -195,6 +241,9 @@
                                         Background="Transparent"
                                         BorderThickness="0"
                                         Cursor="Hand"
+                                        Width="168"
+                                        Height="168"
+                                        CornerRadius="84"
                                         Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).ChangeImageCommand}"
                                         CommandParameter="{Binding}"
                                         ToolTip.Tip="Click to change image"
@@ -212,13 +261,16 @@
 
                             <!-- Student Info -->
                             <StackPanel x:Name="InfoContainer" 
-                                        Margin="0,0,0,10">
+                                        Margin="0,0,0,10"
+                                        MaxWidth="204">
                                 <TextBlock x:Name="NameText"
                                            Text="{Binding Name}" 
                                            FontWeight="Bold" 
                                            HorizontalAlignment="Center"
                                            TextWrapping="Wrap"
                                            TextAlignment="Center"
+                                           FontSize="16"
+                                           MaxWidth="204"
                                            Margin="0,0,0,5"/>
                                 
                                 <TextBlock x:Name="ClassText"
@@ -227,6 +279,8 @@
                                            HorizontalAlignment="Center"
                                            TextWrapping="Wrap"
                                            TextAlignment="Center"
+                                           FontSize="12"
+                                           MaxWidth="204"
                                            Margin="0,0,0,5"/>
                                 
                                 <TextBlock x:Name="MentorText"
@@ -235,6 +289,8 @@
                                            HorizontalAlignment="Center"
                                            TextWrapping="Wrap"
                                            TextAlignment="Center"
+                                           FontSize="10"
+                                           MaxWidth="204"
                                            Margin="0,0,0,5"/>
                             </StackPanel>
                         </StackPanel>
