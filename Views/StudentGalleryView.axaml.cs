@@ -9,6 +9,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.VisualTree;
 using Avalonia.Controls.Shapes;
+using Avalonia.Threading;
 
 
 namespace SchoolOrganizer.Views;
@@ -190,9 +191,24 @@ public partial class StudentGalleryView : UserControl
 
     private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
     {
+        // Immediately try to apply styling
         UpdateCardElements(e.Container, _currentCardWidth, _currentImageSize, _currentImageRadius,
                          _currentNameFontSize, _currentClassFontSize, _currentMentorFontSize,
                          _currentPlaceholderFontSize, _currentCardPadding);
+        
+        // Also subscribe to the container's Loaded event as a backup
+        if (e.Container is Control container)
+        {
+            void OnContainerLoaded(object? s, RoutedEventArgs args)
+            {
+                UpdateCardElements(container, _currentCardWidth, _currentImageSize, _currentImageRadius,
+                                 _currentNameFontSize, _currentClassFontSize, _currentMentorFontSize,
+                                 _currentPlaceholderFontSize, _currentCardPadding);
+                container.Loaded -= OnContainerLoaded; // Unsubscribe to avoid memory leaks
+            }
+            
+            container.Loaded += OnContainerLoaded;
+        }
     }
 
     private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
@@ -344,6 +360,19 @@ public partial class StudentGalleryView : UserControl
             {
                 profileEllipse.Width = imageSize;
                 profileEllipse.Height = imageSize;
+            }
+            else
+            {
+                // If we can't find the ellipse immediately, try again after a short delay
+                Dispatcher.UIThread.Post(() =>
+                {
+                    var retryEllipse = FindNamedChild<Ellipse>(container, "ProfileEllipse");
+                    if (retryEllipse != null)
+                    {
+                        retryEllipse.Width = imageSize;
+                        retryEllipse.Height = imageSize;
+                    }
+                }, DispatcherPriority.Background);
             }
 
             // Find and update text elements

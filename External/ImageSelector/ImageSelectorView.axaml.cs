@@ -530,78 +530,40 @@ public partial class ImageSelectorView : UserControl
         if (_isResizing && !string.IsNullOrEmpty(_resizeHandle))
         {
             var currentPosition = e.GetPosition(CropOverlay);
-            var deltaX = currentPosition.X - _dragStartPointer.X;
-            var deltaY = currentPosition.Y - _dragStartPointer.Y;
-
-            double x = _cropRect.X, y = _cropRect.Y, w = _cropRect.Width, h = _cropRect.Height;
             const double minSize = 50;
 
-            switch (_resizeHandle)
-            {
-                case "top-left":
-                    // Calculate the maximum delta that can be applied while keeping the shape square
-                    var maxDelta = Math.Max(Math.Abs(deltaX), Math.Abs(deltaY));
-                    var signX = deltaX >= 0 ? 1 : -1;
-                    var signY = deltaY >= 0 ? 1 : -1;
-                    
-                    // Calculate the center point of the original rectangle
-                    var centerX = _dragStartRect.X + _dragStartRect.Width / 2;
-                    var centerY = _dragStartRect.Y + _dragStartRect.Height / 2;
-                    
-                    // Calculate new size (same for width and height to maintain square)
-                    w = Math.Max(minSize, _dragStartRect.Width + maxDelta * signX * 2); // *2 because we're scaling from center
-                    h = w; // Keep square aspect ratio
-                    
-                    // Position the rectangle to maintain the center point
-                    x = centerX - w / 2;
-                    y = centerY - h / 2;
-                    break;
-                case "top-right":
-                    maxDelta = Math.Max(Math.Abs(deltaX), Math.Abs(deltaY));
-                    signX = deltaX >= 0 ? 1 : -1;
-                    signY = deltaY >= 0 ? 1 : -1;
-                    
-                    centerX = _dragStartRect.X + _dragStartRect.Width / 2;
-                    centerY = _dragStartRect.Y + _dragStartRect.Height / 2;
-                    
-                    w = Math.Max(minSize, _dragStartRect.Width + maxDelta * signX * 2);
-                    h = w;
-                    
-                    x = centerX - w / 2;
-                    y = centerY - h / 2;
-                    break;
-                case "bottom-left":
-                    maxDelta = Math.Max(Math.Abs(deltaX), Math.Abs(deltaY));
-                    signX = deltaX >= 0 ? 1 : -1;
-                    signY = deltaY >= 0 ? 1 : -1;
-                    
-                    centerX = _dragStartRect.X + _dragStartRect.Width / 2;
-                    centerY = _dragStartRect.Y + _dragStartRect.Height / 2;
-                    
-                    w = Math.Max(minSize, _dragStartRect.Width + maxDelta * signX * 2);
-                    h = w;
-                    
-                    x = centerX - w / 2;
-                    y = centerY - h / 2;
-                    break;
-                case "bottom-right":
-                    maxDelta = Math.Max(Math.Abs(deltaX), Math.Abs(deltaY));
-                    signX = deltaX >= 0 ? 1 : -1;
-                    signY = deltaY >= 0 ? 1 : -1;
-                    
-                    centerX = _dragStartRect.X + _dragStartRect.Width / 2;
-                    centerY = _dragStartRect.Y + _dragStartRect.Height / 2;
-                    
-                    w = Math.Max(minSize, _dragStartRect.Width + maxDelta * signX * 2);
-                    h = w;
-                    
-                    x = centerX - w / 2;
-                    y = centerY - h / 2;
-                    break;
-            }
+            // Scale uniformly from the selection center based on pointer distance change
+            var centerX = _dragStartRect.X + _dragStartRect.Width / 2;
+            var centerY = _dragStartRect.Y + _dragStartRect.Height / 2;
+            var startVecX = _dragStartPointer.X - centerX;
+            var startVecY = _dragStartPointer.Y - centerY;
+            var curVecX = currentPosition.X - centerX;
+            var curVecY = currentPosition.Y - centerY;
 
-            w = Math.Min(w, _imageDisplayOffset.X + _imageDisplaySize.Width - x);
-            h = Math.Min(h, _imageDisplayOffset.Y + _imageDisplaySize.Height - y);
+            var startLen = Math.Sqrt(startVecX * startVecX + startVecY * startVecY);
+            var curLen = Math.Sqrt(curVecX * curVecX + curVecY * curVecY);
+            if (startLen < 1) startLen = 1; // avoid division by zero
+
+            var scale = curLen / startLen; // outward -> >1, inward -> <1
+
+            var halfStart = _dragStartRect.Width / 2.0;
+            var halfNew = Math.Max(minSize / 2.0, halfStart * scale);
+
+            // Clamp to image display bounds while keeping center fixed
+            var imageLeft = _imageDisplayOffset.X;
+            var imageTop = _imageDisplayOffset.Y;
+            var imageRight = _imageDisplayOffset.X + _imageDisplaySize.Width;
+            var imageBottom = _imageDisplayOffset.Y + _imageDisplaySize.Height;
+
+            var maxHalfX = Math.Min(centerX - imageLeft, imageRight - centerX);
+            var maxHalfY = Math.Min(centerY - imageTop, imageBottom - centerY);
+            var maxHalf = Math.Max(1, Math.Min(maxHalfX, maxHalfY));
+            halfNew = Math.Min(halfNew, maxHalf);
+
+            var w = halfNew * 2.0;
+            var h = w;
+            var x = centerX - halfNew;
+            var y = centerY - halfNew;
 
             _cropRect = new Rect(x, y, w, h);
             ApplyCropRectToUI();
