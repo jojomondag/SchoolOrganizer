@@ -31,6 +31,10 @@ public partial class ImageSelectorView : UserControl
     private double _rotateStartPointerAngle;
     private double _initialRotationAngle;
 
+    // Deferred restore support
+    private object? _pendingCropSettingsToRestore;
+    private bool _attemptRestoreOnNextLayout;
+
     // API for external integration
     public Func<Task<string?>>? SavePathProvider { get; set; }
     public event EventHandler<string>? ImageSaved;
@@ -94,6 +98,17 @@ public partial class ImageSelectorView : UserControl
         if (_originalBitmap != null && CropOverlay.IsVisible)
         {
             UpdateCropSelectionSize();
+            // If a restore was deferred due to missing layout info, try now
+            if (_attemptRestoreOnNextLayout && _pendingCropSettingsToRestore != null)
+            {
+                if (TryRestoreCropSettings(_pendingCropSettingsToRestore))
+                {
+                    _attemptRestoreOnNextLayout = false;
+                    _pendingCropSettingsToRestore = null;
+                    ApplyCropRectToUI();
+                    UpdatePreview();
+                }
+            }
         }
     }
 
@@ -187,8 +202,11 @@ public partial class ImageSelectorView : UserControl
         ContentGrid.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
 
         // Also set the MainImageArea to the exact display size so there's no internal whitespace
-        MainImageArea.Width = desiredWidth;
-        MainImageArea.Height = desiredHeight;
+        if (MainImageArea != null)
+        {
+            MainImageArea.Width = desiredWidth;
+            MainImageArea.Height = desiredHeight;
+        }
 
         AdjustWindowSizeForImage();
     }
@@ -202,7 +220,16 @@ public partial class ImageSelectorView : UserControl
         await SetOriginalBitmapAsync(bmp);
     }
 
-    private async Task SetOriginalBitmapAsync(Bitmap bmp)
+    // Public API: preload image with saved crop settings
+    public async Task LoadImageFromPathWithCropSettingsAsync(string path, object? cropSettings)
+    {
+        if (!File.Exists(path)) return;
+        await using var fs = File.OpenRead(path);
+        var bmp = new Bitmap(fs);
+        await SetOriginalBitmapAsync(bmp, cropSettings);
+    }
+
+    private async Task SetOriginalBitmapAsync(Bitmap bmp, object? cropSettings = null)
     {
         _originalBitmap?.Dispose();
         _originalBitmap = bmp;
@@ -218,7 +245,31 @@ public partial class ImageSelectorView : UserControl
         MainImageArea.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
         
         await Task.Delay(100);
-        UpdateCropSelectionSize();
+        
+        // If crop settings are provided, restore them; otherwise use defaults
+        if (cropSettings != null)
+        {
+            System.Diagnostics.Debug.WriteLine("SetOriginalBitmapAsync: Crop settings provided, attempting to restore");
+            if (TryRestoreCropSettings(cropSettings))
+            {
+                System.Diagnostics.Debug.WriteLine("SetOriginalBitmapAsync: Crop settings restored successfully");
+                ApplyCropRectToUI();
+                UpdatePreview();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("SetOriginalBitmapAsync: Failed to restore crop settings, using defaults");
+                // Defer restore until layout provides non-zero bounds
+                _pendingCropSettingsToRestore = cropSettings;
+                _attemptRestoreOnNextLayout = true;
+                UpdateCropSelectionSize();
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("SetOriginalBitmapAsync: No crop settings provided, using defaults");
+            UpdateCropSelectionSize();
+        }
         
         ResetButton.IsEnabled = true;
         SaveButton.IsEnabled = true;
@@ -638,6 +689,132 @@ public partial class ImageSelectorView : UserControl
         }
 
         return renderTarget;
+    }
+
+    private bool TryRestoreCropSettings(object? cropSettings)
+    {
+        if (cropSettings == null)
+        {
+            System.Diagnostics.Debug.WriteLine("TryRestoreCropSettings: cropSettings is null");
+            return false;
+        }
+
+        if (_originalBitmap == null)
+        {
+            System.Diagnostics.Debug.WriteLine("TryRestoreCropSettings: no original bitmap loaded");
+            return false;
+        }
+
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"TryRestoreCropSettings: Attempting to restore crop settings of type {cropSettings.GetType().Name}");
+
+            // Use reflection to get properties from the crop settings object
+            var settingsType = cropSettings.GetType();
+
+            var xProp = settingsType.GetProperty("X");
+            var yProp = settingsType.GetProperty("Y");
+            var widthProp = settingsType.GetProperty("Width");
+            var heightProp = settingsType.GetProperty("Height");
+            var rotationProp = settingsType.GetProperty("RotationAngle");
+            var imageDisplayWidthProp = settingsType.GetProperty("ImageDisplayWidth");
+            var imageDisplayHeightProp = settingsType.GetProperty("ImageDisplayHeight");
+            var imageDisplayOffsetXProp = settingsType.GetProperty("ImageDisplayOffsetX");
+            var imageDisplayOffsetYProp = settingsType.GetProperty("ImageDisplayOffsetY");
+
+            if (xProp == null || yProp == null || widthProp == null || heightProp == null ||
+                imageDisplayWidthProp == null || imageDisplayHeightProp == null ||
+                imageDisplayOffsetXProp == null || imageDisplayOffsetYProp == null)
+            {
+                System.Diagnostics.Debug.WriteLine("TryRestoreCropSettings: Missing required properties");
+                return false;
+            }
+
+            var savedX = Convert.ToDouble(xProp.GetValue(cropSettings));
+            var savedY = Convert.ToDouble(yProp.GetValue(cropSettings));
+            var savedWidth = Convert.ToDouble(widthProp.GetValue(cropSettings));
+            var savedHeight = Convert.ToDouble(heightProp.GetValue(cropSettings));
+            var savedRotation = rotationProp != null ? Convert.ToDouble(rotationProp.GetValue(cropSettings)) : 0.0;
+            var savedDisplayWidth = Convert.ToDouble(imageDisplayWidthProp.GetValue(cropSettings));
+            var savedDisplayHeight = Convert.ToDouble(imageDisplayHeightProp.GetValue(cropSettings));
+            var savedOffsetX = Convert.ToDouble(imageDisplayOffsetXProp.GetValue(cropSettings));
+            var savedOffsetY = Convert.ToDouble(imageDisplayOffsetYProp.GetValue(cropSettings));
+
+            // Compute the CURRENT displayed image rect within the overlay, based on container size
+            var imageBounds = CropOverlay.Bounds;
+            if (imageBounds.Width <= 0 || imageBounds.Height <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine("TryRestoreCropSettings: overlay bounds not ready");
+                return false;
+            }
+
+            var imageAspectRatio = (double)_originalBitmap.PixelSize.Width / _originalBitmap.PixelSize.Height;
+            var containerAspectRatio = imageBounds.Width / imageBounds.Height;
+
+            Size currentDisplaySize;
+            Point currentDisplayOffset;
+            if (imageAspectRatio > containerAspectRatio)
+            {
+                currentDisplaySize = new Size(imageBounds.Width, imageBounds.Width / imageAspectRatio);
+                currentDisplayOffset = new Point(0, (imageBounds.Height - currentDisplaySize.Height) / 2);
+            }
+            else
+            {
+                currentDisplaySize = new Size(imageBounds.Height * imageAspectRatio, imageBounds.Height);
+                currentDisplayOffset = new Point((imageBounds.Width - currentDisplaySize.Width) / 2, 0);
+            }
+
+            // Scale saved crop to current display geometry
+            var scaleX = savedDisplayWidth > 0 ? currentDisplaySize.Width / savedDisplayWidth : 1.0;
+            var scaleY = savedDisplayHeight > 0 ? currentDisplaySize.Height / savedDisplayHeight : 1.0;
+
+            var relX = savedX - savedOffsetX;
+            var relY = savedY - savedOffsetY;
+
+            var newX = currentDisplayOffset.X + relX * scaleX;
+            var newY = currentDisplayOffset.Y + relY * scaleY;
+            var newW = savedWidth * scaleX;
+            var newH = savedHeight * scaleY;
+
+            // Clamp to image display rect
+            newW = Math.Max(1, Math.Min(newW, currentDisplaySize.Width));
+            newH = Math.Max(1, Math.Min(newH, currentDisplaySize.Height));
+            newX = Math.Max(currentDisplayOffset.X, Math.Min(currentDisplayOffset.X + currentDisplaySize.Width - newW, newX));
+            newY = Math.Max(currentDisplayOffset.Y, Math.Min(currentDisplayOffset.Y + currentDisplaySize.Height - newH, newY));
+
+            _imageDisplaySize = currentDisplaySize;
+            _imageDisplayOffset = currentDisplayOffset;
+            _cropRect = new Rect(newX, newY, newW, newH);
+            _rotationAngleDegrees = savedRotation;
+
+            System.Diagnostics.Debug.WriteLine("TryRestoreCropSettings: Successfully restored crop settings to current layout");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"TryRestoreCropSettings: Error restoring crop settings: {ex.Message}");
+            return false;
+        }
+    }
+
+    // Public API: get current crop settings for saving
+    public object? GetCurrentCropSettings()
+    {
+        if (_originalBitmap == null || _cropRect.Width <= 0 || _cropRect.Height <= 0)
+            return null;
+            
+        return new
+        {
+            X = _cropRect.X,
+            Y = _cropRect.Y,
+            Width = _cropRect.Width,
+            Height = _cropRect.Height,
+            RotationAngle = _rotationAngleDegrees,
+            ImageDisplayWidth = _imageDisplaySize.Width,
+            ImageDisplayHeight = _imageDisplaySize.Height,
+            ImageDisplayOffsetX = _imageDisplayOffset.X,
+            ImageDisplayOffsetY = _imageDisplayOffset.Y
+        };
     }
 
     private void StartRotate(PointerPressedEventArgs e, string handle)

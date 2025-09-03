@@ -19,11 +19,74 @@ public partial class ImageCropWindow : Window
         if (this.Content is ImageSelectorView selector)
         {
             selector.SavePathProvider = PrepareSavePath;
-            selector.ImageSaved += (s, path) =>
+            selector.ImageSaved += async (s, path) =>
             {
                 SavedImagePath = path;
                 System.Diagnostics.Debug.WriteLine($"ImageCropWindow: Image saved to {path}");
+                
+                // Save crop settings if we have a student context
+                if (studentContextId is int id)
+                {
+                    var cropSettings = selector.GetCurrentCropSettings();
+                    if (cropSettings != null)
+                    {
+                        // Convert anonymous object to CropSettings
+                        var settingsType = cropSettings.GetType();
+                        var newSettings = new CropSettings
+                        {
+                            X = Convert.ToDouble(settingsType.GetProperty("X")?.GetValue(cropSettings) ?? 0),
+                            Y = Convert.ToDouble(settingsType.GetProperty("Y")?.GetValue(cropSettings) ?? 0),
+                            Width = Convert.ToDouble(settingsType.GetProperty("Width")?.GetValue(cropSettings) ?? 0),
+                            Height = Convert.ToDouble(settingsType.GetProperty("Height")?.GetValue(cropSettings) ?? 0),
+                            RotationAngle = Convert.ToDouble(settingsType.GetProperty("RotationAngle")?.GetValue(cropSettings) ?? 0),
+                            ImageDisplayWidth = Convert.ToDouble(settingsType.GetProperty("ImageDisplayWidth")?.GetValue(cropSettings) ?? 0),
+                            ImageDisplayHeight = Convert.ToDouble(settingsType.GetProperty("ImageDisplayHeight")?.GetValue(cropSettings) ?? 0),
+                            ImageDisplayOffsetX = Convert.ToDouble(settingsType.GetProperty("ImageDisplayOffsetX")?.GetValue(cropSettings) ?? 0),
+                            ImageDisplayOffsetY = Convert.ToDouble(settingsType.GetProperty("ImageDisplayOffsetY")?.GetValue(cropSettings) ?? 0)
+                        };
+                        
+                        System.Diagnostics.Debug.WriteLine($"Saving crop settings for student {id}: X:{newSettings.X}, Y:{newSettings.Y}, W:{newSettings.Width}, H:{newSettings.Height}");
+                        await ProfileImageStore.SaveCropSettingsForStudentAsync(id, newSettings);
+                        System.Diagnostics.Debug.WriteLine("Crop settings saved successfully");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"No crop settings to save for student {id}");
+                    }
+                }
+                
                 Close();
+            };
+            // Persist latest crop on close as well, so next open restores position even without saving image
+            this.Closed += async (s, e) =>
+            {
+                try
+                {
+                    if (studentContextId is int id)
+                    {
+                        var cropSettings = selector.GetCurrentCropSettings();
+                        if (cropSettings != null)
+                        {
+                            var settingsType = cropSettings.GetType();
+                            var newSettings = new CropSettings
+                            {
+                                X = Convert.ToDouble(settingsType.GetProperty("X")?.GetValue(cropSettings) ?? 0),
+                                Y = Convert.ToDouble(settingsType.GetProperty("Y")?.GetValue(cropSettings) ?? 0),
+                                Width = Convert.ToDouble(settingsType.GetProperty("Width")?.GetValue(cropSettings) ?? 0),
+                                Height = Convert.ToDouble(settingsType.GetProperty("Height")?.GetValue(cropSettings) ?? 0),
+                                RotationAngle = Convert.ToDouble(settingsType.GetProperty("RotationAngle")?.GetValue(cropSettings) ?? 0),
+                                ImageDisplayWidth = Convert.ToDouble(settingsType.GetProperty("ImageDisplayWidth")?.GetValue(cropSettings) ?? 0),
+                                ImageDisplayHeight = Convert.ToDouble(settingsType.GetProperty("ImageDisplayHeight")?.GetValue(cropSettings) ?? 0),
+                                ImageDisplayOffsetX = Convert.ToDouble(settingsType.GetProperty("ImageDisplayOffsetX")?.GetValue(cropSettings) ?? 0),
+                                ImageDisplayOffsetY = Convert.ToDouble(settingsType.GetProperty("ImageDisplayOffsetY")?.GetValue(cropSettings) ?? 0)
+                            };
+                            await ProfileImageStore.SaveCropSettingsForStudentAsync(id, newSettings);
+                        }
+                    }
+                }
+                catch
+                {
+                }
             };
             selector.OriginalImageSelected += async (s, file) =>
             {
@@ -35,6 +98,15 @@ public partial class ImageCropWindow : Window
                     {
                         await ProfileImageStore.MapStudentToOriginalAsync(sid, stored);
                         preloadedOriginalPath = stored;
+                        
+                        // After storing the original, try to load existing crop settings for this student
+                        var existingCropSettings = await ProfileImageStore.GetCropSettingsForStudentAsync(sid);
+                        if (existingCropSettings != null)
+                        {
+                            // Apply the saved crop settings to the newly loaded image
+                            await Task.Delay(200); // Give the image time to load and layout
+                            await selector.LoadImageFromPathWithCropSettingsAsync(stored, existingCropSettings);
+                        }
                     }
                 }
                 catch
@@ -88,11 +160,30 @@ public partial class ImageCropWindow : Window
         if (this.Content is not ImageSelectorView selector) return;
         if (studentContextId is int id)
         {
+            System.Diagnostics.Debug.WriteLine($"TryPreloadOriginalAsync: Loading for student {id}");
+            
             var prior = await ProfileImageStore.GetOriginalForStudentAsync(id);
             if (!string.IsNullOrWhiteSpace(prior) && System.IO.File.Exists(prior))
             {
+                System.Diagnostics.Debug.WriteLine($"TryPreloadOriginalAsync: Found original image at {prior}");
                 preloadedOriginalPath = prior;
-                await selector.LoadImageFromPathAsync(prior);
+                
+                // Try to load saved crop settings
+                var cropSettings = await ProfileImageStore.GetCropSettingsForStudentAsync(id);
+                if (cropSettings != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"TryPreloadOriginalAsync: Found crop settings - X:{cropSettings.X}, Y:{cropSettings.Y}, W:{cropSettings.Width}, H:{cropSettings.Height}");
+                    await selector.LoadImageFromPathWithCropSettingsAsync(prior, cropSettings);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("TryPreloadOriginalAsync: No crop settings found, using defaults");
+                    await selector.LoadImageFromPathAsync(prior);
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("TryPreloadOriginalAsync: No original image found");
             }
         }
     }
