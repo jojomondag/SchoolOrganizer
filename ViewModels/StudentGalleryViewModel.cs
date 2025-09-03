@@ -123,7 +123,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
 
     private System.Threading.CancellationTokenSource? searchCts;
 
-    private async Task ApplySearchImmediate()
+    private Task ApplySearchImmediate()
     {
         try
         {
@@ -138,6 +138,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
         {
             System.Diagnostics.Debug.WriteLine($"Search error: {ex.Message}");
         }
+        return Task.CompletedTask;
     }
 
     private async Task ApplySearchDebounced(int delayMs = 250)

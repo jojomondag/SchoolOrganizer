@@ -10,6 +10,7 @@ using Avalonia;
 using Avalonia.VisualTree;
 using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
+using Avalonia.Input;
 
 
 namespace SchoolOrganizer.Views;
@@ -39,6 +40,10 @@ public partial class StudentGalleryView : UserControl
         DataContextChanged += OnDataContextChanged;
         SizeChanged += OnSizeChanged;
         Loaded += OnLoaded;
+        
+        // Enable keyboard input handling
+        Focusable = true;
+        KeyDown += OnKeyDown;
         
         // Subscribe to container prepared events for newly created cards
         var profileCards = this.FindControl<ItemsControl>("ProfileCards");
@@ -187,27 +192,124 @@ public partial class StudentGalleryView : UserControl
         }
         
         UpdateCardLayout();
+        
+        // Set focus to this control so it can receive keyboard events
+        Focus();
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        // Check if the key pressed is alphanumeric or common typing keys
+        if (IsTypingKey(e.Key))
+        {
+            // Find the search TextBox by name
+            var searchTextBox = this.FindControl<TextBox>("SearchTextBox");
+            
+            if (searchTextBox != null && !searchTextBox.IsFocused)
+            {
+                // Focus the search box
+                searchTextBox.Focus();
+                
+                // Get the character representation of the key
+                var keyChar = GetCharFromKey(e.Key, e.KeyModifiers);
+                if (keyChar != null)
+                {
+                    // Set the search text to start with the typed character
+                    if (ViewModel != null)
+                    {
+                        ViewModel.SearchText = keyChar;
+                        // Position cursor at the end
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            searchTextBox.CaretIndex = searchTextBox.Text?.Length ?? 0;
+                        }, DispatcherPriority.Background);
+                    }
+                }
+                
+                e.Handled = true;
+            }
+        }
+    }
+
+    private static bool IsTypingKey(Key key)
+    {
+        // Check for alphanumeric keys and common typing keys
+        return (key >= Key.A && key <= Key.Z) ||
+               (key >= Key.D0 && key <= Key.D9) ||
+               (key >= Key.NumPad0 && key <= Key.NumPad9) ||
+               key == Key.Space ||
+               key == Key.OemMinus ||
+               key == Key.OemPlus ||
+               key == Key.OemPeriod ||
+               key == Key.OemComma;
+    }
+
+    private static string? GetCharFromKey(Key key, KeyModifiers modifiers)
+    {
+        // Handle letters
+        if (key >= Key.A && key <= Key.Z)
+        {
+            var letter = (char)('a' + (key - Key.A));
+            return (modifiers & KeyModifiers.Shift) != 0 ? letter.ToString().ToUpper() : letter.ToString();
+        }
+        
+        // Handle numbers
+        if (key >= Key.D0 && key <= Key.D9)
+        {
+            if ((modifiers & KeyModifiers.Shift) != 0)
+            {
+                // Handle shift+number symbols
+                return key switch
+                {
+                    Key.D1 => "!",
+                    Key.D2 => "@",
+                    Key.D3 => "#",
+                    Key.D4 => "$",
+                    Key.D5 => "%",
+                    Key.D6 => "^",
+                    Key.D7 => "&",
+                    Key.D8 => "*",
+                    Key.D9 => "(",
+                    Key.D0 => ")",
+                    _ => null
+                };
+            }
+            else
+            {
+                return ((char)('0' + (key - Key.D0))).ToString();
+            }
+        }
+        
+        // Handle numpad numbers
+        if (key >= Key.NumPad0 && key <= Key.NumPad9)
+        {
+            return ((char)('0' + (key - Key.NumPad0))).ToString();
+        }
+        
+        // Handle other keys
+        return key switch
+        {
+            Key.Space => " ",
+            Key.OemMinus => (modifiers & KeyModifiers.Shift) != 0 ? "_" : "-",
+            Key.OemPlus => (modifiers & KeyModifiers.Shift) != 0 ? "+" : "=",
+            Key.OemPeriod => (modifiers & KeyModifiers.Shift) != 0 ? ">" : ".",
+            Key.OemComma => (modifiers & KeyModifiers.Shift) != 0 ? "<" : ",",
+            _ => null
+        };
     }
 
     private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
     {
-        // Immediately try to apply styling
-        UpdateCardElements(e.Container, _currentCardWidth, _currentImageSize, _currentImageRadius,
-                         _currentNameFontSize, _currentClassFontSize, _currentMentorFontSize,
-                         _currentPlaceholderFontSize, _currentCardPadding);
+        // Only apply dynamic styling if current dimensions differ significantly from defaults
+        var needsUpdate = Math.Abs(_currentCardWidth - 240) > 5 || 
+                         Math.Abs(_currentImageSize - 168) > 5;
         
-        // Also subscribe to the container's Loaded event as a backup
-        if (e.Container is Control container)
+        if (needsUpdate)
         {
-            void OnContainerLoaded(object? s, RoutedEventArgs args)
-            {
-                UpdateCardElements(container, _currentCardWidth, _currentImageSize, _currentImageRadius,
-                                 _currentNameFontSize, _currentClassFontSize, _currentMentorFontSize,
-                                 _currentPlaceholderFontSize, _currentCardPadding);
-                container.Loaded -= OnContainerLoaded; // Unsubscribe to avoid memory leaks
-            }
-            
-            container.Loaded += OnContainerLoaded;
+            // Apply styling immediately to prevent flickering
+            UpdateCardElements(e.Container, _currentCardWidth, _currentImageSize, _currentImageRadius,
+                             _currentNameFontSize, _currentClassFontSize, _currentMentorFontSize,
+                             _currentPlaceholderFontSize, _currentCardPadding);
         }
     }
 
@@ -312,102 +414,111 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
-            // Find and update the card border
-            var cardBorder = FindNamedChild<Border>(container, "StudentCard");
-            if (cardBorder != null)
+            // Only update elements that need to change from their default values
+            var textMaxWidth = cardWidth - (cardPadding * 2);
+            
+            // Update card border width only if different from default
+            if (Math.Abs(cardWidth - 240) > 1)
             {
-                cardBorder.Width = cardWidth;
-                // Let height be determined by content to avoid empty space at the bottom
-                cardBorder.Height = double.NaN;
-            }
-
-            // Find and update the button padding
-            var cardButton = FindNamedChild<Button>(container, "CardButton");
-            if (cardButton != null)
-            {
-                cardButton.Padding = new Thickness(cardPadding, cardPadding * 0.75);
-            }
-
-            // Find and update image container
-            var imageContainer = FindNamedChild<Grid>(container, "ImageContainer");
-            if (imageContainer != null)
-            {
-                imageContainer.Width = imageSize;
-                imageContainer.Height = imageSize;
-            }
-
-            // Find and update image border
-            var imageBorder = FindNamedChild<Border>(container, "ImageBorder");
-            if (imageBorder != null)
-            {
-                imageBorder.Width = imageSize;
-                imageBorder.Height = imageSize;
-                imageBorder.CornerRadius = new CornerRadius(imageRadius);
-            }
-
-            // Find and update image button
-            var imageButton = FindNamedChild<Button>(container, "ImageButton");
-            if (imageButton != null)
-            {
-                imageButton.Width = imageSize;
-                imageButton.Height = imageSize;
-                imageButton.CornerRadius = new CornerRadius(imageRadius);
-            }
-
-            // Ensure the ellipse (image mask) is constrained to the placeholder size
-            var profileEllipse = FindNamedChild<Ellipse>(container, "ProfileEllipse");
-            if (profileEllipse != null)
-            {
-                profileEllipse.Width = imageSize;
-                profileEllipse.Height = imageSize;
-            }
-            else
-            {
-                // If we can't find the ellipse immediately, try again after a short delay
-                Dispatcher.UIThread.Post(() =>
+                var cardBorder = FindNamedChild<Border>(container, "StudentCard");
+                if (cardBorder != null)
                 {
-                    var retryEllipse = FindNamedChild<Ellipse>(container, "ProfileEllipse");
-                    if (retryEllipse != null)
-                    {
-                        retryEllipse.Width = imageSize;
-                        retryEllipse.Height = imageSize;
-                    }
-                }, DispatcherPriority.Background);
+                    cardBorder.Width = cardWidth;
+                }
             }
 
-            // Find and update text elements
-            var nameText = FindNamedChild<TextBlock>(container, "NameText");
-            if (nameText != null)
+            // Update button padding only if different from default
+            if (Math.Abs(cardPadding - 18) > 1)
             {
-                nameText.FontSize = nameFontSize;
-                nameText.MaxWidth = cardWidth - (cardPadding * 2);
+                var cardButton = FindNamedChild<Button>(container, "CardButton");
+                if (cardButton != null)
+                {
+                    cardButton.Padding = new Thickness(cardPadding, cardPadding * 0.75);
+                }
             }
 
-            var classText = FindNamedChild<TextBlock>(container, "ClassText");
-            if (classText != null)
+            // Update image elements only if size changed significantly
+            if (Math.Abs(imageSize - 168) > 1)
             {
-                classText.FontSize = classFontSize;
-                classText.MaxWidth = cardWidth - (cardPadding * 2);
+                var imageContainer = FindNamedChild<Grid>(container, "ImageContainer");
+                if (imageContainer != null)
+                {
+                    imageContainer.Width = imageSize;
+                    imageContainer.Height = imageSize;
+                }
+
+                var imageBorder = FindNamedChild<Border>(container, "ImageBorder");
+                if (imageBorder != null)
+                {
+                    imageBorder.Width = imageSize;
+                    imageBorder.Height = imageSize;
+                    imageBorder.CornerRadius = new CornerRadius(imageRadius);
+                }
+
+                var imageButton = FindNamedChild<Button>(container, "ImageButton");
+                if (imageButton != null)
+                {
+                    imageButton.Width = imageSize;
+                    imageButton.Height = imageSize;
+                    imageButton.CornerRadius = new CornerRadius(imageRadius);
+                }
+
+                var profileEllipse = FindNamedChild<Ellipse>(container, "ProfileEllipse");
+                if (profileEllipse != null)
+                {
+                    profileEllipse.Width = imageSize;
+                    profileEllipse.Height = imageSize;
+                }
             }
 
-            var mentorText = FindNamedChild<TextBlock>(container, "MentorText");
-            if (mentorText != null)
+            // Update text elements only if font sizes changed
+            if (Math.Abs(nameFontSize - 16) > 0.5)
             {
-                mentorText.FontSize = mentorFontSize;
-                mentorText.MaxWidth = cardWidth - (cardPadding * 2);
+                var nameText = FindNamedChild<TextBlock>(container, "NameText");
+                if (nameText != null)
+                {
+                    nameText.FontSize = nameFontSize;
+                    nameText.MaxWidth = textMaxWidth;
+                }
             }
 
-            var placeholderText = FindNamedChild<TextBlock>(container, "PlaceholderText");
-            if (placeholderText != null)
+            if (Math.Abs(classFontSize - 12) > 0.5)
             {
-                placeholderText.FontSize = placeholderFontSize;
+                var classText = FindNamedChild<TextBlock>(container, "ClassText");
+                if (classText != null)
+                {
+                    classText.FontSize = classFontSize;
+                    classText.MaxWidth = textMaxWidth;
+                }
             }
 
-            // Find and update info container
-            var infoContainer = FindNamedChild<StackPanel>(container, "InfoContainer");
-            if (infoContainer != null)
+            if (Math.Abs(mentorFontSize - 10) > 0.5)
             {
-                infoContainer.MaxWidth = cardWidth - (cardPadding * 2);
+                var mentorText = FindNamedChild<TextBlock>(container, "MentorText");
+                if (mentorText != null)
+                {
+                    mentorText.FontSize = mentorFontSize;
+                    mentorText.MaxWidth = textMaxWidth;
+                }
+            }
+
+            if (Math.Abs(placeholderFontSize - 67) > 1)
+            {
+                var placeholderText = FindNamedChild<TextBlock>(container, "PlaceholderText");
+                if (placeholderText != null)
+                {
+                    placeholderText.FontSize = placeholderFontSize;
+                }
+            }
+
+            // Update info container max width if needed
+            if (Math.Abs(textMaxWidth - 204) > 1)
+            {
+                var infoContainer = FindNamedChild<StackPanel>(container, "InfoContainer");
+                if (infoContainer != null)
+                {
+                    infoContainer.MaxWidth = textMaxWidth;
+                }
             }
         }
         catch (Exception ex)

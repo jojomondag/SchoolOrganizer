@@ -96,14 +96,6 @@
                                   Command="{Binding NavigateToStudentGalleryCommand}"
                                   Content="Student Gallery"/>
                 </StackPanel>
-
-                <TextBlock Grid.Column="1"
-                           Text="School Organizer"
-                           VerticalAlignment="Center"
-                           Foreground="White"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           Margin="16,0,0,0"/>
             </Grid>
         </Border>
 
