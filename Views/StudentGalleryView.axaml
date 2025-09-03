@@ -172,8 +172,16 @@
                                         ClipToBounds="True" 
                                         Background="#EEE">
                                     <Grid>
-                                        <Image Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}" 
-                                               Stretch="UniformToFill"/>
+                                        <Ellipse x:Name="ProfileEllipse"
+                                                 HorizontalAlignment="Center"
+                                                 VerticalAlignment="Center">
+                                            <Ellipse.Fill>
+                                                <ImageBrush Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}"
+                                                            Stretch="UniformToFill"
+                                                            AlignmentX="Center"
+                                                            AlignmentY="Center"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
                                         <TextBlock x:Name="PlaceholderText"
                                                    Text="?" 
                                                    FontWeight="Bold" 

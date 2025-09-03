@@ -8,6 +8,7 @@ using Avalonia.Controls.Primitives;
 using System.Linq;
 using Avalonia;
 using Avalonia.VisualTree;
+using Avalonia.Controls.Shapes;
 
 
 namespace SchoolOrganizer.Views;
@@ -119,12 +120,18 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"HandleStudentImageChange called for student {student.Id} ({student.Name})");
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             if (parentWindow == null) return;
+            
             var newPath = await ImageCropWindow.ShowForStudentAsync(parentWindow, student.Id);
+            System.Diagnostics.Debug.WriteLine($"ImageCropWindow returned path: {newPath}");
+            
             if (!string.IsNullOrEmpty(newPath) && DataContext is StudentGalleryViewModel vm)
             {
+                System.Diagnostics.Debug.WriteLine("Calling UpdateStudentImage on ViewModel");
                 await vm.UpdateStudentImage(student, newPath);
+                System.Diagnostics.Debug.WriteLine("UpdateStudentImage completed");
             }
         }
         catch (Exception ex)
@@ -294,7 +301,8 @@ public partial class StudentGalleryView : UserControl
             if (cardBorder != null)
             {
                 cardBorder.Width = cardWidth;
-                cardBorder.Height = cardWidth * 1.4; // Maintain aspect ratio
+                // Let height be determined by content to avoid empty space at the bottom
+                cardBorder.Height = double.NaN;
             }
 
             // Find and update the button padding
@@ -328,6 +336,14 @@ public partial class StudentGalleryView : UserControl
                 imageButton.Width = imageSize;
                 imageButton.Height = imageSize;
                 imageButton.CornerRadius = new CornerRadius(imageRadius);
+            }
+
+            // Ensure the ellipse (image mask) is constrained to the placeholder size
+            var profileEllipse = FindNamedChild<Ellipse>(container, "ProfileEllipse");
+            if (profileEllipse != null)
+            {
+                profileEllipse.Width = imageSize;
+                profileEllipse.Height = imageSize;
             }
 
             // Find and update text elements
