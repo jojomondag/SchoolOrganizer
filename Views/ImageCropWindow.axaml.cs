@@ -22,6 +22,7 @@ public partial class ImageCropWindow : Window
             selector.ImageSaved += (s, path) =>
             {
                 SavedImagePath = path;
+                System.Diagnostics.Debug.WriteLine($"ImageCropWindow: Image saved to {path}");
                 Close();
             };
             selector.OriginalImageSelected += async (s, file) =>

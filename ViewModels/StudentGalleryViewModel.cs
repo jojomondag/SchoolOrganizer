@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SchoolOrganizer.Models;
 using SchoolOrganizer.Services;
+using SchoolOrganizer.Views;
 
 namespace SchoolOrganizer.ViewModels;
 
@@ -246,23 +247,35 @@ public partial class StudentGalleryViewModel : ViewModelBase
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"UpdateStudentImage called for student {student.Id} with path: {newImagePath}");
+            
+            // Ensure the saved image file is readable before we update bindings
+            await WaitForReadableFileAsync(newImagePath);
+
+            // Clear the image cache for the old path if it exists
+            if (!string.IsNullOrWhiteSpace(student.PictureUrl))
+            {
+                UniversalImageConverter.ClearCache(student.PictureUrl);
+            }
+            
+            // Clear the cache for the new path as well (in case it's the same path but different image)
+            UniversalImageConverter.ClearCache(newImagePath);
+
             var studentInCollection = Students.FirstOrDefault(s => s.Id == student.Id);
             if (studentInCollection != null)
             {
-                // Update the student in the collection
+                System.Diagnostics.Debug.WriteLine($"Found student in collection, updating PictureUrl from '{studentInCollection.PictureUrl}' to '{newImagePath}'");
+                
+                // Clear cache for old path
+                if (!string.IsNullOrWhiteSpace(studentInCollection.PictureUrl))
+                {
+                    UniversalImageConverter.ClearCache(studentInCollection.PictureUrl);
+                }
+                
+                // Update the student's picture URL - this will trigger PropertyChanged due to ObservableProperty
                 studentInCollection.PictureUrl = newImagePath;
                 
-                // Force the UI to refresh by triggering a collection change notification
-                // This is a workaround for when property changes in collection items don't trigger UI updates
-                OnPropertyChanged(nameof(Students));
-                
-                // Also try to force a refresh of the specific student item
-                // This can help with binding issues in some cases
-                var index = Students.IndexOf(studentInCollection);
-                if (index >= 0)
-                {
-                    Students[index] = studentInCollection;
-                }
+                System.Diagnostics.Debug.WriteLine($"Updated student PictureUrl to: {studentInCollection.PictureUrl}");
             }
             
             // Also update the passed student object
@@ -272,14 +285,45 @@ public partial class StudentGalleryViewModel : ViewModelBase
             var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
             if (inAll != null)
             {
+                // Clear cache for old path
+                if (!string.IsNullOrWhiteSpace(inAll.PictureUrl))
+                {
+                    UniversalImageConverter.ClearCache(inAll.PictureUrl);
+                }
                 inAll.PictureUrl = newImagePath;
             }
+            
+            // Save to JSON
             await SaveAllStudentsToJson();
+            
+            System.Diagnostics.Debug.WriteLine("UpdateStudentImage completed successfully");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error updating student image: {ex.Message}");
         }
+    }
+
+    private static async Task<bool> WaitForReadableFileAsync(string path, int maxAttempts = 20, int delayMs = 100)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                if (stream.Length > 0)
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+            await Task.Delay(delayMs);
+        }
+        return false;
     }
 
     // Removed per new unified save method
