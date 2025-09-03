@@ -1,4 +1,5 @@
 ﻿using System;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -15,6 +16,24 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
         CurrentViewModel = new StudentGalleryViewModel();
+    }
+
+    public bool IsStudentGalleryActive => CurrentViewModel is StudentGalleryViewModel;
+
+    public bool IsHomeActive => CurrentViewModel is HomeViewModel;
+
+    public IBrush ActiveContentBrush => CurrentViewModel switch
+    {
+        StudentGalleryViewModel => Brushes.White,
+        HomeViewModel => new SolidColorBrush(Color.Parse("#f8f9fa")),
+        _ => Brushes.White
+    };
+
+    partial void OnCurrentViewModelChanged(ViewModelBase value)
+    {
+        OnPropertyChanged(nameof(IsStudentGalleryActive));
+        OnPropertyChanged(nameof(IsHomeActive));
+        OnPropertyChanged(nameof(ActiveContentBrush));
     }
 
     [RelayCommand]
