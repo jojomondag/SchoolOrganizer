@@ -25,6 +25,8 @@
                           ContentTemplate="{TemplateBinding ContentTemplate}"/>
       </Border>
     </ControlTemplate>
+    
+
   </UserControl.Resources>
   <Design.DataContext>
     <vm:StudentGalleryViewModel/>
@@ -39,9 +41,9 @@
 
     <!-- Header and Filters -->
     <Border Grid.Row="0" Background="White" Padding="24,20">
-      <Grid>
+      <Grid HorizontalAlignment="Center">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="400"/>
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
@@ -74,7 +76,7 @@
                      Watermark="Search students by name, class, or mentor..." 
                      Background="Transparent"
                      BorderThickness="0"
-                     Padding="0,12"
+                     Padding="8,12"
                      FontSize="14"/>
           </Grid>
         </Border>
@@ -169,7 +171,24 @@
                       Cursor="Hand"
                       BorderThickness="2"
                       Width="240"
-                      Height="NaN">
+                      Height="NaN"
+                      Classes="student-card">
+                <Border.Transitions>
+                  <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2"/>
+                  </Transitions>
+                </Border.Transitions>
+                <Border.Styles>
+                  <Style Selector="Border">
+                    <Setter Property="RenderTransform" Value="scale(1)"/>
+                  </Style>
+                  <Style Selector="Border:pointerover">
+                    <Setter Property="RenderTransform" Value="scale(1.05)"/>
+                    <Setter Property="BoxShadow" Value="0 8 24 0 #60000000"/>
+                  </Style>
+                </Border.Styles>
+
                 <Border.BorderBrush>
                   <MultiBinding Converter="{StaticResource StudentSelectionBrushConverter}">
                     <Binding Path="$parent[UserControl].((vm:StudentGalleryViewModel)DataContext).SelectedStudent"/>
@@ -177,25 +196,26 @@
                   </MultiBinding>
                 </Border.BorderBrush>
 
-                <!-- Clickable area for the entire card (fills entire border) -->
-                <Button                         Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
-                        CommandParameter="{Binding}"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Padding="18,13.5"
-                        Cursor="Hand"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        Name="CardButton"
-                        Template="{StaticResource FlatButtonTemplate}">
-                  <Button.Styles>
-                    <Style Selector="Button:pointerover">
-                      <Setter Property="Background" Value="Transparent"/>
-                    </Style>
-                    <Style Selector="Button:pressed">
-                      <Setter Property="Background" Value="Transparent"/>
-                    </Style>
-                  </Button.Styles>
+                <Grid>
+                  <!-- Clickable area for the entire card (fills entire border) -->
+                  <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
+                          CommandParameter="{Binding}"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          Padding="18,13.5"
+                          Cursor="Hand"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Name="CardButton"
+                          Template="{StaticResource FlatButtonTemplate}">
+                    <Button.Styles>
+                      <Style Selector="Button:pointerover">
+                        <Setter Property="Background" Value="Transparent"/>
+                      </Style>
+                      <Style Selector="Button:pressed">
+                        <Setter Property="Background" Value="Transparent"/>
+                      </Style>
+                    </Button.Styles>
                     
                     <Grid x:Name="CardContent">
                         <!-- Card Content -->
@@ -211,42 +231,39 @@
                                         Background="#EEE"
                                         Width="168"
                                         Height="168"
-                                        CornerRadius="84">
-                                    <Grid>
-                                        <Ellipse x:Name="ProfileEllipse"
-                                                 HorizontalAlignment="Center"
-                                                 VerticalAlignment="Center"
-                                                 Width="168"
-                                                 Height="168">
-                                            <Ellipse.Fill>
-                                                <ImageBrush Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}"
-                                                            Stretch="UniformToFill"
-                                                            AlignmentX="Center"
-                                                            AlignmentY="Center"/>
-                                            </Ellipse.Fill>
-                                        </Ellipse>
-                                        <TextBlock x:Name="PlaceholderText"
-                                                   Text="?" 
-                                                   FontWeight="Bold" 
-                                                   Foreground="#888"
-                                                   HorizontalAlignment="Center" 
-                                                   VerticalAlignment="Center"
-                                                   FontSize="67"
-                                                   IsVisible="{Binding PictureUrl, Converter={StaticResource IsNullOrWhiteSpace}}"/>
-                                    </Grid>
+                                        CornerRadius="84"
+                                        BorderThickness="3"
+                                        BorderBrush="Transparent">
+                                  <Border.Styles>
+                                    <Style Selector="Border:pointerover">
+                                      <Setter Property="BorderBrush" Value="#3b536b"/>
+                                    </Style>
+                                  </Border.Styles>
+                                  <Border.Background>
+                                    <ImageBrush Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}"
+                                                Stretch="UniformToFill"
+                                                AlignmentX="Center"
+                                                AlignmentY="Center"/>
+                                  </Border.Background>
+                                  <TextBlock x:Name="PlaceholderText"
+                                             Text="?" 
+                                             FontWeight="Bold" 
+                                             Foreground="#888"
+                                             HorizontalAlignment="Center" 
+                                             VerticalAlignment="Center"
+                                             FontSize="67"
+                                             IsVisible="{Binding PictureUrl, Converter={StaticResource IsNullOrWhiteSpace}}"/>
                                 </Border>
                                 
-                                <!-- Clickable overlay for image change -->
-                                <Button x:Name="ImageButton"
-                                        Background="Transparent"
+                                <!-- Invisible clickable overlay for image change -->
+                                <Button Background="Transparent"
                                         BorderThickness="0"
-                                        Cursor="Hand"
                                         Width="168"
                                         Height="168"
                                         CornerRadius="84"
+                                        Cursor="Hand"
                                         Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).ChangeImageCommand}"
                                         CommandParameter="{Binding}"
-                                        ToolTip.Tip="Click to change image"
                                         Template="{StaticResource FlatButtonTemplate}">
                                   <Button.Styles>
                                     <Style Selector="Button:pointerover">
@@ -257,6 +274,7 @@
                                     </Style>
                                   </Button.Styles>
                                 </Button>
+
                             </Grid>
 
                             <!-- Student Info -->
@@ -291,11 +309,14 @@
                                            TextAlignment="Center"
                                            FontSize="10"
                                            MaxWidth="204"
-                                           Margin="0,0,0,5"/>
+                                           Margin="0,0,0,8"/>
+                                
+
                             </StackPanel>
                         </StackPanel>
                     </Grid>
-                </Button>
+                  </Button>
+                </Grid>
               </Border>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
