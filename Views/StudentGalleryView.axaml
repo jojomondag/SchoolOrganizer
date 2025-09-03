@@ -38,10 +38,8 @@
     </Grid.RowDefinitions>
 
     <!-- Header and Filters -->
-    <Border Grid.Row="0" Background="#f5f5f5" Padding="20">
+    <Border Grid.Row="0" Background="White" Padding="20">
       <StackPanel>
-        <TextBlock Text="Student Gallery" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
-        
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
