@@ -37,8 +37,37 @@
             <Setter Property="Foreground" Value="#2c3e50"/>
         </Style>
 
+        <!-- Target the ContentPresenter within the template for checked state -->
+        <Style Selector="ToggleButton.tab:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#2c3e50"/>
+        </Style>
+
+        <!-- Target the Border within the template for checked state -->
+        <Style Selector="ToggleButton.tab:checked /template/ Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="White"/>
+        </Style>
+
         <Style Selector="ToggleButton.tab:pointerover">
             <Setter Property="Background" Value="#476987"/>
+        </Style>
+
+        <Style Selector="ToggleButton.tab:checked:pointerover">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="Foreground" Value="#2c3e50"/>
+        </Style>
+
+        <!-- Ensure template elements stay white when checked and hovered -->
+        <Style Selector="ToggleButton.tab:checked:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#2c3e50"/>
+        </Style>
+
+        <Style Selector="ToggleButton.tab:checked:pointerover /template/ Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="White"/>
         </Style>
     </Window.Styles>
 
