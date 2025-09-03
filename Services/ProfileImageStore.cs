@@ -8,6 +8,19 @@ using Avalonia.Platform.Storage;
 
 namespace SchoolOrganizer.Services;
 
+public class CropSettings
+{
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double Width { get; set; }
+    public double Height { get; set; }
+    public double RotationAngle { get; set; }
+    public double ImageDisplayWidth { get; set; }
+    public double ImageDisplayHeight { get; set; }
+    public double ImageDisplayOffsetX { get; set; }
+    public double ImageDisplayOffsetY { get; set; }
+}
+
 public static class ProfileImageStore
 {
     private static readonly object fileLock = new();
@@ -32,6 +45,12 @@ public static class ProfileImageStore
     {
         var imagesDir = GetImagesDir();
         return Path.Combine(imagesDir, "profile_sources.json");
+    }
+
+    private static string GetCropSettingsFile()
+    {
+        var imagesDir = GetImagesDir();
+        return Path.Combine(imagesDir, "crop_settings.json");
     }
 
     public static async Task<string> SaveOriginalFromLocalPathAsync(string sourcePath)
@@ -90,6 +109,36 @@ public static class ProfileImageStore
         return null;
     }
 
+    public static async Task SaveCropSettingsForStudentAsync(int studentId, CropSettings settings)
+    {
+        try
+        {
+            var cropMap = await ReadCropSettingsMapAsync();
+            cropMap[studentId] = settings;
+            await WriteCropSettingsMapAsync(cropMap);
+        }
+        catch (Exception)
+        {
+            // ignore save failures
+        }
+    }
+
+    public static async Task<CropSettings?> GetCropSettingsForStudentAsync(int studentId)
+    {
+        try
+        {
+            var cropMap = await ReadCropSettingsMapAsync();
+            if (cropMap.TryGetValue(studentId, out var settings))
+            {
+                return settings;
+            }
+        }
+        catch (Exception)
+        {
+        }
+        return null;
+    }
+
     private static async Task<Dictionary<int, string>> ReadMapAsync()
     {
         var file = GetMapFile();
@@ -109,6 +158,30 @@ public static class ProfileImageStore
     private static async Task WriteMapAsync(Dictionary<int, string> map)
     {
         var file = GetMapFile();
+        await using var stream = File.Create(file);
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        await JsonSerializer.SerializeAsync(stream, map, options);
+    }
+
+    private static async Task<Dictionary<int, CropSettings>> ReadCropSettingsMapAsync()
+    {
+        var file = GetCropSettingsFile();
+        if (!File.Exists(file)) return new Dictionary<int, CropSettings>();
+        try
+        {
+            using var stream = File.OpenRead(file);
+            var map = await JsonSerializer.DeserializeAsync<Dictionary<int, CropSettings>>(stream);
+            return map ?? new Dictionary<int, CropSettings>();
+        }
+        catch
+        {
+            return new Dictionary<int, CropSettings>();
+        }
+    }
+
+    private static async Task WriteCropSettingsMapAsync(Dictionary<int, CropSettings> map)
+    {
+        var file = GetCropSettingsFile();
         await using var stream = File.Create(file);
         var options = new JsonSerializerOptions { WriteIndented = true };
         await JsonSerializer.SerializeAsync(stream, map, options);
