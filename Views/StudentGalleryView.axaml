@@ -116,23 +116,20 @@
                       Margin="0,0,0,20">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal" 
-                         HorizontalAlignment="Center"
-                         MinWidth="800"
-                         ItemWidth="260"/>
+              <WrapPanel x:Name="CardsWrapPanel"
+                         Orientation="Horizontal" 
+                         HorizontalAlignment="Center"/>
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
 
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="models:Student">
-              <Border Background="White" 
+              <Border x:Name="StudentCard"
+                      Background="White" 
                       CornerRadius="8" 
-                      Margin="10" 
+                      Margin="12" 
                       Padding="0"
                       BoxShadow="0 2 8 0 #20000000"
-                      MinWidth="220"
-                      MaxWidth="240"
-                      MinHeight="320"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Top"
                       Cursor="Hand"
@@ -164,26 +161,33 @@
                     </Style>
                   </Button.Styles>
                     
-                    <Grid>
+                    <Grid x:Name="CardContent">
                         <!-- Card Content -->
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top">
                             <!-- Student Image -->
-                            <Grid Width="180" Height="180" Margin="0,8,0,15" HorizontalAlignment="Center">
-                                <Border CornerRadius="90" ClipToBounds="True" Background="#EEE">
+                            <Grid x:Name="ImageContainer" 
+                                  Margin="0,8,0,15" 
+                                  HorizontalAlignment="Center">
+                                <Border x:Name="ImageBorder" 
+                                        ClipToBounds="True" 
+                                        Background="#EEE">
                                     <Grid>
                                         <Image Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}" 
                                                Stretch="UniformToFill"/>
-                                        <TextBlock Text="?" FontSize="72" FontWeight="Bold" Foreground="#888"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        <TextBlock x:Name="PlaceholderText"
+                                                   Text="?" 
+                                                   FontWeight="Bold" 
+                                                   Foreground="#888"
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Center"
                                                    IsVisible="{Binding PictureUrl, Converter={StaticResource IsNullOrWhiteSpace}}"/>
                                     </Grid>
                                 </Border>
                                 
                                 <!-- Clickable overlay for image change -->
-                                <Button Background="Transparent"
+                                <Button x:Name="ImageButton"
+                                        Background="Transparent"
                                         BorderThickness="0"
-                                        Width="180" Height="180"
-                                        CornerRadius="90"
                                         Cursor="Hand"
                                         Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).ChangeImageCommand}"
                                         CommandParameter="{Binding}"
@@ -201,25 +205,26 @@
                             </Grid>
 
                             <!-- Student Info -->
-                            <StackPanel Margin="0,0,0,10" MaxWidth="200">
-                                <TextBlock Text="{Binding Name}" 
-                                           FontSize="18" 
+                            <StackPanel x:Name="InfoContainer" 
+                                        Margin="0,0,0,10">
+                                <TextBlock x:Name="NameText"
+                                           Text="{Binding Name}" 
                                            FontWeight="Bold" 
                                            HorizontalAlignment="Center"
                                            TextWrapping="Wrap"
                                            TextAlignment="Center"
                                            Margin="0,0,0,5"/>
                                 
-                                <TextBlock Text="{Binding ClassName}" 
-                                           FontSize="14" 
+                                <TextBlock x:Name="ClassText"
+                                           Text="{Binding ClassName}" 
                                            Foreground="#666"
                                            HorizontalAlignment="Center"
                                            TextWrapping="Wrap"
                                            TextAlignment="Center"
                                            Margin="0,0,0,5"/>
                                 
-                                <TextBlock Text="{Binding Mentor, StringFormat='Mentor: {0}'}" 
-                                           FontSize="12" 
+                                <TextBlock x:Name="MentorText"
+                                           Text="{Binding Mentor, StringFormat='Mentor: {0}'}" 
                                            Foreground="#888"
                                            HorizontalAlignment="Center"
                                            TextWrapping="Wrap"
