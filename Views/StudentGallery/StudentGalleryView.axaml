@@ -5,7 +5,7 @@
              xmlns:vm="using:SchoolOrganizer.ViewModels"
              xmlns:models="using:SchoolOrganizer.Models"
              xmlns:views="using:SchoolOrganizer.Views"
-             xmlns:studentGallery="using:SchoolOrganizer.Views.StudentGallery"
+             xmlns:profileCard="using:SchoolOrganizer.Views.ProfileCard"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="SchoolOrganizer.Views.StudentGallery.StudentGalleryView"
              x:DataType="vm:StudentGalleryViewModel"
@@ -161,7 +161,52 @@
 
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="models:Student">
-              <studentGallery:StudentProfileCard DataContext="{Binding}" />
+              <!-- Wrap ProfileCard with selection functionality -->
+              <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
+                      CommandParameter="{Binding}"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      Padding="0"
+                      Template="{StaticResource FlatButtonTemplate}">
+                
+                <Border Background="White" 
+                        CornerRadius="8" 
+                        Margin="12" 
+                        BoxShadow="0 2 8 0 #20000000"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        BorderThickness="2"
+                        Width="240"
+                        ClipToBounds="True">
+                  
+                  <Border.BorderBrush>
+                    <MultiBinding Converter="{StaticResource StudentSelectionBrushConverter}">
+                      <Binding Path="$parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectedStudent"/>
+                      <Binding Path="."/>
+                    </MultiBinding>
+                  </Border.BorderBrush>
+                  
+                  <Border.Transitions>
+                    <Transitions>
+                      <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+                      <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2"/>
+                    </Transitions>
+                  </Border.Transitions>
+                  
+                  <Border.Styles>
+                    <Style Selector="Border">
+                      <Setter Property="RenderTransform" Value="scale(1)"/>
+                    </Style>
+                    <Style Selector="Border:pointerover">
+                      <Setter Property="RenderTransform" Value="scale(1.05)"/>
+                      <Setter Property="BoxShadow" Value="0 8 24 0 #60000000"/>
+                    </Style>
+                  </Border.Styles>
+
+                  <!-- Use the generic ProfileCard -->
+                  <profileCard:ProfileCard DataContext="{Binding}" Margin="0"/>
+                </Border>
+              </Button>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
