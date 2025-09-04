@@ -144,7 +144,7 @@
         </Border>
 
         <!-- Students Grid -->
-        <ItemsControl x:Name="ProfileCards" 
+        <ItemsControl x:Name="StudentsContainer" 
                       Grid.Row="0"
                       ItemsSource="{Binding Students}" 
                       IsVisible="{Binding !IsLoading}"
@@ -161,7 +161,7 @@
 
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="models:Student">
-              <studentGallery:ProfileCards DataContext="{Binding}" />
+              <studentGallery:StudentProfileCard DataContext="{Binding}" />
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
