@@ -11,6 +11,7 @@ using Avalonia.VisualTree;
 using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
 using Avalonia.Input;
+using SchoolOrganizer.Views.ProfileCard;
 
 
 namespace SchoolOrganizer.Views.StudentGallery;
@@ -193,6 +194,9 @@ public partial class StudentGalleryView : UserControl
         
         UpdateCardLayout();
         
+        // Wire up ProfileCard events for any existing cards
+        WireUpAllProfileCardEvents();
+        
         // Set focus to this control so it can receive keyboard events
         Focus();
     }
@@ -300,6 +304,9 @@ public partial class StudentGalleryView : UserControl
 
     private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
     {
+        // Wire up ProfileCard ImageClicked event
+        WireUpProfileCardEvents(e.Container);
+        
         // Only apply dynamic styling if current dimensions differ significantly from defaults
         var needsUpdate = Math.Abs(_currentCardWidth - 240) > 5 || 
                          Math.Abs(_currentImageSize - 168) > 5;
@@ -536,6 +543,55 @@ public partial class StudentGalleryView : UserControl
         catch
         {
             return null;
+        }
+    }
+
+    private void WireUpProfileCardEvents(Control container)
+    {
+        try
+        {
+            // Find the ProfileCard within the container
+            var profileCard = container.FindDescendantOfType<ProfileCard.ProfileCard>();
+            if (profileCard != null)
+            {
+                // Remove existing handler to avoid duplicates
+                profileCard.ImageClicked -= OnProfileCardImageClicked;
+                // Add the handler
+                profileCard.ImageClicked += OnProfileCardImageClicked;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error wiring up ProfileCard events: {ex.Message}");
+        }
+    }
+
+    private async void OnProfileCardImageClicked(object? sender, SchoolOrganizer.Models.Student student)
+    {
+        await HandleStudentImageChange(student);
+    }
+
+    private void WireUpAllProfileCardEvents()
+    {
+        try
+        {
+            var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
+            if (studentsContainer != null)
+            {
+                // Find all ProfileCard controls in the ItemsControl
+                var profileCards = studentsContainer.GetVisualDescendants().OfType<ProfileCard.ProfileCard>();
+                foreach (var profileCard in profileCards)
+                {
+                    // Remove existing handler to avoid duplicates
+                    profileCard.ImageClicked -= OnProfileCardImageClicked;
+                    // Add the handler
+                    profileCard.ImageClicked += OnProfileCardImageClicked;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error wiring up all ProfileCard events: {ex.Message}");
         }
     }
 }
