@@ -11,104 +11,70 @@
 
   <UserControl.Resources>
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
-    <views:StringIsNullOrWhiteSpaceConverter x:Key="IsNullOrWhiteSpace"/>
-    <views:StudentSelectionBrushConverter x:Key="StudentSelectionBrushConverter"/>
-    
-    <ControlTemplate x:Key="FlatButtonTemplate">
-      <Border Background="{TemplateBinding Background}"
-              BorderBrush="{TemplateBinding BorderBrush}"
-              BorderThickness="{TemplateBinding BorderThickness}"
-              CornerRadius="{TemplateBinding CornerRadius}">
-        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                          Content="{TemplateBinding Content}"
-                          ContentTemplate="{TemplateBinding ContentTemplate}"/>
-      </Border>
-    </ControlTemplate>
   </UserControl.Resources>
 
   <Border x:Name="PersonCard"
-          Background="White" 
-          CornerRadius="8" 
-          Margin="12" 
-          BoxShadow="0 2 8 0 #20000000"
-          HorizontalAlignment="Center"
-          VerticalAlignment="Top"
-          Cursor="Hand"
-          BorderThickness="2"
-          Width="240"
-          Classes="person-card">
-    
-    <Border.Transitions>
-      <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
-        <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2"/>
-      </Transitions>
-    </Border.Transitions>
-    
-    <Border.Styles>
-      <Style Selector="Border">
-        <Setter Property="RenderTransform" Value="scale(1)"/>
-      </Style>
-      <Style Selector="Border:pointerover">
-        <Setter Property="RenderTransform" Value="scale(1.05)"/>
-        <Setter Property="BoxShadow" Value="0 8 24 0 #60000000"/>
-      </Style>
-    </Border.Styles>
+          Background="Transparent" 
+          CornerRadius="0" 
+          Margin="0" 
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          BorderThickness="0"
+          ClipToBounds="False">
 
-    <!-- Clickable Button covering the entire card -->
-    <Button Background="Transparent"
-            BorderThickness="0"
-            Padding="18,13.5"
-            Cursor="Hand"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            Template="{StaticResource FlatButtonTemplate}">
+    <!-- Card Content -->
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,13.5">
+      <!-- Profile Image -->
+      <Border Width="80" 
+              Height="80" 
+              CornerRadius="40" 
+              Margin="0,0,0,15"
+              ClipToBounds="True"
+              Background="#F0F0F0"
+              BorderBrush="#E0E0E0"
+              BorderThickness="2">
+        <Image Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}"
+               Stretch="UniformToFill"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center">
+          <Image.Clip>
+            <EllipseGeometry RadiusX="40" RadiusY="40" Center="40,40"/>
+          </Image.Clip>
+        </Image>
+      </Border>
       
-      <Button.Styles>
-        <Style Selector="Button:pointerover">
-          <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        <Style Selector="Button:pressed">
-          <Setter Property="Background" Value="Transparent"/>
-        </Style>
-      </Button.Styles>
-      
-      <!-- Card Content -->
-      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <!-- Person Information -->
-        <StackPanel Margin="0,0,0,10" MaxWidth="204">
-          
-          <TextBlock x:Name="NameText"
-                     Text="{Binding Name}" 
-                     FontWeight="Bold" 
-                     HorizontalAlignment="Center"
-                     TextWrapping="Wrap"
-                     TextAlignment="Center"
-                     FontSize="16"
-                     Margin="0,0,0,5"/>
-          
-          <TextBlock x:Name="RoleText"
-                     Text="{Binding RoleInfo}" 
-                     Foreground="#666"
-                     HorizontalAlignment="Center"
-                     TextWrapping="Wrap"
-                     TextAlignment="Center"
-                     FontSize="12"
-                     Margin="0,0,0,5"/>
-          
-          <TextBlock x:Name="SecondaryText"
-                     Text="{Binding SecondaryInfo}" 
-                     Foreground="#888"
-                     HorizontalAlignment="Center"
-                     TextWrapping="Wrap"
-                     TextAlignment="Center"
-                     FontSize="10"
-                     Margin="0,0,0,8"
-                     IsVisible="{Binding SecondaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-          
-        </StackPanel>
+      <!-- Person Information -->
+      <StackPanel Margin="0,0,0,10" MaxWidth="204">
+        
+        <TextBlock x:Name="NameText"
+                   Text="{Binding Name}" 
+                   FontWeight="Bold" 
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"
+                   FontSize="16"
+                   Margin="0,0,0,5"/>
+        
+        <TextBlock x:Name="RoleText"
+                   Text="{Binding RoleInfo}" 
+                   Foreground="#666"
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"
+                   FontSize="12"
+                   Margin="0,0,0,5"/>
+        
+        <TextBlock x:Name="SecondaryText"
+                   Text="{Binding SecondaryInfo}" 
+                   Foreground="#888"
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"
+                   FontSize="10"
+                   Margin="0,0,0,8"
+                   IsVisible="{Binding SecondaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        
       </StackPanel>
-    </Button>
+    </StackPanel>
   </Border>
 </UserControl>

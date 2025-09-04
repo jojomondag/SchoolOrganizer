@@ -1,60 +1,42 @@
-# ProfileCard Usage Examples
+# ProfileCard Component
 
-The ProfileCard component is a reusable UI component that can display any person type (Student, Teacher, Personnel) that implements the `IPerson` interface.
+A generic, reusable UI component for displaying any person type that implements the `IPerson` interface.
 
-## Basic Usage
+## Features
 
-### For Teachers
+- **Circular profile image** with fallback background
+- **Responsive text layout** with proper text wrapping
+- **Clean, modern design** with consistent spacing
+- **Generic implementation** - works with any `IPerson`
+
+## Usage
+
+The ProfileCard is designed to be wrapped by consuming views that need additional functionality like selection, click handling, etc.
+
+### Basic Usage (Display Only)
 ```xml
-<ItemsControl ItemsSource="{Binding Teachers}">
-  <ItemsControl.ItemTemplate>
-    <DataTemplate x:DataType="models:Teacher">
-      <profileCard:ProfileCard DataContext="{Binding}" />
-    </DataTemplate>
-  </ItemsControl.ItemTemplate>
-</ItemsControl>
+<profileCard:ProfileCard DataContext="{Binding SomePerson}" />
 ```
 
-### For Personnel
+### With Selection (StudentGallery Example)
 ```xml
-<ItemsControl ItemsSource="{Binding Personnel}">
-  <ItemsControl.ItemTemplate>
-    <DataTemplate x:DataType="models:Personnel">
-      <profileCard:ProfileCard DataContext="{Binding}" />
-    </DataTemplate>
-  </ItemsControl.ItemTemplate>
-</ItemsControl>
+<Button Command="{Binding SelectCommand}" CommandParameter="{Binding}">
+  <Border [styling for selection/hover effects]>
+    <profileCard:ProfileCard DataContext="{Binding}" />
+  </Border>
+</Button>
 ```
 
-### For Students (with selection functionality)
-```xml
-<ItemsControl ItemsSource="{Binding Students}">
-  <ItemsControl.ItemTemplate>
-    <DataTemplate x:DataType="models:Student">
-      <!-- Use StudentProfileCard for selection features -->
-      <studentGallery:StudentProfileCard DataContext="{Binding}" />
-    </DataTemplate>
-  </ItemsControl.ItemTemplate>
-</ItemsControl>
-```
+## Requirements
 
-## Required Namespace Imports
-```xml
-xmlns:profileCard="using:SchoolOrganizer.Views.ProfileCard"
-xmlns:models="using:SchoolOrganizer.Models"
-xmlns:studentGallery="using:SchoolOrganizer.Views.StudentGallery"
-```
-
-## IPerson Interface Requirements
-Any model using ProfileCard must implement:
-- `int Id`
+Any model using ProfileCard must implement `IPerson`:
 - `string Name`
-- `string PictureUrl`
-- `string Email`
-- `string RoleInfo` (e.g., "Class 9A", "Math Department")
-- `string? SecondaryInfo` (e.g., "Mentor: John", "Head of Department")
-- `PersonType PersonType`
+- `string PictureUrl` 
+- `string RoleInfo`
+- `string? SecondaryInfo`
 
-## Component Types
-1. **ProfileCard**: Generic component for any IPerson
-2. **StudentProfileCard**: Specialized with student selection and commands
+## Architecture
+
+This component follows the separation of concerns principle:
+- **ProfileCard**: Pure presentation component
+- **Consuming Views**: Handle interaction, selection, and specialized styling
