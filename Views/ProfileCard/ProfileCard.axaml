@@ -25,7 +25,7 @@
     <!-- Card Content -->
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,13.5">
       <!-- Profile Image -->
-      <Border Background="White"
+  <Border Background="Transparent"
         CornerRadius="46"
         BorderThickness="0"
         Padding="0"
@@ -38,18 +38,11 @@
         Height="90"
         Margin="0,0,0,15">
         
-        <!-- Circular Profile Image with Border -->
+        <!-- Circular Profile Image -->
         <Grid Width="86" Height="86">
-          <!-- Outer Border Ring -->
-          <Ellipse Fill="Transparent" 
-                   Stroke="#E0E0E0" 
-                   StrokeThickness="2"
-                   Width="86" 
-                   Height="86"/>
-          
-          <!-- Inner Circular Image -->
-          <Ellipse Width="82" 
-                   Height="82"
+          <!-- Single Circular Image without border -->
+          <Ellipse Width="86" 
+                   Height="86"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center">
             <Ellipse.Fill>
