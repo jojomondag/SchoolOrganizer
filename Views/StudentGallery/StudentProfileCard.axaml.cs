@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace SchoolOrganizer.Views.StudentGallery;
 
-public partial class ProfileCards : UserControl
+public partial class StudentProfileCard : UserControl
 {
-    public ProfileCards()
+    public StudentProfileCard()
     {
         InitializeComponent();
     }

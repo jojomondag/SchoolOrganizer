@@ -46,10 +46,10 @@ public partial class StudentGalleryView : UserControl
         KeyDown += OnKeyDown;
         
         // Subscribe to container prepared events for newly created cards
-        var profileCards = this.FindControl<ItemsControl>("ProfileCards");
-        if (profileCards != null)
+        var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
+        if (studentsContainer != null)
         {
-            profileCards.ContainerPrepared += OnContainerPrepared;
+            studentsContainer.ContainerPrepared += OnContainerPrepared;
         }
     }
 
@@ -184,11 +184,11 @@ public partial class StudentGalleryView : UserControl
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         // Ensure we have the container prepared event subscribed after loading
-        var profileCards = this.FindControl<ItemsControl>("ProfileCards");
-        if (profileCards != null)
+        var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
+        if (studentsContainer != null)
         {
-            profileCards.ContainerPrepared -= OnContainerPrepared; // Avoid double subscription
-            profileCards.ContainerPrepared += OnContainerPrepared;
+            studentsContainer.ContainerPrepared -= OnContainerPrepared; // Avoid double subscription
+            studentsContainer.ContainerPrepared += OnContainerPrepared;
         }
         
         UpdateCardLayout();
@@ -374,8 +374,8 @@ public partial class StudentGalleryView : UserControl
 
     private void ApplyCardSizing(double cardWidth)
     {
-        var profileCards = this.FindControl<ItemsControl>("ProfileCards");
-        if (profileCards == null) return;
+        var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
+        if (studentsContainer == null) return;
 
         // Calculate proportional sizes based on card width
         var imageSize = Math.Max(120, cardWidth * 0.7); // Image is 70% of card width, min 120px
@@ -387,9 +387,9 @@ public partial class StudentGalleryView : UserControl
         var cardPadding = Math.Max(15, cardWidth * 0.075);
 
         // Update all existing card containers
-        for (int i = 0; i < profileCards.ItemCount; i++)
+        for (int i = 0; i < studentsContainer.ItemCount; i++)
         {
-            var container = profileCards.ContainerFromIndex(i);
+            var container = studentsContainer.ContainerFromIndex(i);
             if (container != null)
             {
                 UpdateCardElements(container, cardWidth, imageSize, imageRadius, nameFontSize, 

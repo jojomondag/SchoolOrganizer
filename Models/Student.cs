@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SchoolOrganizer.Models;
 
-public partial class Student : ObservableObject
+public partial class Student : ObservableObject, IPerson
 {
     [ObservableProperty]
     private int id;
@@ -13,7 +13,6 @@ public partial class Student : ObservableObject
 
     [ObservableProperty]
     private string pictureUrl = string.Empty;
-
 
     [ObservableProperty]
     private string className = string.Empty;
@@ -26,6 +25,11 @@ public partial class Student : ObservableObject
 
     [ObservableProperty]
     private DateTime enrollmentDate;
+
+    // IPerson implementation
+    public string RoleInfo => ClassName;
+    public string? SecondaryInfo => string.IsNullOrEmpty(Mentor) ? null : $"Mentor: {Mentor}";
+    public PersonType PersonType => PersonType.Student;
 
     public Student()
     {
