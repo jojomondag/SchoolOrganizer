@@ -107,8 +107,9 @@
                   Padding="20" 
                   VerticalScrollBarVisibility="Auto" 
                   HorizontalScrollBarVisibility="Disabled"
+                  ClipToBounds="False"
                   VerticalAlignment="Stretch">
-      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinHeight="400">
+      <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MinHeight="400" ClipToBounds="False">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
@@ -148,6 +149,7 @@
                       Grid.Row="0"
                       ItemsSource="{Binding Students}" 
                       IsVisible="{Binding !IsLoading}"
+                      ClipToBounds="False"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Top"
                       Margin="0,0,0,20">
@@ -155,6 +157,7 @@
             <ItemsPanelTemplate>
               <WrapPanel x:Name="CardsWrapPanel"
                          Orientation="Horizontal" 
+                         ClipToBounds="False"
                          HorizontalAlignment="Center"/>
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
@@ -167,6 +170,7 @@
                       Background="Transparent"
                       BorderThickness="0"
                       Padding="0"
+                      ClipToBounds="False"
                       Template="{StaticResource FlatButtonTemplate}">
                 <Button.Styles>
                   <Style Selector="Button">
@@ -189,12 +193,13 @@
                 <Border Background="White" 
                         CornerRadius="8" 
                         Margin="12" 
-                        BoxShadow="0 2 8 0 #20000000"
+                        BoxShadow="0 4 12 0 #30000000"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         BorderThickness="2"
                         Width="240"
-                        ClipToBounds="True">
+                        RenderTransformOrigin="0.5,0.5"
+                        >
                   
                   <Border.BorderBrush>
                     <MultiBinding Converter="{StaticResource StudentSelectionBrushConverter}">
@@ -205,23 +210,27 @@
                   
                   <Border.Transitions>
                     <Transitions>
-                      <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
-                      <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2"/>
+                      <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.4" Easing="QuadraticEaseInOut"/>
+                      <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.4" Easing="QuadraticEaseInOut"/>
                     </Transitions>
                   </Border.Transitions>
                   
                   <Border.Styles>
                     <Style Selector="Border">
                       <Setter Property="RenderTransform" Value="scale(1)"/>
+                      <Setter Property="Panel.ZIndex" Value="0"/>
                     </Style>
                     <Style Selector="Border:pointerover">
                       <Setter Property="RenderTransform" Value="scale(1.05)"/>
-                      <Setter Property="BoxShadow" Value="0 8 24 0 #60000000"/>
+                      <Setter Property="BoxShadow" Value="0 10 30 0 #60000000"/>
+                      <Setter Property="Panel.ZIndex" Value="10"/>
                     </Style>
                   </Border.Styles>
 
-                  <!-- Use the generic ProfileCard -->
-                  <profileCard:ProfileCard DataContext="{Binding}" Margin="0"/>
+                  <!-- Use the generic ProfileCard inside a clipping border to preserve rounded corners -->
+                  <Border CornerRadius="8" ClipToBounds="True" Background="Transparent">
+                    <profileCard:ProfileCard DataContext="{Binding}" Margin="0"/>
+                  </Border>
                 </Border>
               </Button>
             </DataTemplate>

@@ -24,13 +24,13 @@
 
     <!-- Card Content -->
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,13.5">
+      
       <!-- Profile Image -->
   <Border Background="Transparent"
         CornerRadius="46"
         BorderThickness="0"
         Padding="0"
         PointerReleased="OnProfileImagePointerReleased"
-        ToolTip.Tip="Click to change profile image"
         Cursor="Hand"
         HorizontalAlignment="Center"
         VerticalAlignment="Center"
