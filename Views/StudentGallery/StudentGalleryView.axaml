@@ -40,8 +40,8 @@
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <!-- Header and Filters -->
-    <Border Grid.Row="0" Background="White" Padding="24,20">
+  <!-- Header and Filters -->
+  <Border x:Name="HeaderBorder" Grid.Row="0" Background="White" Padding="24,20">
       <Grid HorizontalAlignment="Center">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="400"/>
@@ -103,7 +103,7 @@
     </Border>
 
     <!-- Student Gallery -->
-    <ScrollViewer Grid.Row="1" 
+  <ScrollViewer Name="StudentsScrollViewer" Grid.Row="1" 
                   Padding="20" 
                   VerticalScrollBarVisibility="Auto" 
                   HorizontalScrollBarVisibility="Disabled"

@@ -54,6 +54,92 @@ public partial class StudentGalleryView : UserControl
         }
     }
 
+    private DispatcherTimer? _scrollAnimationTimer;
+    private void CancelScrollAnimation()
+    {
+        try
+        {
+            if (_scrollAnimationTimer != null)
+            {
+                _scrollAnimationTimer.Stop();
+                _scrollAnimationTimer = null;
+            }
+        }
+        catch { }
+    }
+
+    private void SmoothScrollToVerticalOffset(ScrollViewer scrollViewer, double targetOffset, int durationMs = 300)
+    {
+        try
+        {
+            CancelScrollAnimation();
+
+            var startOffset = scrollViewer.Offset.Y;
+            var delta = targetOffset - startOffset;
+            if (Math.Abs(delta) < 0.5 || durationMs <= 0)
+            {
+                scrollViewer.Offset = new Vector(scrollViewer.Offset.X, targetOffset);
+                return;
+            }
+
+            var startTime = DateTime.UtcNow;
+            _scrollAnimationTimer = new DispatcherTimer();
+            _scrollAnimationTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60fps
+            _scrollAnimationTimer.Tick += (s, e) =>
+            {
+                try
+                {
+                    var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+                    var t = Math.Min(1.0, elapsed / durationMs);
+
+                    // Cubic ease-out: 1 - (1 - t)^3
+                    var eased = 1.0 - Math.Pow(1.0 - t, 3);
+
+                    var newOffset = startOffset + (delta * eased);
+                    scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newOffset);
+
+                    if (t >= 1.0)
+                    {
+                        CancelScrollAnimation();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Scroll animation error: {ex.Message}");
+                    CancelScrollAnimation();
+                }
+            };
+
+            _scrollAnimationTimer.Start();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Smooth scroll start error: {ex.Message}");
+        }
+    }
+
+    private void SubscribeToViewModelSelections(StudentGalleryViewModel? vm)
+    {
+        if (vm == null) return;
+        vm.PropertyChanged -= ViewModel_PropertyChanged;
+        vm.PropertyChanged += ViewModel_PropertyChanged;
+    }
+
+    private void UnsubscribeFromViewModelSelections(StudentGalleryViewModel? vm)
+    {
+        if (vm == null) return;
+        vm.PropertyChanged -= ViewModel_PropertyChanged;
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == "SelectedStudent")
+        {
+            // Defer scrolling until layout pass completes
+            Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
+        }
+    }
+
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("StudentGalleryView DataContextChanged called");
@@ -65,6 +151,7 @@ public partial class StudentGalleryView : UserControl
             oldViewModel.AddStudentRequested -= HandleAddStudentRequested;
             oldViewModel.StudentImageChangeRequested -= HandleStudentImageChangeRequested;
             oldViewModel.EditStudentRequested -= HandleEditStudentRequested;
+            UnsubscribeFromViewModelSelections(oldViewModel);
         }
         
         // Subscribe to new ViewModel
@@ -77,6 +164,7 @@ public partial class StudentGalleryView : UserControl
             
             // Store reference for cleanup
             Tag = viewModel;
+            SubscribeToViewModelSelections(viewModel);
         }
         else
         {
@@ -199,6 +287,9 @@ public partial class StudentGalleryView : UserControl
         
         // Set focus to this control so it can receive keyboard events
         Focus();
+
+        // Subscribe to ViewModel selection changes
+        SubscribeToViewModelSelections(ViewModel);
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -323,6 +414,8 @@ public partial class StudentGalleryView : UserControl
     private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
     {
         UpdateCardLayout();
+        // Recenter selected student on size changes
+        Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
     }
 
     private void UpdateCardLayout()
@@ -594,4 +687,87 @@ public partial class StudentGalleryView : UserControl
             System.Diagnostics.Debug.WriteLine($"Error wiring up all ProfileCard events: {ex.Message}");
         }
     }
+
+        private void ScrollSelectedStudentIntoCenter()
+        {
+            try
+            {
+                if (ViewModel == null || ViewModel.SelectedStudent == null) return;
+
+                var scrollViewer = this.FindControl<ScrollViewer>("StudentsScrollViewer");
+                var itemsControl = this.FindControl<ItemsControl>("StudentsContainer");
+                if (scrollViewer == null || itemsControl == null) return;
+
+                // Find the container for the selected student
+                int index = itemsControl.Items.Cast<object>().ToList().FindIndex(i =>
+                {
+                    if (i is SchoolOrganizer.Models.Student s)
+                        return s.Id == ViewModel.SelectedStudent.Id;
+                    return false;
+                });
+
+                if (index < 0) return;
+
+                var container = itemsControl.ContainerFromIndex(index) as Control;
+                if (container == null) return;
+
+                // Transform container bounds to ScrollViewer coordinate space
+                var containerBounds = container.Bounds;
+                var containerPoint = container.TranslatePoint(new Point(0, 0), scrollViewer);
+                if (containerPoint == null) return;
+
+                double containerCenterY = containerPoint.Value.Y + (containerBounds.Height / 2.0);
+
+                // Find header bottom and details top in window coordinates
+                var header = this.FindControl<Border>("HeaderBorder");
+                var detailsHost = this.FindControl<Border>("SelectedDetailsHost");
+
+                // Get TopLevel (window) for coordinate transforms
+                var topLevel = TopLevel.GetTopLevel(this);
+                if (topLevel == null) return;
+
+                var headerBottomInWindow = 0.0;
+                if (header != null)
+                {
+                    var headerPoint = header.TranslatePoint(new Point(0, header.Bounds.Height), topLevel);
+                    if (headerPoint != null)
+                        headerBottomInWindow = headerPoint.Value.Y;
+                }
+
+                double detailsTopInWindow = double.NaN;
+                if (detailsHost != null)
+                {
+                    var detailsPoint = detailsHost.TranslatePoint(new Point(0, 0), topLevel);
+                    if (detailsPoint != null)
+                        detailsTopInWindow = detailsPoint.Value.Y;
+                }
+
+                // If details not visible use bottom of window as fallback
+                double windowHeight = topLevel.Bounds.Height;
+
+                double areaTop = headerBottomInWindow;
+                double areaBottom = !double.IsNaN(detailsTopInWindow) ? detailsTopInWindow : windowHeight;
+
+                // Midpoint in window coords
+                double midpointWindowY = (areaTop + areaBottom) / 2.0;
+
+                // Translate midpoint into ScrollViewer's content coordinate space by comparing to scroll viewport top in window coords
+                var scrollViewportTopInWindow = scrollViewer.TranslatePoint(new Point(0, 0), topLevel)?.Y ?? 0;
+                double midpointRelativeToScroll = midpointWindowY - scrollViewportTopInWindow;
+
+                // Compute required vertical offset so containerCenterY aligns with midpointRelativeToScroll
+                double currentOffset = scrollViewer.Offset.Y;
+                double targetOffset = currentOffset + (containerCenterY - midpointRelativeToScroll);
+
+                // Clamp target offset
+                targetOffset = Math.Max(0, Math.Min(targetOffset, scrollViewer.Extent.Height - scrollViewer.Viewport.Height));
+
+                // Smooth scroll to target offset
+                SmoothScrollToVerticalOffset(scrollViewer, targetOffset, 320);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error scrolling selected student into center: {ex.Message}");
+            }
+        }
 }
