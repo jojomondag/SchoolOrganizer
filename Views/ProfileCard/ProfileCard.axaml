@@ -25,23 +25,70 @@
     <!-- Card Content -->
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,13.5">
       <!-- Profile Image -->
-      <Border Width="80" 
-              Height="80" 
-              CornerRadius="40" 
-              Margin="0,0,0,15"
-              ClipToBounds="True"
-              Background="#F0F0F0"
-              BorderBrush="#E0E0E0"
-              BorderThickness="2">
-        <Image Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}"
-               Stretch="UniformToFill"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center">
-          <Image.Clip>
-            <EllipseGeometry RadiusX="40" RadiusY="40" Center="40,40"/>
-          </Image.Clip>
-        </Image>
-      </Border>
+      <Button Background="Transparent"
+              BorderThickness="0"
+              Padding="0"
+              Click="OnProfileImageClicked"
+              ToolTip.Tip="Click to change profile image"
+              Cursor="Hand"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Width="90"
+              Height="90"
+              Margin="0,0,0,15">
+        <Button.Styles>
+          <Style Selector="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+              <ControlTemplate>
+                <ContentPresenter Name="PART_ContentPresenter"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Padding="{TemplateBinding Padding}"
+                                RecognizesAccessKey="True"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+              </ControlTemplate>
+            </Setter>
+          </Style>
+          <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+          </Style>
+          <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+          </Style>
+          <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="Transparent"/>
+          </Style>
+          <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="Transparent"/>
+          </Style>
+        </Button.Styles>
+        
+        <!-- Circular Profile Image with Border -->
+        <Grid Width="86" Height="86">
+          <!-- Outer Border Ring -->
+          <Ellipse Fill="Transparent" 
+                   Stroke="#E0E0E0" 
+                   StrokeThickness="2"
+                   Width="86" 
+                   Height="86"/>
+          
+          <!-- Inner Circular Image -->
+          <Ellipse Width="82" 
+                   Height="82"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center">
+            <Ellipse.Fill>
+              <ImageBrush Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}"
+                          Stretch="UniformToFill"/>
+            </Ellipse.Fill>
+          </Ellipse>
+        </Grid>
+      </Button>
       
       <!-- Person Information -->
       <StackPanel Margin="0,0,0,10" MaxWidth="204">
