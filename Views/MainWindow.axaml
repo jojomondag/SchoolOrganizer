@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:SchoolOrganizer.ViewModels"
         xmlns:views="using:SchoolOrganizer.Views"
+        xmlns:studentGallery="using:SchoolOrganizer.Views.StudentGallery"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -105,7 +106,7 @@
                 <ContentControl.DataTemplates>
                 <!-- Template for StudentGalleryViewModel -->
                     <DataTemplate DataType="vm:StudentGalleryViewModel">
-                        <views:StudentGalleryView/>
+                        <studentGallery:StudentGalleryView/>
                     </DataTemplate>
                 
                 <!-- Template for HomeViewModel -->

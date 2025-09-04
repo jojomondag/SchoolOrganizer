@@ -13,7 +13,7 @@ using Avalonia.Threading;
 using Avalonia.Input;
 
 
-namespace SchoolOrganizer.Views;
+namespace SchoolOrganizer.Views.StudentGallery;
 
 public partial class StudentGalleryView : UserControl
 {
