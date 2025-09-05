@@ -1,5 +1,8 @@
 # Copilot Instructions for SchoolOrganizer
 
+## Agent Approach
+**CONCISE PROBLEM-SOLVING**: Focus on solving the user's problem directly with minimal explanation. Avoid lengthy descriptions - implement the solution and provide only essential context when needed.
+
 ## Project Overview
 SchoolOrganizer is a **C# Avalonia UI desktop application** using AXAML markup and MVVM pattern with CommunityToolkit.Mvvm. The app manages student profiles with image editing capabilities via an embedded `External/ImageSelector` project.
 
@@ -66,6 +69,13 @@ dotnet build                    # Standard build
 dotnet run                     # Run application
 dotnet build --verbosity normal # Detailed build output
 ```
+
+### Post-Session Validation
+**REQUIRED**: After any agent session that modifies code, always run:
+1. `dotnet build` - Verify compilation success
+2. `dotnet run` - Test application functionality
+
+This ensures changes are properly validated and the application runs correctly.
 
 ### Data Seeding
 - Modify `Data/students.json` for test data
