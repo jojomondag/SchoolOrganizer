@@ -13,6 +13,14 @@
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
   </UserControl.Resources>
 
+  <UserControl.Styles>
+    <!-- Disable any default hover effects on the profile image border -->
+    <Style Selector="Border.ProfileImageBorder:pointerover">
+      <Setter Property="RenderTransform" Value="scale(1)"/>
+      <Setter Property="Opacity" Value="1"/>
+    </Style>
+  </UserControl.Styles>
+
   <Border x:Name="PersonCard"
           Background="Transparent" 
           CornerRadius="0" 
@@ -27,6 +35,7 @@
       
       <!-- Profile Image -->
   <Border Background="Transparent"
+        Classes="ProfileImageBorder"
         CornerRadius="46"
         BorderThickness="3"
         BorderBrush="#2c3e50"

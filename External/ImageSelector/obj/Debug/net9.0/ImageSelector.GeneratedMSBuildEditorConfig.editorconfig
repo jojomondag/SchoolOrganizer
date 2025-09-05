@@ -15,14 +15,14 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ImageSelector
-build_property.ProjectDir = /Users/josef.nobach/Documents/GitHub/SchoolOrganizer/External/ImageSelector/
+build_property.ProjectDir = C:\Users\Josef\Documents\Github\SchoolOrganizer\External\ImageSelector\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.EffectiveAnalysisLevelStyle = 9.0
 build_property.EnableCodeStyleSeverity = 
 
-[/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/External/ImageSelector/App.axaml]
+[C:/Users/Josef/Documents/Github/SchoolOrganizer/External/ImageSelector/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/External/ImageSelector/ImageSelectorView.axaml]
+[C:/Users/Josef/Documents/Github/SchoolOrganizer/External/ImageSelector/ImageSelectorView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
