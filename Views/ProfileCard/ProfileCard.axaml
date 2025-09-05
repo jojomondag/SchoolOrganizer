@@ -28,7 +28,8 @@
       <!-- Profile Image -->
   <Border Background="Transparent"
         CornerRadius="46"
-        BorderThickness="0"
+        BorderThickness="3"
+        BorderBrush="#2c3e50"
         Padding="0"
         PointerReleased="OnProfileImagePointerReleased"
         Cursor="Hand"
@@ -40,7 +41,7 @@
         
         <!-- Circular Profile Image -->
         <Grid Width="86" Height="86">
-          <!-- Single Circular Image without border -->
+          <!-- Single Circular Image with border -->
           <Ellipse Width="86" 
                    Height="86"
                    HorizontalAlignment="Center"
