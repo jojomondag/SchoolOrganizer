@@ -41,6 +41,10 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [ObservableProperty]
     private ProfileCardDisplayConfig displayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
 
+    // Properties for controlling view mode
+    public bool ShowSingleStudent => Students.Count == 1;
+    public bool ShowMultipleStudents => Students.Count != 1;
+
     // Event for requesting image selection
     public event EventHandler? AddStudentRequested;
     
@@ -131,6 +135,8 @@ public partial class StudentGalleryViewModel : ViewModelBase
     partial void OnStudentsChanged(ObservableCollection<Student> value)
     {
         UpdateDisplayLevelBasedOnItemCount();
+        OnPropertyChanged(nameof(ShowSingleStudent));
+        OnPropertyChanged(nameof(ShowMultipleStudents));
     }
 
     private void UpdateDisplayLevelBasedOnItemCount()
@@ -163,6 +169,9 @@ public partial class StudentGalleryViewModel : ViewModelBase
             {
                 Students.Add(s);
             }
+            // Trigger property changes for view mode
+            OnPropertyChanged(nameof(ShowSingleStudent));
+            OnPropertyChanged(nameof(ShowMultipleStudents));
         }
         catch (Exception ex)
         {

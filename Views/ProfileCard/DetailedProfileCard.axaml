@@ -1,0 +1,253 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SchoolOrganizer.ViewModels"
+             xmlns:models="using:SchoolOrganizer.Models"
+             xmlns:views="using:SchoolOrganizer.Views"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SchoolOrganizer.Views.ProfileCard.DetailedProfileCard"
+             x:DataType="models:IPerson">
+
+  <UserControl.Resources>
+    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
+    <views:StudentEnrollmentConverter x:Key="StudentEnrollmentConverter"/>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <!-- Card hover effect -->
+    <Style Selector="Border.DetailedCard">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.3"/>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    
+    <Style Selector="Border.DetailedCard:pointerover">
+      <Setter Property="BoxShadow" Value="0 8 25 0 #20000000"/>
+      <Setter Property="RenderTransform" Value="scale(1.02)"/>
+    </Style>
+
+    <!-- Profile image hover effect -->
+    <Style Selector="Border.ProfileImageBorder">
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    
+    <Style Selector="Border.ProfileImageBorder:pointerover">
+      <Setter Property="RenderTransform" Value="scale(1.05)"/>
+    </Style>
+  </UserControl.Styles>
+
+  <!-- Main Card Container -->
+  <Border x:Name="DetailedCard"
+          Classes="DetailedCard"
+          Background="White" 
+          CornerRadius="16" 
+          BoxShadow="0 4 15 0 #15000000"
+          Margin="40"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          BorderThickness="1"
+          BorderBrush="#E0E0E0"
+          ClipToBounds="False">
+
+    <!-- Main Content Grid -->
+    <Grid Margin="50">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" MinWidth="300"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Left Side - Profile Image -->
+      <StackPanel Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,20,50,0">
+        
+        <!-- Profile Image -->
+        <Border x:Name="ProfileImageBorder"
+                Classes="ProfileImageBorder"
+                Background="Transparent"
+                CornerRadius="120"
+                BorderThickness="4"
+                BorderBrush="#3498db"
+                Padding="0"
+                PointerReleased="OnProfileImagePointerReleased"
+                Cursor="Hand"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Width="240"
+                Height="240"
+                Margin="0,0,0,30">
+          
+          <!-- Circular Profile Image -->
+          <Grid x:Name="ProfileImageGrid" Width="230" Height="230">
+            <!-- Background circle for when no image is present -->
+            <Ellipse x:Name="ProfileImageBackground"
+                     Width="230" 
+                     Height="230"
+                     Fill="#f8f9fa"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+            
+            <!-- Profile image overlay -->
+            <Ellipse x:Name="ProfileImageEllipse"
+                     Width="230" 
+                     Height="230"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center">
+              <Ellipse.Fill>
+                <ImageBrush Source="{Binding PictureUrl, Converter={StaticResource UniversalImageConverter}}"
+                            Stretch="UniformToFill"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </Grid>
+        </Border>
+
+        <!-- Image Edit Hint -->
+        <TextBlock Text="Click image to edit"
+                   Foreground="#95a5a6"
+                   HorizontalAlignment="Center"
+                   FontSize="12"
+                   FontStyle="Italic"
+                   Margin="0,0,0,20"/>
+
+      </StackPanel>
+
+      <!-- Right Side - Detailed Information -->
+      <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="0,20,0,0">
+        
+        <!-- Name -->
+        <TextBlock x:Name="NameText"
+                   Text="{Binding Name}" 
+                   FontWeight="Bold" 
+                   FontSize="36"
+                   Foreground="#2c3e50"
+                   Margin="0,0,0,15"
+                   TextWrapping="Wrap"/>
+        
+        <!-- Role/Class Information -->
+        <Border Background="#3498db" 
+                CornerRadius="8" 
+                Padding="16,8" 
+                HorizontalAlignment="Left"
+                Margin="0,0,0,25">
+          <TextBlock x:Name="RoleText"
+                     Text="{Binding RoleInfo}" 
+                     Foreground="White"
+                     FontSize="18"
+                     FontWeight="SemiBold"/>
+        </Border>
+        
+        <!-- Details Section -->
+        <StackPanel Margin="0,10,0,0" Spacing="20">
+          
+          <!-- Email -->
+          <StackPanel IsVisible="{Binding Email, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="Email Address" 
+                       FontSize="14" 
+                       FontWeight="SemiBold" 
+                       Foreground="#7f8c8d"
+                       Margin="0,0,0,5"/>
+            <TextBlock x:Name="EmailText"
+                       Text="{Binding Email}" 
+                       FontSize="18"
+                       Foreground="#2c3e50"
+                       Margin="0,0,0,0"/>
+          </StackPanel>
+          
+          <!-- Secondary Info (Mentor) -->
+          <StackPanel IsVisible="{Binding SecondaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="Mentor" 
+                       FontSize="14" 
+                       FontWeight="SemiBold" 
+                       Foreground="#7f8c8d"
+                       Margin="0,0,0,5"/>
+            <TextBlock x:Name="SecondaryText"
+                       Text="{Binding SecondaryInfo}" 
+                       FontSize="18"
+                       Foreground="#2c3e50"/>
+          </StackPanel>
+          
+          <!-- Enrollment Date (for Students) -->
+          <StackPanel x:Name="EnrollmentSection">
+            <TextBlock Text="Enrollment Date" 
+                       FontSize="14" 
+                       FontWeight="SemiBold" 
+                       Foreground="#7f8c8d"
+                       Margin="0,0,0,5"/>
+            <TextBlock x:Name="EnrollmentText"
+                       FontSize="18"
+                       Foreground="#2c3e50">
+              <TextBlock.Text>
+                <MultiBinding StringFormat="{}{0:MMMM d, yyyy}">
+                  <Binding Path="." Converter="{StaticResource StudentEnrollmentConverter}"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+          </StackPanel>
+
+          <!-- Student ID -->
+          <StackPanel>
+            <TextBlock Text="Student ID" 
+                       FontSize="14" 
+                       FontWeight="SemiBold" 
+                       Foreground="#7f8c8d"
+                       Margin="0,0,0,5"/>
+            <TextBlock x:Name="IdText"
+                       Text="{Binding Id}" 
+                       FontSize="18"
+                       Foreground="#2c3e50"
+                       FontFamily="Consolas"/>
+          </StackPanel>
+
+        </StackPanel>
+
+        <!-- Additional Actions Section -->
+        <Border Background="#ecf0f1" 
+                CornerRadius="12" 
+                Padding="20" 
+                Margin="0,40,0,0"
+                HorizontalAlignment="Stretch">
+          <StackPanel>
+            <TextBlock Text="Quick Actions" 
+                       FontSize="16" 
+                       FontWeight="SemiBold" 
+                       Foreground="#2c3e50"
+                       Margin="0,0,0,15"/>
+            
+            <StackPanel Orientation="Horizontal" Spacing="15">
+              <Button Content="Edit Profile" 
+                      Background="#3498db" 
+                      Foreground="White"
+                      Padding="16,8"
+                      CornerRadius="6"
+                      BorderThickness="0"
+                      Cursor="Hand"/>
+              
+              <Button Content="View Records" 
+                      Background="#27ae60" 
+                      Foreground="White"
+                      Padding="16,8"
+                      CornerRadius="6"
+                      BorderThickness="0"
+                      Cursor="Hand"/>
+              
+              <Button Content="Contact" 
+                      Background="#e67e22" 
+                      Foreground="White"
+                      Padding="16,8"
+                      CornerRadius="6"
+                      BorderThickness="0"
+                      Cursor="Hand"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

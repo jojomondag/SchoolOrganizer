@@ -148,15 +148,20 @@
           </StackPanel>
         </Border>
 
-        <!-- Students Grid -->
+        <!-- Students Grid - Multiple Students -->
         <ItemsControl x:Name="StudentsContainer" 
                       Grid.Row="0"
                       ItemsSource="{Binding Students}" 
-                      IsVisible="{Binding !IsLoading}"
                       ClipToBounds="False"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Top"
                       Margin="0,0,0,20">
+          <ItemsControl.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="!IsLoading"/>
+              <Binding Path="ShowMultipleStudents"/>
+            </MultiBinding>
+          </ItemsControl.IsVisible>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel x:Name="CardsWrapPanel"
@@ -242,6 +247,26 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+        <!-- Single Student - Detailed View -->
+        <ContentControl Grid.Row="0" 
+                       Content="{Binding Students[0]}"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Margin="0,0,0,20">
+          <ContentControl.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="!IsLoading"/>
+              <Binding Path="ShowSingleStudent"/>
+            </MultiBinding>
+          </ContentControl.IsVisible>
+          <ContentControl.ContentTemplate>
+            <DataTemplate x:DataType="models:Student">
+              <profileCard:DetailedProfileCard DataContext="{Binding}" 
+                                              ImageClicked="OnDetailedProfileImageClicked"/>
+            </DataTemplate>
+          </ContentControl.ContentTemplate>
+        </ContentControl>
         
         <!-- Spacer to ensure bottom cards are fully visible when details panel is shown -->
         <Border Grid.Row="1"
