@@ -664,6 +664,11 @@ public partial class StudentGalleryView : UserControl
         await HandleStudentImageChange(student);
     }
 
+    private async void OnDetailedProfileImageClicked(object? sender, SchoolOrganizer.Models.Student student)
+    {
+        await HandleStudentImageChange(student);
+    }
+
     private void WireUpAllProfileCardEvents()
     {
         try
