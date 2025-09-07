@@ -15,6 +15,10 @@
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
     <views:StringIsNullOrWhiteSpaceConverter x:Key="IsNullOrWhiteSpace"/>
     <views:StudentSelectionBrushConverter x:Key="StudentSelectionBrushConverter"/>
+    <views:StudentCountToCardSizeConverter x:Key="StudentCountToCardSize"/>
+    <views:StudentCountToImageSizeConverter x:Key="StudentCountToImageSize"/>
+    <views:StudentCountToFontSizeConverter x:Key="StudentCountToFontSize"/>
+    <views:StudentCountToVisibilityConverter x:Key="StudentCountToVisibility"/>
     <ControlTemplate x:Key="FlatButtonTemplate">
       <Border Background="{TemplateBinding Background}"
               BorderBrush="{TemplateBinding BorderBrush}"
@@ -197,7 +201,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         BorderThickness="2"
-                        Width="240"
+                        Width="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).Students, Converter={StaticResource StudentCountToCardSize}}"
                         RenderTransformOrigin="0.5,0.5"
                         >
                   
@@ -229,7 +233,9 @@
 
                   <!-- Use the generic ProfileCard inside a clipping border to preserve rounded corners -->
                   <Border CornerRadius="8" ClipToBounds="True" Background="Transparent">
-                    <profileCard:ProfileCard DataContext="{Binding}" Margin="0"/>
+                    <profileCard:ProfileCard DataContext="{Binding}" 
+                                           StudentCount="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).Students.Count}"
+                                           Margin="0"/>
                   </Border>
                 </Border>
               </Button>

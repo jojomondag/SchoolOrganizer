@@ -35,6 +35,12 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [ObservableProperty]
     private bool isLoading = false;
 
+    [ObservableProperty]
+    private ProfileCardDisplayLevel currentDisplayLevel = ProfileCardDisplayLevel.Standard;
+
+    [ObservableProperty]
+    private ProfileCardDisplayConfig displayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
+
     // Event for requesting image selection
     public event EventHandler? AddStudentRequested;
     
@@ -73,6 +79,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
 
                 // Initial populate based on current query (may be empty)
                 await ApplySearchImmediate();
+                UpdateDisplayLevelBasedOnItemCount();
             }
         }
         catch (Exception ex)
@@ -121,6 +128,29 @@ public partial class StudentGalleryViewModel : ViewModelBase
         _ = ApplySearchDebounced();
     }
 
+    partial void OnStudentsChanged(ObservableCollection<Student> value)
+    {
+        UpdateDisplayLevelBasedOnItemCount();
+    }
+
+    private void UpdateDisplayLevelBasedOnItemCount()
+    {
+        var itemCount = Students.Count;
+        var newLevel = itemCount switch
+        {
+            <= 4 => ProfileCardDisplayLevel.Expanded,
+            <= 8 => ProfileCardDisplayLevel.Detailed,
+            <= 16 => ProfileCardDisplayLevel.Standard,
+            _ => ProfileCardDisplayLevel.Compact
+        };
+
+        if (newLevel != CurrentDisplayLevel)
+        {
+            CurrentDisplayLevel = newLevel;
+            DisplayConfig = ProfileCardDisplayConfig.GetConfig(newLevel);
+        }
+    }
+
     private System.Threading.CancellationTokenSource? searchCts;
 
     private Task ApplySearchImmediate()
@@ -163,6 +193,13 @@ public partial class StudentGalleryViewModel : ViewModelBase
     private void AddStudent()
     {
         AddStudentRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    private void SetDisplayLevel(ProfileCardDisplayLevel level)
+    {
+        CurrentDisplayLevel = level;
+        DisplayConfig = ProfileCardDisplayConfig.GetConfig(level);
     }
 
     public async Task AddNewStudentAsync(string name, string className, string mentor, string email, DateTime enrollmentDate, string picturePath)
