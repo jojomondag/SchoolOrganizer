@@ -50,7 +50,7 @@
           Background="White" 
           CornerRadius="16" 
           BoxShadow="0 4 15 0 #15000000"
-          Margin="40"
+          Margin="0"
           HorizontalAlignment="Stretch"
           VerticalAlignment="Stretch"
           BorderThickness="1"
@@ -58,14 +58,14 @@
           ClipToBounds="False">
 
     <!-- Main Content Grid -->
-    <Grid Margin="50">
+    <Grid Margin="40">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="Auto" MinWidth="300"/>
+        <ColumnDefinition Width="Auto" MinWidth="280"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
       <!-- Left Side - Profile Image -->
-      <StackPanel Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,20,50,0">
+      <StackPanel Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,10,40,0">
         
         <!-- Profile Image -->
         <Border x:Name="ProfileImageBorder"
@@ -73,7 +73,7 @@
                 Background="Transparent"
                 CornerRadius="120"
                 BorderThickness="4"
-                BorderBrush="#3498db"
+                BorderBrush="#3b536b"
                 Padding="0"
                 PointerReleased="OnProfileImagePointerReleased"
                 Cursor="Hand"
@@ -81,7 +81,7 @@
                 VerticalAlignment="Center"
                 Width="240"
                 Height="240"
-                Margin="0,0,0,30">
+                Margin="0,0,0,20">
           
           <!-- Circular Profile Image -->
           <Grid x:Name="ProfileImageGrid" Width="230" Height="230">
@@ -112,13 +112,12 @@
                    Foreground="#95a5a6"
                    HorizontalAlignment="Center"
                    FontSize="12"
-                   FontStyle="Italic"
-                   Margin="0,0,0,20"/>
+                   FontStyle="Italic"/>
 
       </StackPanel>
 
       <!-- Right Side - Detailed Information -->
-      <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="0,20,0,0">
+      <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="0,10,0,0">
         
         <!-- Name -->
         <TextBlock x:Name="NameText"
@@ -130,7 +129,7 @@
                    TextWrapping="Wrap"/>
         
         <!-- Role/Class Information -->
-        <Border Background="#3498db" 
+        <Border Background="#3b536b" 
                 CornerRadius="8" 
                 Padding="16,8" 
                 HorizontalAlignment="Left"
@@ -205,47 +204,6 @@
           </StackPanel>
 
         </StackPanel>
-
-        <!-- Additional Actions Section -->
-        <Border Background="#ecf0f1" 
-                CornerRadius="12" 
-                Padding="20" 
-                Margin="0,40,0,0"
-                HorizontalAlignment="Stretch">
-          <StackPanel>
-            <TextBlock Text="Quick Actions" 
-                       FontSize="16" 
-                       FontWeight="SemiBold" 
-                       Foreground="#2c3e50"
-                       Margin="0,0,0,15"/>
-            
-            <StackPanel Orientation="Horizontal" Spacing="15">
-              <Button Content="Edit Profile" 
-                      Background="#3498db" 
-                      Foreground="White"
-                      Padding="16,8"
-                      CornerRadius="6"
-                      BorderThickness="0"
-                      Cursor="Hand"/>
-              
-              <Button Content="View Records" 
-                      Background="#27ae60" 
-                      Foreground="White"
-                      Padding="16,8"
-                      CornerRadius="6"
-                      BorderThickness="0"
-                      Cursor="Hand"/>
-              
-              <Button Content="Contact" 
-                      Background="#e67e22" 
-                      Foreground="White"
-                      Padding="16,8"
-                      CornerRadius="6"
-                      BorderThickness="0"
-                      Cursor="Hand"/>
-            </StackPanel>
-          </StackPanel>
-        </Border>
 
       </StackPanel>
     </Grid>

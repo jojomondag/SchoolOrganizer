@@ -193,7 +193,7 @@ public partial class StudentGalleryView : UserControl
                 await ViewModel.AddNewStudentAsync(
                     result.Name,
                     result.ClassName,
-                    result.Mentor,
+                    result.Mentors,
                     result.Email,
                     result.EnrollmentDate,
                     result.PicturePath
@@ -257,7 +257,7 @@ public partial class StudentGalleryView : UserControl
                     student,
                     result.Name,
                     result.ClassName,
-                    result.Mentor,
+                    result.Mentors,
                     result.Email,
                     result.EnrollmentDate,
                     result.PicturePath

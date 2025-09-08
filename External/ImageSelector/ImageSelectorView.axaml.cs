@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ImageSelector;
 
@@ -40,10 +41,20 @@ public partial class ImageSelectorView : UserControl
     public event EventHandler<string>? ImageSaved;
     public event EventHandler<IStorageFile>? OriginalImageSelected;
 
+    // API for providing available images to the gallery
+    public Func<Task<string[]>>? AvailableImagesProvider { get; set; }
+    
+    // API for providing crop settings when switching images
+    public Func<string, Task<object?>>? CropSettingsProvider { get; set; }
+    
+    // Control whether the window should automatically resize when loading images
+    public bool AutoResizeWindow { get; set; } = true;
+
     public ImageSelectorView()
     {
         InitializeComponent();
         InitializeEventHandlers();
+        Loaded += async (s, e) => await LoadImageGalleryAsync(); // Load gallery when the control is loaded
     }
 
     private void InitializeEventHandlers()
@@ -299,6 +310,7 @@ public partial class ImageSelectorView : UserControl
     private void AdjustWindowSizeForImage()
     {
         if (_originalBitmap == null) return;
+        if (!AutoResizeWindow) return; // Skip resizing if disabled
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel is not Window window) return;
 
@@ -1034,5 +1046,125 @@ public partial class ImageSelectorView : UserControl
                 // Handle save errors silently
             }
         }
+    }
+
+    private async Task LoadImageGalleryAsync()
+    {
+        try
+        {
+            if (AvailableImagesProvider == null) return;
+            
+            var imagePaths = await AvailableImagesProvider();
+            if (imagePaths == null || imagePaths.Length == 0) return;
+
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                ImageGallery.Children.Clear();
+                
+                foreach (var imagePath in imagePaths)
+                {
+                    if (!File.Exists(imagePath)) continue;
+                    
+                    var border = new Border
+                    {
+                        Width = 60,
+                        Height = 60,
+                        CornerRadius = new CornerRadius(4),
+                        ClipToBounds = true,
+                        BorderBrush = new SolidColorBrush(Color.FromRgb(224, 224, 224)),
+                        BorderThickness = new Thickness(1),
+                        Background = new SolidColorBrush(Color.FromRgb(240, 240, 240)),
+                        Cursor = new Cursor(StandardCursorType.Hand)
+                    };
+
+                    try
+                    {
+                        using var stream = File.OpenRead(imagePath);
+                        var bitmap = new Bitmap(stream);
+                        var image = new Image
+                        {
+                            Source = bitmap,
+                            Stretch = Stretch.UniformToFill,
+                            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch
+                        };
+                        border.Child = image;
+                    }
+                    catch
+                    {
+                        // If image loading fails, show a placeholder
+                        var placeholder = new TextBlock
+                        {
+                            Text = "?",
+                            FontSize = 20,
+                            Foreground = new SolidColorBrush(Color.FromRgb(153, 153, 153)),
+                            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+                        };
+                        border.Child = placeholder;
+                    }
+
+                    // Add click handler to load this image
+                    border.PointerPressed += async (s, e) =>
+                    {
+                        if (e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
+                        {
+                            // Disable auto-resize before loading gallery image to prevent window resizing
+                            AutoResizeWindow = false;
+                            
+                            // Try to get crop settings for this image if provider is available
+                            object? cropSettings = null;
+                            if (CropSettingsProvider != null)
+                            {
+                                try
+                                {
+                                    cropSettings = await CropSettingsProvider(imagePath);
+                                }
+                                catch
+                                {
+                                    // Ignore errors getting crop settings
+                                }
+                            }
+
+                            // Load image with or without crop settings
+                            if (cropSettings != null)
+                            {
+                                await LoadImageFromPathWithCropSettingsAsync(imagePath, cropSettings);
+                            }
+                            else
+                            {
+                                await LoadImageFromPathAsync(imagePath);
+                            }
+                            e.Handled = true;
+                        }
+                    };
+
+                    // Add hover effect
+                    border.PointerEntered += (s, e) =>
+                    {
+                        border.BorderBrush = new SolidColorBrush(Color.FromRgb(59, 83, 107));
+                        border.BorderThickness = new Thickness(2);
+                    };
+                    
+                    border.PointerExited += (s, e) =>
+                    {
+                        border.BorderBrush = new SolidColorBrush(Color.FromRgb(224, 224, 224));
+                        border.BorderThickness = new Thickness(1);
+                    };
+
+                    ImageGallery.Children.Add(border);
+                }
+            });
+        }
+        catch
+        {
+            // Ignore gallery loading errors
+        }
+    }
+
+    // Public API to refresh the image gallery
+    public async Task RefreshImageGalleryAsync()
+    {
+        await LoadImageGalleryAsync();
     }
 }

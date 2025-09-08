@@ -4,7 +4,7 @@
     "Name": "Alice Johnson",
     "PictureUrl": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Computer Science 101",
-    "Mentor": "Dr. Sarah Wilson",
+    "Mentors": ["Dr. Sarah Wilson"],
     "Email": "alice.johnson@school.edu",
     "EnrollmentDate": "2024-01-15T00:00:00"
   },
@@ -13,7 +13,7 @@
     "Name": "Bob Martinez",
     "PictureUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Mathematics 201",
-    "Mentor": "Prof. Michael Chen",
+    "Mentors": ["Prof. Michael Chen"],
     "Email": "bob.martinez@school.edu",
     "EnrollmentDate": "2024-01-20T00:00:00"
   },
@@ -22,7 +22,7 @@
     "Name": "Carol Davis",
     "PictureUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Physics 150",
-    "Mentor": "Dr. Lisa Anderson",
+    "Mentors": ["Dr. Lisa Anderson"],
     "Email": "carol.davis@school.edu",
     "EnrollmentDate": "2024-02-01T00:00:00"
   },
@@ -31,7 +31,7 @@
     "Name": "David Brown",
     "PictureUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Computer Science 101",
-    "Mentor": "Dr. Sarah Wilson",
+    "Mentors": ["Dr. Sarah Wilson", "Prof. Michael Chen"],
     "Email": "david.brown@school.edu",
     "EnrollmentDate": "2024-01-18T00:00:00"
   },
@@ -40,7 +40,7 @@
     "Name": "Emma Thompson",
     "PictureUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Biology 110",
-    "Mentor": "Dr. James Rodriguez",
+    "Mentors": ["Dr. James Rodriguez"],
     "Email": "emma.thompson@school.edu",
     "EnrollmentDate": "2024-02-05T00:00:00"
   },
@@ -49,7 +49,7 @@
     "Name": "Frank Wilson",
     "PictureUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Chemistry 120",
-    "Mentor": "Prof. Rebecca Lee",
+    "Mentors": ["Prof. Rebecca Lee"],
     "Email": "frank.wilson@school.edu",
     "EnrollmentDate": "2024-01-25T00:00:00"
   },
@@ -58,7 +58,7 @@
     "Name": "Grace Lee",
     "PictureUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Mathematics 201",
-    "Mentor": "Prof. Michael Chen",
+    "Mentors": ["Prof. Michael Chen"],
     "Email": "grace.lee@school.edu",
     "EnrollmentDate": "2024-02-10T00:00:00"
   },
@@ -67,7 +67,7 @@
     "Name": "Henry Garcia",
     "PictureUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Physics 150",
-    "Mentor": "Dr. Lisa Anderson",
+    "Mentors": ["Dr. Lisa Anderson"],
     "Email": "henry.garcia@school.edu",
     "EnrollmentDate": "2024-01-30T00:00:00"
   },
@@ -76,7 +76,7 @@
     "Name": "Ali Efan",
     "PictureUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "IT Programming 2",
-    "Mentor": "Prof. Erik Johansson",
+    "Mentors": ["Prof. Erik Johansson"],
     "Email": "ali.efan@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -85,7 +85,7 @@
     "Name": "Arabul Baran Batu",
     "PictureUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Web Development 2",
-    "Mentor": "Dr. Anna Lindström",
+    "Mentors": ["Dr. Anna Lindström", "Prof. Lars Andersson"],
     "Email": "arabul.batu@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -94,7 +94,7 @@
     "Name": "Awad Ibrahim",
     "PictureUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Database Systems 2",
-    "Mentor": "Prof. Lars Andersson",
+    "Mentors": ["Prof. Lars Andersson"],
     "Email": "awad.ibrahim@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -103,7 +103,7 @@
     "Name": "Bakkar Abd",
     "PictureUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "IT Programming 2",
-    "Mentor": "Prof. Erik Johansson",
+    "Mentors": ["Prof. Erik Johansson"],
     "Email": "bakkar.abd@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -112,7 +112,7 @@
     "Name": "Csoti Leon",
     "PictureUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "System Administration 2",
-    "Mentor": "Dr. Maria Svensson",
+    "Mentors": ["Dr. Maria Svensson"],
     "Email": "csoti.leon@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -121,7 +121,7 @@
     "Name": "Gylldorff Vincent",
     "PictureUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Web Development 2",
-    "Mentor": "Dr. Anna Lindström",
+    "Mentors": ["Dr. Anna Lindström"],
     "Email": "vincent.gylldorff@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -130,7 +130,7 @@
     "Name": "Hedlund Julian",
     "PictureUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Database Systems 2",
-    "Mentor": "Prof. Lars Andersson",
+    "Mentors": ["Prof. Lars Andersson"],
     "Email": "julian.hedlund@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -139,7 +139,7 @@
     "Name": "Hörenius Isac",
     "PictureUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "IT Programming 2",
-    "Mentor": "Prof. Erik Johansson",
+    "Mentors": ["Prof. Erik Johansson", "Dr. Thomas Nilsson"],
     "Email": "isac.horenius@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -148,7 +148,7 @@
     "Name": "Jinnevall Brüggmann Theus",
     "PictureUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Network Security 2",
-    "Mentor": "Dr. Thomas Nilsson",
+    "Mentors": ["Dr. Thomas Nilsson"],
     "Email": "theus.jinnevall@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -157,7 +157,7 @@
     "Name": "Jönsson Benjamin",
     "PictureUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "System Administration 2",
-    "Mentor": "Dr. Maria Svensson",
+    "Mentors": ["Dr. Maria Svensson"],
     "Email": "benjamin.jonsson@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -166,7 +166,7 @@
     "Name": "Kazkaz Mohammad",
     "PictureUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Web Development 2",
-    "Mentor": "Dr. Anna Lindström",
+    "Mentors": ["Dr. Anna Lindström"],
     "Email": "mohammad.kazkaz@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -175,7 +175,7 @@
     "Name": "Kronsell Hugo",
     "PictureUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Database Systems 2",
-    "Mentor": "Prof. Lars Andersson",
+    "Mentors": ["Prof. Lars Andersson"],
     "Email": "hugo.kronsell@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -184,7 +184,7 @@
     "Name": "Lindgren Linus",
     "PictureUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "IT Programming 2",
-    "Mentor": "Prof. Erik Johansson",
+    "Mentors": ["Prof. Erik Johansson"],
     "Email": "linus.lindgren@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -193,7 +193,7 @@
     "Name": "Malla Ant Mohammed",
     "PictureUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Network Security 2",
-    "Mentor": "Dr. Thomas Nilsson",
+    "Mentors": ["Dr. Thomas Nilsson"],
     "Email": "mohammed.malla@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -202,7 +202,7 @@
     "Name": "Mohammed Mahad",
     "PictureUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "System Administration 2",
-    "Mentor": "Dr. Maria Svensson",
+    "Mentors": ["Dr. Maria Svensson"],
     "Email": "mahad.mohammed@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -211,7 +211,7 @@
     "Name": "Nazzal Adam",
     "PictureUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Web Development 2",
-    "Mentor": "Dr. Anna Lindström",
+    "Mentors": ["Dr. Anna Lindström"],
     "Email": "adam.nazzal@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -220,7 +220,7 @@
     "Name": "Nejem Mustafa",
     "PictureUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Database Systems 2",
-    "Mentor": "Prof. Lars Andersson",
+    "Mentors": ["Prof. Lars Andersson"],
     "Email": "mustafa.nejem@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -229,7 +229,7 @@
     "Name": "Nilsson Theodor",
     "PictureUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "IT Programming 2",
-    "Mentor": "Prof. Erik Johansson",
+    "Mentors": ["Prof. Erik Johansson"],
     "Email": "theodor.nilsson@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -238,7 +238,7 @@
     "Name": "Nordahl Albert",
     "PictureUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Network Security 2",
-    "Mentor": "Dr. Thomas Nilsson",
+    "Mentors": ["Dr. Thomas Nilsson"],
     "Email": "albert.nordahl@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -247,7 +247,7 @@
     "Name": "Olsson André",
     "PictureUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "System Administration 2",
-    "Mentor": "Dr. Maria Svensson",
+    "Mentors": ["Dr. Maria Svensson"],
     "Email": "andre.olsson@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -256,7 +256,7 @@
     "Name": "Olsson Liam",
     "PictureUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Web Development 2",
-    "Mentor": "Dr. Anna Lindström",
+    "Mentors": ["Dr. Anna Lindström", "Prof. Erik Johansson"],
     "Email": "liam.olsson@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -265,7 +265,7 @@
     "Name": "Petreski Lukas",
     "PictureUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Database Systems 2",
-    "Mentor": "Prof. Lars Andersson",
+    "Mentors": ["Prof. Lars Andersson"],
     "Email": "lukas.petreski@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -274,7 +274,7 @@
     "Name": "Sabbagh Mustafa",
     "PictureUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "IT Programming 2",
-    "Mentor": "Prof. Erik Johansson",
+    "Mentors": ["Prof. Erik Johansson"],
     "Email": "mustafa.sabbagh@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -283,7 +283,7 @@
     "Name": "Shahid Shahmir",
     "PictureUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Network Security 2",
-    "Mentor": "Dr. Thomas Nilsson",
+    "Mentors": ["Dr. Thomas Nilsson"],
     "Email": "shahmir.shahid@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -292,7 +292,7 @@
     "Name": "Shala Dion",
     "PictureUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "System Administration 2",
-    "Mentor": "Dr. Maria Svensson",
+    "Mentors": ["Dr. Maria Svensson"],
     "Email": "dion.shala@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -301,7 +301,7 @@
     "Name": "Sofic Adin",
     "PictureUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Web Development 2",
-    "Mentor": "Dr. Anna Lindström",
+    "Mentors": ["Dr. Anna Lindström"],
     "Email": "adin.sofic@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -310,7 +310,7 @@
     "Name": "Strand Liam",
     "PictureUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
     "ClassName": "Database Systems 2",
-    "Mentor": "Prof. Lars Andersson",
+    "Mentors": ["Prof. Lars Andersson"],
     "Email": "liam.strand@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   },
@@ -319,7 +319,7 @@
     "Name": "Suleiman Sami",
     "PictureUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face",
     "ClassName": "IT Programming 2",
-    "Mentor": "Prof. Erik Johansson",
+    "Mentors": ["Prof. Erik Johansson"],
     "Email": "sami.suleiman@school.edu",
     "EnrollmentDate": "2025-08-15T00:00:00"
   }

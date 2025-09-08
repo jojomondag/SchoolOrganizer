@@ -211,7 +211,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
         DisplayConfig = ProfileCardDisplayConfig.GetConfig(level);
     }
 
-    public async Task AddNewStudentAsync(string name, string className, string mentor, string email, DateTime enrollmentDate, string picturePath)
+    public async Task AddNewStudentAsync(string name, string className, List<string> mentors, string email, DateTime enrollmentDate, string picturePath)
     {
         try
         {
@@ -220,11 +220,16 @@ public partial class StudentGalleryViewModel : ViewModelBase
                 Id = await GenerateNextStudentIdAsync(),
                 Name = name,
                 ClassName = className,
-                Mentor = mentor,
                 Email = email,
                 EnrollmentDate = enrollmentDate,
                 PictureUrl = picturePath ?? string.Empty
             };
+
+            // Add mentors
+            foreach (var mentor in mentors ?? new List<string>())
+            {
+                newStudent.AddMentor(mentor);
+            }
 
             allStudents.Add(newStudent);
             await ApplySearchImmediate();
@@ -236,16 +241,22 @@ public partial class StudentGalleryViewModel : ViewModelBase
         }
     }
 
-    public async Task UpdateExistingStudentAsync(Student student, string name, string className, string mentor, string email, DateTime enrollmentDate, string picturePath)
+    public async Task UpdateExistingStudentAsync(Student student, string name, string className, List<string> mentors, string email, DateTime enrollmentDate, string picturePath)
     {
         try
         {
             student.Name = name;
             student.ClassName = className;
-            student.Mentor = mentor;
             student.Email = email;
             student.EnrollmentDate = enrollmentDate;
             student.PictureUrl = picturePath ?? string.Empty;
+            
+            // Update mentors
+            student.ClearMentors();
+            foreach (var mentor in mentors ?? new List<string>())
+            {
+                student.AddMentor(mentor);
+            }
 
             // Ensure the AllStudents collection reflects the same object state
             var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
@@ -253,10 +264,16 @@ public partial class StudentGalleryViewModel : ViewModelBase
             {
                 inAll.Name = student.Name;
                 inAll.ClassName = student.ClassName;
-                inAll.Mentor = student.Mentor;
                 inAll.Email = student.Email;
                 inAll.EnrollmentDate = student.EnrollmentDate;
                 inAll.PictureUrl = student.PictureUrl;
+                
+                // Update mentors
+                inAll.ClearMentors();
+                foreach (var mentor in mentors ?? new List<string>())
+                {
+                    inAll.AddMentor(mentor);
+                }
             }
 
             await ApplySearchImmediate();
