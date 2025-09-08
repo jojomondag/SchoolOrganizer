@@ -15,33 +15,7 @@
   </UserControl.Resources>
 
   <UserControl.Styles>
-    <!-- Card hover effect -->
-    <Style Selector="Border.DetailedCard">
-      <Setter Property="Transitions">
-        <Transitions>
-          <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.3"/>
-          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3"/>
-        </Transitions>
-      </Setter>
-    </Style>
-    
-    <Style Selector="Border.DetailedCard:pointerover">
-      <Setter Property="BoxShadow" Value="0 8 25 0 #20000000"/>
-      <Setter Property="RenderTransform" Value="scale(1.02)"/>
-    </Style>
-
-    <!-- Profile image hover effect -->
-    <Style Selector="Border.ProfileImageBorder">
-      <Setter Property="Transitions">
-        <Transitions>
-          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
-        </Transitions>
-      </Setter>
-    </Style>
-    
-    <Style Selector="Border.ProfileImageBorder:pointerover">
-      <Setter Property="RenderTransform" Value="scale(1.05)"/>
-    </Style>
+    <!-- No hover effects for DetailedProfileCard (used in Expanded/fullscreen view) -->
   </UserControl.Styles>
 
   <!-- Main Card Container -->

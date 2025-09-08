@@ -18,7 +18,7 @@
   </UserControl.Resources>
 
   <UserControl.Styles>
-    <!-- Disable any default hover effects on the profile image border -->
+    <!-- Disable hover effects when in Expanded level (student count <= 4) -->
     <Style Selector="Border.ProfileImageBorder:pointerover">
       <Setter Property="RenderTransform" Value="scale(1)"/>
       <Setter Property="Opacity" Value="1"/>
