@@ -138,6 +138,11 @@ public partial class StudentGalleryView : UserControl
             // Defer scrolling until layout pass completes
             Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
         }
+        else if (e.PropertyName == "Students")
+        {
+            // When Students collection changes, re-wire events after UI updates
+            Dispatcher.UIThread.Post(() => WireUpAllProfileCardEvents(), DispatcherPriority.Background);
+        }
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -165,6 +170,14 @@ public partial class StudentGalleryView : UserControl
             // Store reference for cleanup
             Tag = viewModel;
             SubscribeToViewModelSelections(viewModel);
+            
+            // Ensure ItemsControl container events are properly subscribed
+            var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
+            if (studentsContainer != null)
+            {
+                studentsContainer.ContainerPrepared -= OnContainerPrepared;
+                studentsContainer.ContainerPrepared += OnContainerPrepared;
+            }
         }
         else
         {
@@ -651,6 +664,11 @@ public partial class StudentGalleryView : UserControl
                 profileCard.ImageClicked -= OnProfileCardImageClicked;
                 // Add the handler
                 profileCard.ImageClicked += OnProfileCardImageClicked;
+                System.Diagnostics.Debug.WriteLine($"Wired up ImageClicked event for ProfileCard with DataContext: {(profileCard.DataContext as SchoolOrganizer.Models.Student)?.Name ?? "null"}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("No ProfileCard found in container");
             }
         }
         catch (Exception ex)
@@ -661,7 +679,11 @@ public partial class StudentGalleryView : UserControl
 
     private async void OnProfileCardImageClicked(object? sender, SchoolOrganizer.Models.Student student)
     {
-        await HandleStudentImageChange(student);
+        System.Diagnostics.Debug.WriteLine($"ProfileCard ImageClicked event fired for student: {student?.Name ?? "null"}");
+        if (student != null)
+        {
+            await HandleStudentImageChange(student);
+        }
     }
 
     private async void OnDetailedProfileImageClicked(object? sender, SchoolOrganizer.Models.Student student)
@@ -674,18 +696,29 @@ public partial class StudentGalleryView : UserControl
         try
         {
             var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
-            if (studentsContainer != null)
+            if (studentsContainer == null) return;
+
+            // Find all ProfileCard controls in the ItemsControl
+            var profileCards = studentsContainer.GetVisualDescendants().OfType<ProfileCard.ProfileCard>();
+            foreach (var profileCard in profileCards)
             {
-                // Find all ProfileCard controls in the ItemsControl
-                var profileCards = studentsContainer.GetVisualDescendants().OfType<ProfileCard.ProfileCard>();
-                foreach (var profileCard in profileCards)
+                // Remove existing handler to avoid duplicates
+                profileCard.ImageClicked -= OnProfileCardImageClicked;
+                // Add the handler
+                profileCard.ImageClicked += OnProfileCardImageClicked;
+            }
+            
+            // Also wire up events for containers that might not be rendered yet
+            for (int i = 0; i < studentsContainer.ItemCount; i++)
+            {
+                var container = studentsContainer.ContainerFromIndex(i);
+                if (container != null)
                 {
-                    // Remove existing handler to avoid duplicates
-                    profileCard.ImageClicked -= OnProfileCardImageClicked;
-                    // Add the handler
-                    profileCard.ImageClicked += OnProfileCardImageClicked;
+                    WireUpProfileCardEvents(container);
                 }
             }
+            
+            System.Diagnostics.Debug.WriteLine($"Wired up events for {profileCards.Count()} ProfileCards");
         }
         catch (Exception ex)
         {

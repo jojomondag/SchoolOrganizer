@@ -104,25 +104,37 @@ public partial class ImageCropWindow : Window
                     var stored = await ProfileImageStore.SaveOriginalFromStorageFileAsync(file);
                     if (studentContextId is int sid)
                     {
+                        // Get the current original for this student to see if this is a new selection
+                        var currentOriginal = await ProfileImageStore.GetOriginalForStudentAsync(sid);
+                        bool isNewOriginal = stored != currentOriginal;
+                        
+                        // Update the mapping to the new original
                         await ProfileImageStore.MapStudentToOriginalAsync(sid, stored);
                         preloadedOriginalPath = stored;
                         
-                        // After storing the original, try to load existing crop settings for this student
+                        System.Diagnostics.Debug.WriteLine($"OriginalImageSelected: Student {sid}, stored: {stored}, currentOriginal: {currentOriginal ?? "none"}, isNew: {isNewOriginal}");
+                        
+                        // Check if there are existing crop settings for this student
                         var existingCropSettings = await ProfileImageStore.GetCropSettingsForStudentAsync(sid);
                         if (existingCropSettings != null)
                         {
-                            // Apply the saved crop settings to the newly loaded image
-                            await Task.Delay(200); // Give the image time to load and layout
+                            System.Diagnostics.Debug.WriteLine($"OriginalImageSelected: Applying existing crop settings to {(isNewOriginal ? "new" : "same")} original");
+                            // Apply the saved crop settings to the loaded image
+                            await Task.Delay(300); // Give more time for the image to load and layout
                             await selector.LoadImageFromPathWithCropSettingsAsync(stored, existingCropSettings);
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("OriginalImageSelected: No existing crop settings found");
                         }
                     }
                     
                     // Refresh the gallery to show the newly added image
                     await selector.RefreshImageGalleryAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignore errors persisting original
+                    System.Diagnostics.Debug.WriteLine($"Error in OriginalImageSelected: {ex.Message}");
                 }
             };
         }
@@ -137,9 +149,14 @@ public partial class ImageCropWindow : Window
 
     public static async Task<string?> ShowForStudentAsync(Window parent, int studentId)
     {
+        System.Diagnostics.Debug.WriteLine($"ShowForStudentAsync called for student {studentId}");
         var dialog = new ImageCropWindow();
         dialog.studentContextId = studentId;
+        
+        // Wait for the dialog to fully initialize before preloading
+        await Task.Delay(50);
         await dialog.TryPreloadOriginalAsync();
+        
         await dialog.ShowDialog(parent);
         return dialog.SavedImagePath;
     }
@@ -184,21 +201,42 @@ public partial class ImageCropWindow : Window
                 if (cropSettings != null)
                 {
                     System.Diagnostics.Debug.WriteLine($"TryPreloadOriginalAsync: Found crop settings - X:{cropSettings.X}, Y:{cropSettings.Y}, W:{cropSettings.Width}, H:{cropSettings.Height}");
+                    // Wait a bit to ensure the selector is fully initialized
+                    await Task.Delay(100);
                     await selector.LoadImageFromPathWithCropSettingsAsync(prior, cropSettings);
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine("TryPreloadOriginalAsync: No crop settings found, using defaults");
+                    await Task.Delay(100);
                     await selector.LoadImageFromPathAsync(prior);
                 }
                 
                 // Disable auto-resize after initial load to prevent resizing when switching gallery images
                 selector.AutoResizeWindow = false;
+                System.Diagnostics.Debug.WriteLine("TryPreloadOriginalAsync: Image preloaded successfully");
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("TryPreloadOriginalAsync: No original image found");
+                System.Diagnostics.Debug.WriteLine($"TryPreloadOriginalAsync: No original image found for student {id} (path: {prior ?? "null"})");
+                
+                // Check if there are crop settings even without an original image
+                var cropSettings = await ProfileImageStore.GetCropSettingsForStudentAsync(id);
+                if (cropSettings != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"TryPreloadOriginalAsync: Found orphaned crop settings for student {id} - this indicates a data inconsistency");
+                    System.Diagnostics.Debug.WriteLine($"  - Crop settings: X:{cropSettings.X}, Y:{cropSettings.Y}, W:{cropSettings.Width}, H:{cropSettings.Height}");
+                    System.Diagnostics.Debug.WriteLine("  - User will need to select an original image from the gallery to apply these settings");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"TryPreloadOriginalAsync: No crop settings found for student {id} either - this is a fresh start");
+                }
             }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("TryPreloadOriginalAsync: No student context ID");
         }
     }
 
@@ -206,15 +244,25 @@ public partial class ImageCropWindow : Window
     {
         try
         {
-            // Only provide crop settings if we have a student context
+            // Provide crop settings if we have a student context
             if (studentContextId is int studentId)
             {
-                return await ProfileImageStore.GetCropSettingsForStudentAsync(studentId);
+                var settings = await ProfileImageStore.GetCropSettingsForStudentAsync(studentId);
+                if (settings != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"GetCropSettingsForImage: Returning saved settings for student {studentId}");
+                    return settings;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"GetCropSettingsForImage: No saved settings for student {studentId}");
+                }
             }
             return null;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"GetCropSettingsForImage error: {ex.Message}");
             return null;
         }
     }
