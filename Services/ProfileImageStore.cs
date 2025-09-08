@@ -97,14 +97,27 @@ public static class ProfileImageStore
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"GetOriginalForStudentAsync: Looking for student {studentId}");
             var map = await ReadMapAsync();
-            if (map.TryGetValue(studentId, out var path) && !string.IsNullOrWhiteSpace(path) && File.Exists(path))
+            System.Diagnostics.Debug.WriteLine($"GetOriginalForStudentAsync: Map contains {map.Count} entries");
+            
+            if (map.TryGetValue(studentId, out var path) && !string.IsNullOrWhiteSpace(path))
             {
-                return path;
+                bool exists = File.Exists(path);
+                System.Diagnostics.Debug.WriteLine($"GetOriginalForStudentAsync: Found path {path}, exists: {exists}");
+                if (exists)
+                {
+                    return path;
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"GetOriginalForStudentAsync: No mapping found for student {studentId}");
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"GetOriginalForStudentAsync error: {ex.Message}");
         }
         return null;
     }
@@ -127,14 +140,23 @@ public static class ProfileImageStore
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"GetCropSettingsForStudentAsync: Looking for student {studentId}");
             var cropMap = await ReadCropSettingsMapAsync();
+            System.Diagnostics.Debug.WriteLine($"GetCropSettingsForStudentAsync: Crop map contains {cropMap.Count} entries");
+            
             if (cropMap.TryGetValue(studentId, out var settings))
             {
+                System.Diagnostics.Debug.WriteLine($"GetCropSettingsForStudentAsync: Found settings - X:{settings.X}, Y:{settings.Y}, W:{settings.Width}, H:{settings.Height}");
                 return settings;
             }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"GetCropSettingsForStudentAsync: No crop settings found for student {studentId}");
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"GetCropSettingsForStudentAsync error: {ex.Message}");
         }
         return null;
     }
