@@ -75,30 +75,73 @@
       </StackPanel>
 
       <!-- Content -->
-      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="20">
-          <!-- Profile Image -->
-          <StackPanel HorizontalAlignment="Center" Spacing="8">
-            <Grid Width="100" Height="100">
-              <Border Width="100" Height="100" CornerRadius="50" ClipToBounds="True" Background="#f0f0f0" BorderBrush="#e0e0e0" BorderThickness="2">
-                <Grid>
-                  <Image Source="{Binding SelectedImagePath, Converter={StaticResource UniversalImageConverter}}" Stretch="UniformToFill"/>
-                  <TextBlock Text="+" FontSize="28" FontWeight="Light" Foreground="#999" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsImageMissing}"/>
-                </Grid>
-              </Border>
-              <!-- Transparent clickable overlay -->
-              <Button Background="Transparent"
-                      BorderThickness="0"
-                      HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch"
-                      Cursor="Hand"
-                      Click="OnChooseImageClick"
-                      ToolTip.Tip="Add photo"/>
-            </Grid>
-            <TextBlock Text="Add Photo" FontSize="12" Foreground="#666" HorizontalAlignment="Center"/>
-          </StackPanel>
+      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,-4,0">
+        <StackPanel Spacing="20" Margin="0,0,20,0">
+          <!-- Photo and Class/Mentor Section -->
+          <Grid ColumnDefinitions="140,20,*">
+            <!-- Profile Image -->
+            <StackPanel Grid.Column="0" Spacing="8">
+              <Grid Width="100" Height="100">
+                <Border Width="100" Height="100" CornerRadius="50" ClipToBounds="True" Background="#f0f0f0" BorderBrush="#e0e0e0" BorderThickness="2">
+                  <Grid>
+                    <Image Source="{Binding SelectedImagePath, Converter={StaticResource UniversalImageConverter}}" Stretch="UniformToFill"/>
+                    <TextBlock Text="+" FontSize="28" FontWeight="Light" Foreground="#999" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsImageMissing}"/>
+                  </Grid>
+                </Border>
+                <!-- Transparent clickable overlay -->
+                <Button Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Cursor="Hand"
+                        Click="OnChooseImageClick"
+                        ToolTip.Tip="Add photo"/>
+              </Grid>
+              <TextBlock Text="Add Photo" FontSize="12" Foreground="#666" HorizontalAlignment="Center"/>
+            </StackPanel>
 
-          <!-- Form Fields -->
+            <!-- Class and Mentor in 2 rows -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,16,Auto">
+              <StackPanel Grid.Row="0">
+                <TextBlock Text="Class" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
+                <ComboBox Name="ClassBox" ItemsSource="{Binding AvailableClasses}"/>
+              </StackPanel>
+
+              <StackPanel Grid.Row="2">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Grid.Column="0" Text="Mentors" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
+                  <Button Grid.Column="1" Content="+ Add Mentor" 
+                          Classes="secondary" FontSize="11" 
+                          Padding="8,4" Margin="0,0,0,6"
+                          Click="OnAddMentorClick"/>
+                </Grid>
+                
+                <!-- Selected Mentors List -->
+                <ItemsControl Name="SelectedMentorsList" ItemsSource="{Binding SelectedMentors}" Margin="0,0,0,8">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border Background="#e8f4f8" CornerRadius="4" Padding="8,4" Margin="0,2">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" FontSize="12"/>
+                          <Button Grid.Column="1" Content="×" FontSize="14" FontWeight="Bold"
+                                  Background="Transparent" BorderThickness="0" 
+                                  Foreground="#666" Padding="4,0"
+                                  Click="OnRemoveMentorClick" Tag="{Binding}"
+                                  ToolTip.Tip="Remove mentor"/>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+                <!-- Mentor Selection ComboBox (initially hidden) -->
+                <ComboBox Name="MentorBox" ItemsSource="{Binding AvailableMentors}" 
+                          IsVisible="False" SelectionChanged="OnMentorSelected"/>
+              </StackPanel>
+            </Grid>
+          </Grid>
+
+          <!-- Other Form Fields -->
           <StackPanel Spacing="16">
             <StackPanel>
               <TextBlock Text="Name *" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
@@ -109,18 +152,6 @@
               <TextBlock Text="Email" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
               <TextBox Name="EmailBox" Watermark="student@example.com"/>
             </StackPanel>
-
-            <Grid ColumnDefinitions="*,12,*">
-              <StackPanel Grid.Column="0">
-                <TextBlock Text="Class" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
-                <ComboBox Name="ClassBox" ItemsSource="{Binding AvailableClasses}"/>
-              </StackPanel>
-
-              <StackPanel Grid.Column="2">
-                <TextBlock Text="Mentor" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
-                <ComboBox Name="MentorBox" ItemsSource="{Binding AvailableMentors}"/>
-              </StackPanel>
-            </Grid>
 
             <StackPanel>
               <TextBlock Text="Enrollment Date" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>

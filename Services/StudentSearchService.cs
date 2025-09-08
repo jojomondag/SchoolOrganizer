@@ -54,9 +54,15 @@ public class StudentSearchService
             if (cls.StartsWith(token, StringComparison.OrdinalIgnoreCase)) tokenScore = Math.Max(tokenScore, 3);
             else if (cls.Contains(token, StringComparison.OrdinalIgnoreCase)) tokenScore = Math.Max(tokenScore, 2);
 
-            // Mentor
-            var mentor = student.Mentor ?? string.Empty;
-            if (mentor.Contains(token, StringComparison.OrdinalIgnoreCase)) tokenScore = Math.Max(tokenScore, 2);
+            // Mentors
+            foreach (var mentor in student.Mentors ?? new())
+            {
+                if (mentor.Contains(token, StringComparison.OrdinalIgnoreCase)) 
+                {
+                    tokenScore = Math.Max(tokenScore, 2);
+                    break; // Found in at least one mentor, no need to check others for this token
+                }
+            }
 
             // Email
             var email = student.Email ?? string.Empty;

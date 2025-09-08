@@ -253,7 +253,7 @@
                        Content="{Binding Students[0]}"
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
-                       Margin="0,0,0,20">
+                       Margin="0">
           <ContentControl.IsVisible>
             <MultiBinding Converter="{x:Static BoolConverters.And}">
               <Binding Path="!IsLoading"/>
@@ -330,8 +330,8 @@
               <TextBlock Grid.Row="1" Grid.Column="0" Text="Class:" FontWeight="Bold" Margin="0,0,10,0"/>
               <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedStudent.ClassName}" Margin="0,0,20,0"/>
               
-              <TextBlock Grid.Row="1" Grid.Column="2" Text="Mentor:" FontWeight="Bold" Margin="0,0,10,0"/>
-              <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudent.Mentor}"/>
+              <TextBlock Grid.Row="1" Grid.Column="2" Text="Mentors:" FontWeight="Bold" Margin="0,0,10,0"/>
+              <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudent.SecondaryInfo}"/>
             </Grid>
           </StackPanel>
         </Grid>

@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using ImageSelector;
 using SchoolOrganizer.Services;
+using System.Linq;
 
 namespace SchoolOrganizer.Views;
 
@@ -19,6 +20,10 @@ public partial class ImageCropWindow : Window
         if (this.Content is ImageSelectorView selector)
         {
             selector.SavePathProvider = PrepareSavePath;
+            selector.AvailableImagesProvider = GetAvailableImages;
+            selector.CropSettingsProvider = GetCropSettingsForImage;
+            
+            // Allow auto-resize only on initial load, then disable it to prevent resizing when switching gallery images
             selector.ImageSaved += async (s, path) =>
             {
                 SavedImagePath = path;
@@ -92,6 +97,9 @@ public partial class ImageCropWindow : Window
             {
                 try
                 {
+                    // Disable auto-resize after first image selection to prevent window resizing when switching gallery images
+                    selector.AutoResizeWindow = false;
+                    
                     // Persist a copy of the original and map to student (if known)
                     var stored = await ProfileImageStore.SaveOriginalFromStorageFileAsync(file);
                     if (studentContextId is int sid)
@@ -108,6 +116,9 @@ public partial class ImageCropWindow : Window
                             await selector.LoadImageFromPathWithCropSettingsAsync(stored, existingCropSettings);
                         }
                     }
+                    
+                    // Refresh the gallery to show the newly added image
+                    await selector.RefreshImageGalleryAsync();
                 }
                 catch
                 {
@@ -180,11 +191,57 @@ public partial class ImageCropWindow : Window
                     System.Diagnostics.Debug.WriteLine("TryPreloadOriginalAsync: No crop settings found, using defaults");
                     await selector.LoadImageFromPathAsync(prior);
                 }
+                
+                // Disable auto-resize after initial load to prevent resizing when switching gallery images
+                selector.AutoResizeWindow = false;
             }
             else
             {
                 System.Diagnostics.Debug.WriteLine("TryPreloadOriginalAsync: No original image found");
             }
+        }
+    }
+
+    private async Task<object?> GetCropSettingsForImage(string imagePath)
+    {
+        try
+        {
+            // Only provide crop settings if we have a student context
+            if (studentContextId is int studentId)
+            {
+                return await ProfileImageStore.GetCropSettingsForStudentAsync(studentId);
+            }
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private Task<string[]> GetAvailableImages()
+    {
+        try
+        {
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var originalsDir = Path.Combine(baseDir, "Data", "ProfileImages", "Originals");
+            
+            if (!Directory.Exists(originalsDir))
+            {
+                return Task.FromResult(Array.Empty<string>());
+            }
+
+            var supportedExtensions = new[] { ".jpg", ".jpeg", ".png", ".bmp", ".gif" };
+            var imageFiles = Directory.GetFiles(originalsDir)
+                .Where(file => supportedExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
+                .OrderByDescending(File.GetLastWriteTime) // Most recent first
+                .ToArray();
+
+            return Task.FromResult(imageFiles);
+        }
+        catch
+        {
+            return Task.FromResult(Array.Empty<string>());
         }
     }
 }

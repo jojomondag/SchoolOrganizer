@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -15,6 +16,8 @@ public partial class AddStudentWindow : Window
     {
         public ObservableCollection<string> AvailableClasses { get; } = new();
         public ObservableCollection<string> AvailableMentors { get; } = new();
+        public ObservableCollection<string> SelectedMentors { get; } = new();
+        
         private string selectedImagePath = string.Empty;
         public string SelectedImagePath
         {
@@ -35,7 +38,7 @@ public partial class AddStudentWindow : Window
 
     public string StudentName => NameBox.Text ?? string.Empty;
     public string StudentClass => (ClassBox.SelectedItem as string) ?? string.Empty;
-    public string StudentMentor => (MentorBox.SelectedItem as string) ?? string.Empty;
+    public System.Collections.Generic.List<string> StudentMentors => new(state.SelectedMentors);
     public string StudentEmail => EmailBox.Text ?? string.Empty;
     public DateTime? EnrollmentDate => EnrollmentPicker.SelectedDate?.DateTime;
     public string SelectedImagePath => state.SelectedImagePath;
@@ -54,7 +57,14 @@ public partial class AddStudentWindow : Window
 
         NameBox.Text = student.Name;
         ClassBox.SelectedItem = student.ClassName;
-        MentorBox.SelectedItem = student.Mentor;
+        
+        // Load multiple mentors
+        state.SelectedMentors.Clear();
+        foreach (var mentor in student.Mentors)
+        {
+            state.SelectedMentors.Add(mentor);
+        }
+        
         EmailBox.Text = student.Email;
         EnrollmentPicker.SelectedDate = new DateTimeOffset(student.EnrollmentDate);
         state.SelectedImagePath = student.PictureUrl;
@@ -71,9 +81,12 @@ public partial class AddStudentWindow : Window
         {
             if (!string.IsNullOrWhiteSpace(cls)) state.AvailableClasses.Add(cls);
         }
-        foreach (var m in System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(students, s => s.Mentor)))
+        
+        // Extract all mentors from all students
+        var allMentors = students.SelectMany(s => s.Mentors).Distinct();
+        foreach (var mentor in allMentors)
         {
-            if (!string.IsNullOrWhiteSpace(m)) state.AvailableMentors.Add(m);
+            if (!string.IsNullOrWhiteSpace(mentor)) state.AvailableMentors.Add(mentor);
         }
     }
 
@@ -124,18 +137,45 @@ public partial class AddStudentWindow : Window
         {
             Name = StudentName,
             ClassName = StudentClass,
-            Mentor = StudentMentor,
+            Mentors = StudentMentors,
             Email = StudentEmail,
             EnrollmentDate = EnrollmentDate ?? DateTime.Now,
             PicturePath = SelectedImagePath
         });
     }
 
+    private void OnAddMentorClick(object? sender, RoutedEventArgs e)
+    {
+        MentorBox.IsVisible = true;
+        MentorBox.IsDropDownOpen = true;
+    }
+
+    private void OnMentorSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (MentorBox.SelectedItem is string selectedMentor && 
+            !string.IsNullOrWhiteSpace(selectedMentor) &&
+            !state.SelectedMentors.Contains(selectedMentor))
+        {
+            state.SelectedMentors.Add(selectedMentor);
+        }
+        
+        MentorBox.SelectedItem = null;
+        MentorBox.IsVisible = false;
+    }
+
+    private void OnRemoveMentorClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string mentorToRemove)
+        {
+            state.SelectedMentors.Remove(mentorToRemove);
+        }
+    }
+
     public class AddedStudentResult
     {
         public string Name { get; set; } = string.Empty;
         public string ClassName { get; set; } = string.Empty;
-        public string Mentor { get; set; } = string.Empty;
+        public System.Collections.Generic.List<string> Mentors { get; set; } = new();
         public string Email { get; set; } = string.Empty;
         public DateTime EnrollmentDate { get; set; }
         public string PicturePath { get; set; } = string.Empty;
