@@ -12,6 +12,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
 using Avalonia.Input;
 using SchoolOrganizer.Views.ProfileCard;
+using SchoolOrganizer.Services;
 
 
 namespace SchoolOrganizer.Views.StudentGallery;
@@ -35,6 +36,8 @@ public partial class StudentGalleryView : UserControl
     private double _currentPlaceholderFontSize = 67;
     private double _currentCardPadding = 18;
     
+    private GlobalKeyboardHandler? _keyboardHandler;
+    
     public StudentGalleryView()
     {
         InitializeComponent();
@@ -45,6 +48,9 @@ public partial class StudentGalleryView : UserControl
         // Enable keyboard input handling
         Focusable = true;
         KeyDown += OnKeyDown;
+        
+        // Also handle at higher level to catch all keyboard events
+        AddHandler(KeyDownEvent, OnKeyDown, handledEventsToo: true);
         
         // Subscribe to container prepared events for newly created cards
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
@@ -171,6 +177,18 @@ public partial class StudentGalleryView : UserControl
             Tag = viewModel;
             SubscribeToViewModelSelections(viewModel);
             
+            // Initialize keyboard handler
+            var searchTextBox = this.FindControl<TextBox>("SearchTextBox");
+            if (searchTextBox != null)
+            {
+                _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox);
+                System.Diagnostics.Debug.WriteLine("GlobalKeyboardHandler initialized successfully");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("SearchTextBox not found, keyboard handler not initialized");
+            }
+            
             // Ensure ItemsControl container events are properly subscribed
             var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
             if (studentsContainer != null)
@@ -285,6 +303,8 @@ public partial class StudentGalleryView : UserControl
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine("StudentGalleryView loaded");
+        
         // Ensure we have the container prepared event subscribed after loading
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
         if (studentsContainer != null)
@@ -292,6 +312,17 @@ public partial class StudentGalleryView : UserControl
             studentsContainer.ContainerPrepared -= OnContainerPrepared; // Avoid double subscription
             studentsContainer.ContainerPrepared += OnContainerPrepared;
         }
+        
+        // Focus the control to ensure it can receive keyboard events
+        // Use a delay to ensure the control is fully loaded
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (Focusable)
+            {
+                var focused = Focus();
+                System.Diagnostics.Debug.WriteLine($"StudentGalleryView focus attempt: {focused}");
+            }
+        }, DispatcherPriority.Background);
         
         UpdateCardLayout();
         
@@ -307,104 +338,22 @@ public partial class StudentGalleryView : UserControl
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        // Check if the key pressed is alphanumeric or common typing keys
-        if (IsTypingKey(e.Key))
+        System.Diagnostics.Debug.WriteLine($"OnKeyDown called with key: {e.Key}, handler available: {_keyboardHandler != null}");
+        
+        // Use the global keyboard handler if available
+        if (_keyboardHandler?.HandleKeyDown(e) == true)
         {
-            // Find the search TextBox by name
-            var searchTextBox = this.FindControl<TextBox>("SearchTextBox");
-            
-            if (searchTextBox != null && !searchTextBox.IsFocused)
-            {
-                // Focus the search box
-                searchTextBox.Focus();
-                
-                // Get the character representation of the key
-                var keyChar = GetCharFromKey(e.Key, e.KeyModifiers);
-                if (keyChar != null)
-                {
-                    // Set the search text to start with the typed character
-                    if (ViewModel != null)
-                    {
-                        ViewModel.SearchText = keyChar;
-                        // Position cursor at the end
-                        Dispatcher.UIThread.Post(() =>
-                        {
-                            searchTextBox.CaretIndex = searchTextBox.Text?.Length ?? 0;
-                        }, DispatcherPriority.Background);
-                    }
-                }
-                
-                e.Handled = true;
-            }
+            System.Diagnostics.Debug.WriteLine($"Key {e.Key} was handled by keyboard handler");
+            e.Handled = true;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"Key {e.Key} was not handled");
         }
     }
 
-    private static bool IsTypingKey(Key key)
-    {
-        // Check for alphanumeric keys and common typing keys
-        return (key >= Key.A && key <= Key.Z) ||
-               (key >= Key.D0 && key <= Key.D9) ||
-               (key >= Key.NumPad0 && key <= Key.NumPad9) ||
-               key == Key.Space ||
-               key == Key.OemMinus ||
-               key == Key.OemPlus ||
-               key == Key.OemPeriod ||
-               key == Key.OemComma;
-    }
 
-    private static string? GetCharFromKey(Key key, KeyModifiers modifiers)
-    {
-        // Handle letters
-        if (key >= Key.A && key <= Key.Z)
-        {
-            var letter = (char)('a' + (key - Key.A));
-            return (modifiers & KeyModifiers.Shift) != 0 ? letter.ToString().ToUpper() : letter.ToString();
-        }
-        
-        // Handle numbers
-        if (key >= Key.D0 && key <= Key.D9)
-        {
-            if ((modifiers & KeyModifiers.Shift) != 0)
-            {
-                // Handle shift+number symbols
-                return key switch
-                {
-                    Key.D1 => "!",
-                    Key.D2 => "@",
-                    Key.D3 => "#",
-                    Key.D4 => "$",
-                    Key.D5 => "%",
-                    Key.D6 => "^",
-                    Key.D7 => "&",
-                    Key.D8 => "*",
-                    Key.D9 => "(",
-                    Key.D0 => ")",
-                    _ => null
-                };
-            }
-            else
-            {
-                return ((char)('0' + (key - Key.D0))).ToString();
-            }
-        }
-        
-        // Handle numpad numbers
-        if (key >= Key.NumPad0 && key <= Key.NumPad9)
-        {
-            return ((char)('0' + (key - Key.NumPad0))).ToString();
-        }
-        
-        // Handle other keys
-        return key switch
-        {
-            Key.Space => " ",
-            Key.OemMinus => (modifiers & KeyModifiers.Shift) != 0 ? "_" : "-",
-            Key.OemPlus => (modifiers & KeyModifiers.Shift) != 0 ? "+" : "=",
-            Key.OemPeriod => (modifiers & KeyModifiers.Shift) != 0 ? ">" : ".",
-            Key.OemComma => (modifiers & KeyModifiers.Shift) != 0 ? "<" : ",",
-            _ => null
-        };
-    }
+
 
     private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
     {
