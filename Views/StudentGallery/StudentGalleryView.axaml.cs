@@ -45,13 +45,6 @@ public partial class StudentGalleryView : UserControl
         SizeChanged += OnSizeChanged;
         Loaded += OnLoaded;
         
-        // Enable keyboard input handling
-        Focusable = true;
-        KeyDown += OnKeyDown;
-        
-        // Also handle at higher level to catch all keyboard events
-        AddHandler(KeyDownEvent, OnKeyDown, handledEventsToo: true);
-        
         // Subscribe to container prepared events for newly created cards
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
         if (studentsContainer != null)
@@ -163,6 +156,10 @@ public partial class StudentGalleryView : UserControl
             oldViewModel.StudentImageChangeRequested -= HandleStudentImageChangeRequested;
             oldViewModel.EditStudentRequested -= HandleEditStudentRequested;
             UnsubscribeFromViewModelSelections(oldViewModel);
+            
+            // Clean up keyboard handler
+            _keyboardHandler?.Dispose();
+            _keyboardHandler = null;
         }
         
         // Subscribe to new ViewModel
@@ -181,7 +178,8 @@ public partial class StudentGalleryView : UserControl
             var searchTextBox = this.FindControl<TextBox>("SearchTextBox");
             if (searchTextBox != null)
             {
-                _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox);
+                _keyboardHandler?.Dispose(); // Clean up previous handler
+                _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox, this);
                 System.Diagnostics.Debug.WriteLine("GlobalKeyboardHandler initialized successfully");
             }
             else
@@ -313,44 +311,16 @@ public partial class StudentGalleryView : UserControl
             studentsContainer.ContainerPrepared += OnContainerPrepared;
         }
         
-        // Focus the control to ensure it can receive keyboard events
-        // Use a delay to ensure the control is fully loaded
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (Focusable)
-            {
-                var focused = Focus();
-                System.Diagnostics.Debug.WriteLine($"StudentGalleryView focus attempt: {focused}");
-            }
-        }, DispatcherPriority.Background);
-        
         UpdateCardLayout();
         
         // Wire up ProfileCard events for any existing cards
         WireUpAllProfileCardEvents();
-        
-        // Set focus to this control so it can receive keyboard events
-        Focus();
 
         // Subscribe to ViewModel selection changes
         SubscribeToViewModelSelections(ViewModel);
     }
 
-    private void OnKeyDown(object? sender, KeyEventArgs e)
-    {
-        System.Diagnostics.Debug.WriteLine($"OnKeyDown called with key: {e.Key}, handler available: {_keyboardHandler != null}");
-        
-        // Use the global keyboard handler if available
-        if (_keyboardHandler?.HandleKeyDown(e) == true)
-        {
-            System.Diagnostics.Debug.WriteLine($"Key {e.Key} was handled by keyboard handler");
-            e.Handled = true;
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine($"Key {e.Key} was not handled");
-        }
-    }
+
 
 
 

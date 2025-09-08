@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Avalonia.Interactivity;
 using SchoolOrganizer.ViewModels;
 
 namespace SchoolOrganizer.Services;
@@ -9,16 +10,91 @@ namespace SchoolOrganizer.Services;
 /// <summary>
 /// Handles global keyboard navigation for the application, providing terminal-like keyboard behavior
 /// where typing automatically focuses the search bar and navigation keys work as expected.
+/// This class is completely self-contained and manages all keyboard-related functionality.
 /// </summary>
 public class GlobalKeyboardHandler
 {
     private readonly StudentGalleryViewModel _viewModel;
     private readonly TextBox _searchTextBox;
+    private readonly Control _hostControl;
 
-    public GlobalKeyboardHandler(StudentGalleryViewModel viewModel, TextBox searchTextBox)
+    public GlobalKeyboardHandler(StudentGalleryViewModel viewModel, TextBox searchTextBox, Control hostControl)
     {
         _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
         _searchTextBox = searchTextBox ?? throw new ArgumentNullException(nameof(searchTextBox));
+        _hostControl = hostControl ?? throw new ArgumentNullException(nameof(hostControl));
+        
+        Initialize();
+    }
+
+    /// <summary>
+    /// Initializes the keyboard handler by setting up event handlers and focus behavior
+    /// </summary>
+    private void Initialize()
+    {
+        System.Diagnostics.Debug.WriteLine("GlobalKeyboardHandler: Initializing keyboard handling");
+        
+        // Make the host control focusable and set up keyboard event handling
+        _hostControl.Focusable = true;
+        _hostControl.KeyDown += OnKeyDown;
+        
+        // Also handle at higher level to catch all keyboard events
+        _hostControl.AddHandler(Control.KeyDownEvent, OnKeyDown, handledEventsToo: true);
+        
+        // Set up focus when the control is loaded
+        if (_hostControl.IsLoaded)
+        {
+            SetupFocus();
+        }
+        else
+        {
+            _hostControl.Loaded += OnHostControlLoaded;
+        }
+        
+        System.Diagnostics.Debug.WriteLine("GlobalKeyboardHandler: Initialization complete");
+    }
+
+    /// <summary>
+    /// Handles the host control loaded event to set up focus
+    /// </summary>
+    private void OnHostControlLoaded(object? sender, RoutedEventArgs e)
+    {
+        SetupFocus();
+        _hostControl.Loaded -= OnHostControlLoaded; // Unsubscribe after first load
+    }
+
+    /// <summary>
+    /// Sets up focus for the host control to ensure keyboard events are received
+    /// </summary>
+    private void SetupFocus()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_hostControl.Focusable)
+            {
+                var focused = _hostControl.Focus();
+                System.Diagnostics.Debug.WriteLine($"GlobalKeyboardHandler: Focus attempt result: {focused}");
+            }
+        }, DispatcherPriority.Background);
+    }
+
+    /// <summary>
+    /// Main keyboard event handler
+    /// </summary>
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"GlobalKeyboardHandler: KeyDown event - Key: {e.Key}, SearchBox focused: {_searchTextBox.IsFocused}");
+        
+        bool handled = HandleKeyDown(e);
+        if (handled)
+        {
+            System.Diagnostics.Debug.WriteLine($"GlobalKeyboardHandler: Key {e.Key} was handled");
+            e.Handled = true;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"GlobalKeyboardHandler: Key {e.Key} was not handled");
+        }
     }
 
     /// <summary>
@@ -40,6 +116,16 @@ public class GlobalKeyboardHandler
         // Global key handlers when search box is not focused
         System.Diagnostics.Debug.WriteLine("SearchBox not focused, handling global keys");
         return HandleGlobalKeys(e);
+    }
+
+    /// <summary>
+    /// Disposes of the keyboard handler and cleans up event subscriptions
+    /// </summary>
+    public void Dispose()
+    {
+        _hostControl.KeyDown -= OnKeyDown;
+        _hostControl.RemoveHandler(Control.KeyDownEvent, OnKeyDown);
+        _hostControl.Loaded -= OnHostControlLoaded;
     }
 
     /// <summary>
@@ -85,10 +171,13 @@ public class GlobalKeyboardHandler
     /// </summary>
     private bool HandleGlobalKeys(KeyEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine($"HandleGlobalKeys called with key: {e.Key}");
+        
         switch (e.Key)
         {
             // Typing keys - focus search box and start typing
             case var key when IsTypingKey(key):
+                System.Diagnostics.Debug.WriteLine($"Typing key detected: {key}");
                 FocusSearchBoxAndStartTyping(e);
                 return true;
 
@@ -243,11 +332,13 @@ public class GlobalKeyboardHandler
     /// </summary>
     private void FocusSearchBoxAndStartTyping(KeyEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine("FocusSearchBoxAndStartTyping called");
         _searchTextBox.Focus();
         
         var keyChar = GetCharFromKey(e.Key, e.KeyModifiers);
         if (keyChar != null)
         {
+            System.Diagnostics.Debug.WriteLine($"Setting search text to: {keyChar}");
             _viewModel.SearchText = keyChar;
             // Position cursor at the end
             Dispatcher.UIThread.Post(() =>

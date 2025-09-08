@@ -9,8 +9,7 @@
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="SchoolOrganizer.Views.StudentGallery.StudentGalleryView"
              x:DataType="vm:StudentGalleryViewModel"
-             x:Name="GalleryView"
-             Focusable="True">
+             x:Name="GalleryView">
 
   <UserControl.Resources>
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
