@@ -45,26 +45,22 @@ The keyboard handling is implemented in a dedicated service class:
 4. **Non-Destructive**: Original mouse functionality remains unchanged
 
 ### Integration
-The handler is initialized when the ViewModel is available:
+The handler is completely self-contained and manages all keyboard functionality:
 ```csharp
 // In OnDataContextChanged
 var searchTextBox = this.FindControl<TextBox>("SearchTextBox");
 if (searchTextBox != null)
 {
-    _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox);
+    _keyboardHandler?.Dispose(); // Clean up previous handler
+    _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox, this);
 }
 ```
 
-The main keyboard event is handled centrally:
-```csharp
-private void OnKeyDown(object? sender, KeyEventArgs e)
-{
-    if (_keyboardHandler?.HandleKeyDown(e) == true)
-    {
-        e.Handled = true;
-    }
-}
-```
+The GlobalKeyboardHandler automatically:
+- Sets up keyboard event handling on the host control
+- Manages focus behavior to ensure keyboard events are received
+- Handles all key processing internally
+- Provides proper cleanup when disposed
 
 ## Usage Examples
 
