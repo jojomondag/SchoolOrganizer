@@ -1,6 +1,0 @@
-{
-    "chat.agent.maxRequests": 75,
-    "keyboard.dispatch": "keyCode",
-    "terminal.integrated.defaultProfile.osx": "zsh",
-    "dotnet.defaultSolution": "SchoolOrganizer.sln"
-}
