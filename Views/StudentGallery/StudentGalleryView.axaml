@@ -245,7 +245,7 @@
                       <Setter Property="Opacity" Value="1"/>
                     </Style>
                     <Style Selector="Border:pointerover">
-                      <Setter Property="RenderTransform" Value="scale(1.05)"/>
+                      <Setter Property="RenderTransform" Value="scale(1.03)"/>
                       <Setter Property="BoxShadow" Value="{DynamicResource ShadowStrong}"/>
                       <Setter Property="Panel.ZIndex" Value="10"/>
                     </Style>

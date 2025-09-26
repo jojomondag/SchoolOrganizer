@@ -34,6 +34,8 @@
           VerticalAlignment="Stretch"
           BorderThickness="0"
           ClipToBounds="False"
+          Width="240"
+          Height="220"
           Opacity="{Binding PictureUrl, Converter={StaticResource AddCardOpacityConverter}}">
     
     <Border.Styles>
@@ -48,7 +50,7 @@
     </Border.Styles>
 
     <!-- Card Content -->
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,13.5">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,8">
       
       <!-- Profile Image -->
   <Border x:Name="ProfileImageBorder"
@@ -63,7 +65,7 @@
         VerticalAlignment="Center"
         Width="90"
         Height="90"
-        Margin="0,0,0,15">
+        Margin="0,0,0,8">
     
         
         <!-- Circular Profile Image -->
@@ -119,52 +121,62 @@
       </Border>
       
       <!-- Person Information -->
-      <StackPanel Margin="0,0,0,10" MaxWidth="204">
+      <StackPanel Margin="0,0,0,6" MaxWidth="160">
         
         <TextBlock x:Name="NameText"
                    Text="{Binding Name}" 
                    FontWeight="Bold" 
                    HorizontalAlignment="Center"
-                   TextWrapping="Wrap"
+                   TextWrapping="NoWrap"
                    TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis"
                    FontSize="16"
-                   Margin="0,0,0,5"/>
+                   MaxWidth="160"
+                   Margin="0,0,0,3"/>
         
         <TextBlock x:Name="RoleText"
                    Text="{Binding RoleInfo}" 
                    Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
-                   TextWrapping="Wrap"
+                   TextWrapping="NoWrap"
                    TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis"
                    FontSize="12"
-                   Margin="0,0,0,5"/>
+                   MaxWidth="160"
+                   Margin="0,0,0,3"/>
         
         <TextBlock x:Name="SecondaryText"
                    Text="{Binding SecondaryInfo}" 
                    Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
-                   TextWrapping="Wrap"
+                   TextWrapping="NoWrap"
                    TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis"
                    FontSize="10"
-                   Margin="0,0,0,8"
+                   MaxWidth="160"
+                   Margin="0,0,0,6"
                    IsVisible="{Binding SecondaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
         
         <TextBlock x:Name="EmailText"
                    Text="{Binding Email}" 
                    Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
-                   TextWrapping="Wrap"
+                   TextWrapping="NoWrap"
                    TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis"
                    FontSize="9"
+                   MaxWidth="160"
                    Margin="0,0,0,5"
                    IsVisible="False"/>
         
         <TextBlock x:Name="EnrollmentText"
                    Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
-                   TextWrapping="Wrap"
+                   TextWrapping="NoWrap"
                    TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis"
                    FontSize="8"
+                   MaxWidth="160"
                    Margin="0,0,0,5"
                    IsVisible="False"
                    Text="Enrollment date not available for this person type"/>
