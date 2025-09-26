@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using System.Collections;
 
-namespace SchoolOrganizer.Views;
+namespace SchoolOrganizer.Views.Converters;
 
 public class StudentCountToCardSizeConverter : IValueConverter
 {

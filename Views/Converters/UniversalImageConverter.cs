@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Net.Http;
 
-namespace SchoolOrganizer.Views;
+namespace SchoolOrganizer.Views.Converters;
 
 public class UniversalImageConverter : IValueConverter
 {

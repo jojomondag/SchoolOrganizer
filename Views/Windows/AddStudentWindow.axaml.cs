@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using Avalonia.Input;
 
-namespace SchoolOrganizer.Views;
+namespace SchoolOrganizer.Views.Windows;
 
 public partial class AddStudentWindow : Window
 {

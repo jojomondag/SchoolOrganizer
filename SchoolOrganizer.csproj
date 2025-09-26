@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AvaloniaResource Include="Views/Colors.axaml" />
+      <AvaloniaResource Include="Views/Styles/Colors.axaml" />
   </ItemGroup>
 
   <!-- Exclude external project sources from main app compilation -->

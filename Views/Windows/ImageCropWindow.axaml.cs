@@ -7,7 +7,7 @@ using SchoolOrganizer.Services;
 using System.Linq;
 using Avalonia.Input;
 
-namespace SchoolOrganizer.Views;
+namespace SchoolOrganizer.Views.Windows;
 
 public partial class ImageCropWindow : Window
 {

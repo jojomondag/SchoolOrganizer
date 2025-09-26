@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using SchoolOrganizer.Models;
 using SchoolOrganizer.Services;
 using SchoolOrganizer.Views;
+using SchoolOrganizer.Views.Converters;
 
 namespace SchoolOrganizer.ViewModels;
 

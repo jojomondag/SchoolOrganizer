@@ -6,7 +6,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using SchoolOrganizer.Models;
 
-namespace SchoolOrganizer.Views;
+namespace SchoolOrganizer.Views.Converters;
 
 public class StudentSelectionBrushConverter : IMultiValueConverter
 {

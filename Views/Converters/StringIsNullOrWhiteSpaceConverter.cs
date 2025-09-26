@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 
-namespace SchoolOrganizer.Views;
+namespace SchoolOrganizer.Views.Converters;
 
 public class StringIsNullOrWhiteSpaceConverter : IValueConverter
 {

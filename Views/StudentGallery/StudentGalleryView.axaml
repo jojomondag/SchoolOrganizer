@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SchoolOrganizer.ViewModels"
              xmlns:models="using:SchoolOrganizer.Models"
-             xmlns:views="using:SchoolOrganizer.Views"
+             xmlns:views="using:SchoolOrganizer.Views.Converters"
              xmlns:profileCard="using:SchoolOrganizer.Views.ProfileCard"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="SchoolOrganizer.Views.StudentGallery.StudentGalleryView"

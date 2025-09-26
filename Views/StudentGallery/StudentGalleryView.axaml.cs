@@ -12,6 +12,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
 using Avalonia.Input;
 using SchoolOrganizer.Views.ProfileCard;
+using SchoolOrganizer.Views.Windows;
 using SchoolOrganizer.Services;
 
 

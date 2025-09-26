@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using SchoolOrganizer.Models;
 
-namespace SchoolOrganizer.Views;
+namespace SchoolOrganizer.Views.Converters;
 
 public class StudentEnrollmentConverter : IValueConverter
 {

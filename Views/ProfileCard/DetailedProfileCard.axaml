@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SchoolOrganizer.ViewModels"
              xmlns:models="using:SchoolOrganizer.Models"
-             xmlns:views="using:SchoolOrganizer.Views"
+             xmlns:views="using:SchoolOrganizer.Views.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="SchoolOrganizer.Views.ProfileCard.DetailedProfileCard"
              x:DataType="models:IPerson">

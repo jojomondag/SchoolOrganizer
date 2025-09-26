@@ -1,8 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:views="using:SchoolOrganizer.Views"
-        x:Class="SchoolOrganizer.Views.AddStudentWindow"
-        x:DataType="views:AddStudentWindow+AddStudentState"
+        xmlns:views="using:SchoolOrganizer.Views.Converters"
+        xmlns:windows="using:SchoolOrganizer.Views.Windows"
+        x:Class="SchoolOrganizer.Views.Windows.AddStudentWindow"
+        x:DataType="windows:AddStudentWindow+AddStudentState"
         Width="420" Height="480"
         CanResize="False"
         Title="Add New Student">
