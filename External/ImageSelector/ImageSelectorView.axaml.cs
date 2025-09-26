@@ -1057,7 +1057,7 @@ public partial class ImageSelectorView : UserControl
             var imagePaths = await AvailableImagesProvider();
             if (imagePaths == null || imagePaths.Length == 0) return;
 
-            Dispatcher.UIThread.InvokeAsync(() =>
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 ImageGallery.Children.Clear();
                 
