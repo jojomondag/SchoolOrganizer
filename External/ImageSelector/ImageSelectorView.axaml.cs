@@ -1071,9 +1071,9 @@ public partial class ImageSelectorView : UserControl
                         Height = 60,
                         CornerRadius = new CornerRadius(4),
                         ClipToBounds = true,
-                        BorderBrush = new SolidColorBrush(Color.FromRgb(224, 224, 224)),
+                        BorderBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0)), // BlackColor
                         BorderThickness = new Thickness(1),
-                        Background = new SolidColorBrush(Color.FromRgb(240, 240, 240)),
+                        Background = new SolidColorBrush(Color.FromRgb(232, 244, 248)), // LightBlueColor
                         Cursor = new Cursor(StandardCursorType.Hand)
                     };
 
@@ -1097,7 +1097,7 @@ public partial class ImageSelectorView : UserControl
                         {
                             Text = "?",
                             FontSize = 20,
-                            Foreground = new SolidColorBrush(Color.FromRgb(153, 153, 153)),
+                            Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0)), // BlackColor
                             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
                         };
@@ -1142,13 +1142,13 @@ public partial class ImageSelectorView : UserControl
                     // Add hover effect
                     border.PointerEntered += (s, e) =>
                     {
-                        border.BorderBrush = new SolidColorBrush(Color.FromRgb(59, 83, 107));
+                        border.BorderBrush = new SolidColorBrush(Color.FromRgb(44, 62, 80)); // DarkBlueColor
                         border.BorderThickness = new Thickness(2);
                     };
                     
                     border.PointerExited += (s, e) =>
                     {
-                        border.BorderBrush = new SolidColorBrush(Color.FromRgb(224, 224, 224));
+                        border.BorderBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0)); // BlackColor
                         border.BorderThickness = new Thickness(1);
                     };
 

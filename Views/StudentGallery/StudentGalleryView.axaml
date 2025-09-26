@@ -45,7 +45,7 @@
     </Grid.RowDefinitions>
 
   <!-- Header and Filters -->
-  <Border x:Name="HeaderBorder" Grid.Row="0" Background="White" Padding="24,20">
+  <Border x:Name="HeaderBorder" Grid.Row="0" Background="{DynamicResource WhiteColor}" Padding="24,20">
       <Grid HorizontalAlignment="Center">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="400"/>
@@ -54,12 +54,17 @@
 
         <!-- Search Box with Icon -->
         <Border Grid.Column="0" 
-                Background="#f8f9fa" 
-                BorderBrush="#e0e0e0" 
-                BorderThickness="1" 
+                Background="{DynamicResource LightBlueColor}" 
+                BorderBrush="{DynamicResource BlackColor}" 
+                BorderThickness="2" 
                 CornerRadius="25" 
                 Padding="16,0" 
                 Margin="0,0,16,0">
+          <Border.Styles>
+            <Style Selector="Border:pointerover">
+              <Setter Property="BorderBrush" Value="{DynamicResource SearchSelectionColor}"/>
+            </Style>
+          </Border.Styles>
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
@@ -70,7 +75,7 @@
             <TextBlock Grid.Column="0" 
                        Text="🔍" 
                        FontSize="14" 
-                       Foreground="#999" 
+                       Foreground="{DynamicResource BlackColor}" 
                        VerticalAlignment="Center" 
                        Margin="0,0,12,0"/>
             
@@ -79,10 +84,29 @@
                      Name="SearchTextBox"
                      Text="{Binding SearchText, Mode=TwoWay}" 
                      Watermark="Search students by name, class, or mentor..." 
-                     Background="Transparent"
-                     BorderThickness="0"
+                     Background="{DynamicResource TransparentColor}"
+                     BorderThickness="2"
+                     BorderBrush="{DynamicResource TransparentColor}"
                      Padding="8,12"
-                     FontSize="14"/>
+                     FontSize="14">
+              <TextBox.Styles>
+                <!-- Custom search box styling with visible selection and focus -->
+                <Style Selector="TextBox">
+                  <Setter Property="SelectionBrush" Value="{DynamicResource SearchSelectionColor}"/>
+                  <Setter Property="SelectionForegroundBrush" Value="{DynamicResource BlackColor}"/>
+                  <Setter Property="CaretBrush" Value="{DynamicResource BlackColor}"/>
+                </Style>
+                <Style Selector="TextBox:focus">
+                  <Setter Property="BorderBrush" Value="{DynamicResource SearchSelectionColor}"/>
+                  <Setter Property="BorderThickness" Value="2"/>
+                </Style>
+                <!-- Override template border focus -->
+                <Style Selector="TextBox:focus /template/ Border">
+                  <Setter Property="BorderBrush" Value="{DynamicResource SearchSelectionColor}"/>
+                  <Setter Property="BorderThickness" Value="2"/>
+                </Style>
+              </TextBox.Styles>
+            </TextBox>
           </Grid>
         </Border>
 
@@ -90,8 +114,8 @@
         <Button Grid.Column="1" 
                 Content="Add Student" 
                 Command="{Binding AddStudentCommand}"
-                Background="#3b536b"
-                Foreground="White"
+                Background="{DynamicResource BlackColor}"
+                Foreground="{DynamicResource WhiteColor}"
                 BorderThickness="0"
                 CornerRadius="8"
                 Padding="20,12"
@@ -99,7 +123,7 @@
                 FontSize="14">
           <Button.Styles>
             <Style Selector="Button:pointerover">
-              <Setter Property="Background" Value="#2c3e50"/>
+              <Setter Property="Background" Value="{DynamicResource DarkBlue}"/>
             </Style>
           </Button.Styles>
         </Button>
@@ -119,7 +143,7 @@
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <!-- Background button for deselection -->
-        <Button Background="Transparent"
+        <Button Background="{DynamicResource TransparentColor}"
                 BorderThickness="0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
@@ -129,17 +153,17 @@
                 Template="{StaticResource FlatButtonTemplate}">
           <Button.Styles>
             <Style Selector="Button:pointerover">
-              <Setter Property="Background" Value="Transparent"/>
+              <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
             </Style>
             <Style Selector="Button:pressed">
-              <Setter Property="Background" Value="Transparent"/>
+              <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
             </Style>
           </Button.Styles>
         </Button>
         
         <!-- Loading Indicator -->
         <Border IsVisible="{Binding IsLoading}" 
-                Background="#80FFFFFF" 
+                Background="{DynamicResource LightBlueColor}" 
                 HorizontalAlignment="Stretch" 
                 VerticalAlignment="Stretch"
                 Grid.RowSpan="2">
@@ -176,33 +200,33 @@
               <!-- Wrap ProfileCard with selection functionality -->
               <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
                       CommandParameter="{Binding}"
-                      Background="Transparent"
+                      Background="{DynamicResource TransparentColor}"
                       BorderThickness="0"
                       Padding="0"
                       ClipToBounds="False"
                       Template="{StaticResource FlatButtonTemplate}">
                 <Button.Styles>
                   <Style Selector="Button">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
                     <Setter Property="BorderThickness" Value="0"/>
                   </Style>
                   <Style Selector="Button:pointerover">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
                     <Setter Property="BorderThickness" Value="0"/>
                   </Style>
                   <Style Selector="Button:pressed">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
                     <Setter Property="BorderThickness" Value="0"/>
                   </Style>
                 </Button.Styles>
                 
-                <Border Background="White" 
+                <Border Background="{DynamicResource WhiteColor}" 
                         CornerRadius="8" 
                         Margin="12" 
-                        BoxShadow="0 4 12 0 #30000000"
+                        BoxShadow="{DynamicResource ShadowDark}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         BorderThickness="2"
@@ -231,13 +255,13 @@
                     </Style>
                     <Style Selector="Border:pointerover">
                       <Setter Property="RenderTransform" Value="scale(1.05)"/>
-                      <Setter Property="BoxShadow" Value="0 10 30 0 #60000000"/>
+                      <Setter Property="BoxShadow" Value="{DynamicResource ShadowStrong}"/>
                       <Setter Property="Panel.ZIndex" Value="10"/>
                     </Style>
                   </Border.Styles>
 
                   <!-- Use the generic ProfileCard inside a clipping border to preserve rounded corners -->
-                  <Border CornerRadius="8" ClipToBounds="True" Background="Transparent">
+                  <Border CornerRadius="8" ClipToBounds="True" Background="{DynamicResource TransparentColor}">
                     <profileCard:ProfileCard DataContext="{Binding}" 
                                            StudentCount="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).Students.Count}"
                                            Margin="0"/>
@@ -289,17 +313,17 @@
 
     <!-- Selected Student Details -->
     <Border Grid.Row="2" x:Name="SelectedDetailsHost"
-            Background="Transparent" 
+            Background="{DynamicResource TransparentColor}" 
             Padding="20"
             IsVisible="{Binding SelectedStudent, Converter={x:Static ObjectConverters.IsNotNull}}">
-      <Border Background="White"
+      <Border Background="{DynamicResource WhiteColor}"
               CornerRadius="8"
               Padding="16"
-              BoxShadow="0 2 8 0 #20000000">
+              BoxShadow="{DynamicResource ShadowMedium}">
         <Grid>
           <Button Content="✎"
                   Width="24" Height="24"
-                  Background="#f0f0f0" BorderBrush="#ccc"
+                  Background="{DynamicResource LightBlueColor}" BorderBrush="{DynamicResource BlackColor}"
                   HorizontalAlignment="Left" VerticalAlignment="Top"
                   HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                   Padding="0"

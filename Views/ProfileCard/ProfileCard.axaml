@@ -26,7 +26,7 @@
   </UserControl.Styles>
 
   <Border x:Name="PersonCard"
-          Background="Transparent" 
+          Background="{DynamicResource TransparentColor}" 
           CornerRadius="0" 
           Margin="0" 
           HorizontalAlignment="Stretch"
@@ -39,11 +39,11 @@
       
       <!-- Profile Image -->
   <Border x:Name="ProfileImageBorder"
-        Background="Transparent"
+        Background="{DynamicResource TransparentColor}"
         Classes="ProfileImageBorder"
         CornerRadius="46"
         BorderThickness="2"
-        BorderBrush="#2c3e50"
+        BorderBrush="{DynamicResource BlackColor}"
         Padding="0"
         PointerReleased="OnProfileImagePointerReleased"
         Cursor="Hand"
@@ -59,7 +59,7 @@
           <Ellipse x:Name="ProfileImageBackground"
                    Width="84" 
                    Height="84"
-                   Fill="#f0f0f0"
+                   Fill="{DynamicResource BackgroundTertiaryColor}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
           
@@ -91,7 +91,7 @@
         
         <TextBlock x:Name="RoleText"
                    Text="{Binding RoleInfo}" 
-                   Foreground="#666"
+                   Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
                    TextWrapping="Wrap"
                    TextAlignment="Center"
@@ -100,7 +100,7 @@
         
         <TextBlock x:Name="SecondaryText"
                    Text="{Binding SecondaryInfo}" 
-                   Foreground="#888"
+                   Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
                    TextWrapping="Wrap"
                    TextAlignment="Center"
@@ -110,7 +110,7 @@
         
         <TextBlock x:Name="EmailText"
                    Text="{Binding Email}" 
-                   Foreground="#666"
+                   Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
                    TextWrapping="Wrap"
                    TextAlignment="Center"
@@ -119,7 +119,7 @@
                    IsVisible="False"/>
         
         <TextBlock x:Name="EnrollmentText"
-                   Foreground="#aaa"
+                   Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
                    TextWrapping="Wrap"
                    TextAlignment="Center"

@@ -20,12 +20,30 @@
     </Design.DataContext>
 
     <Window.Styles>
+        <!-- Override default focus colors globally -->
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
+        </Style>
+        <Style Selector="ComboBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
+        </Style>
+        <Style Selector="DatePicker:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
+        </Style>
+        
+        <!-- TextBox selection styling -->
+        <Style Selector="TextBox">
+            <Setter Property="SelectionBrush" Value="{DynamicResource SelectionBackgroundColor}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource SelectionForegroundColor}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource BlackColor}"/>
+        </Style>
+        
         <Style Selector="ToggleButton.tab">
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="16,8"/>
-            <Setter Property="Background" Value="#3b536b"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#5e7a96"/>
+            <Setter Property="Background" Value="{DynamicResource DarkBlueColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BlackColor}"/>
             <Setter Property="BorderThickness" Value="1,1,0,0"/>
             <Setter Property="CornerRadius" Value="10,10,0,0"/>
             <Setter Property="Margin" Value="0,0,0,-1"/>
@@ -33,42 +51,42 @@
         </Style>
 
         <Style Selector="ToggleButton.tab:checked">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="White"/>
-            <Setter Property="Foreground" Value="#2c3e50"/>
+            <Setter Property="Background" Value="{DynamicResource DarkBlueColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource WhiteColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
         </Style>
 
         <!-- Target the ContentPresenter within the template for checked state -->
         <Style Selector="ToggleButton.tab:checked /template/ ContentPresenter">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#2c3e50"/>
+            <Setter Property="Background" Value="{DynamicResource DarkBlueColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
         </Style>
 
         <!-- Target the Border within the template for checked state -->
         <Style Selector="ToggleButton.tab:checked /template/ Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource DarkBlueColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource WhiteColor}"/>
         </Style>
 
         <Style Selector="ToggleButton.tab:pointerover">
-            <Setter Property="Background" Value="#476987"/>
+            <Setter Property="Background" Value="{DynamicResource BlackColor}"/>
         </Style>
 
         <Style Selector="ToggleButton.tab:checked:pointerover">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="White"/>
-            <Setter Property="Foreground" Value="#2c3e50"/>
+            <Setter Property="Background" Value="{DynamicResource DarkBlueColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource WhiteColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
         </Style>
 
         <!-- Ensure template elements stay white when checked and hovered -->
         <Style Selector="ToggleButton.tab:checked:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#2c3e50"/>
+            <Setter Property="Background" Value="{DynamicResource DarkBlueColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
         </Style>
 
         <Style Selector="ToggleButton.tab:checked:pointerover /template/ Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource DarkBlueColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource WhiteColor}"/>
         </Style>
     </Window.Styles>
 
@@ -79,7 +97,7 @@
         </Grid.RowDefinitions>
 
         <!-- Navigation as Tabs -->
-        <Border Grid.Row="0" Background="#2c3e50" Padding="16,10,16,0">
+    <Border Grid.Row="0" Background="{DynamicResource LightBlueColor}" Padding="16,10,16,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -101,7 +119,7 @@
         </Border>
 
         <!-- Content Area with blended background -->
-        <Border Grid.Row="1" Background="{Binding ActiveContentBrush}">
+    <Border Grid.Row="1" Background="{DynamicResource LightBlueColor}">
             <ContentControl Content="{Binding CurrentViewModel}">
                 <ContentControl.DataTemplates>
                 <!-- Template for StudentGalleryViewModel -->
