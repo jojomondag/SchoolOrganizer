@@ -84,9 +84,9 @@
                      Name="SearchTextBox"
                      Text="{Binding SearchText, Mode=TwoWay}" 
                      Watermark="Search students by name, class, or mentor..." 
-                     Background="Transparent"
+                     Background="{DynamicResource TransparentColor}"
                      BorderThickness="0"
-                     BorderBrush="Transparent"
+                     BorderBrush="{DynamicResource TransparentColor}"
                      Padding="8,12"
                      FontSize="14"
                      FocusAdorner="{x:Null}">
@@ -95,39 +95,39 @@
                   <Setter Property="SelectionBrush" Value="{DynamicResource SearchSelectionColor}"/>
                   <Setter Property="SelectionForegroundBrush" Value="{DynamicResource BlackColor}"/>
                   <Setter Property="CaretBrush" Value="{DynamicResource BlackColor}"/>
-                  <Setter Property="Background" Value="Transparent"/>
+                  <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
                 </Style>
                 <!-- Remove all hover effects -->
                 <Style Selector="TextBox:pointerover">
-                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
                   <Setter Property="BorderThickness" Value="0"/>
-                  <Setter Property="Background" Value="Transparent"/>
+                  <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
                 </Style>
                 <Style Selector="TextBox:pointerover /template/ Border">
-                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
                   <Setter Property="BorderThickness" Value="0"/>
-                  <Setter Property="Background" Value="Transparent"/>
+                  <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
                 </Style>
                 <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
                   <Setter Property="BorderThickness" Value="0"/>
-                  <Setter Property="Background" Value="Transparent"/>
+                  <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
                 </Style>
                 <!-- Override all focus-related template elements -->
                 <Style Selector="TextBox:focus">
-                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
                   <Setter Property="BorderThickness" Value="0"/>
-                  <Setter Property="Background" Value="Transparent"/>
+                  <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
                 </Style>
                 <Style Selector="TextBox:focus /template/ Border">
-                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
                   <Setter Property="BorderThickness" Value="0"/>
-                  <Setter Property="Background" Value="Transparent"/>
+                  <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
                 </Style>
                 <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
                   <Setter Property="BorderThickness" Value="0"/>
-                  <Setter Property="Background" Value="Transparent"/>
+                  <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
                 </Style>
               </TextBox.Styles>
             </TextBox>
