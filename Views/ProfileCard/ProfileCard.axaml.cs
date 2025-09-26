@@ -10,13 +10,15 @@ public partial class ProfileCard : UserControl
 {
     public event EventHandler<Student>? ImageClicked;
 
-    public static readonly StyledProperty<int> StudentCountProperty =
-        AvaloniaProperty.Register<ProfileCard, int>(nameof(StudentCount), 16);
+    public static readonly StyledProperty<ProfileCardDisplayConfig> DisplayConfigProperty =
+        AvaloniaProperty.Register<ProfileCard, ProfileCardDisplayConfig>(
+            nameof(DisplayConfig), 
+            ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard));
 
-    public int StudentCount
+    public ProfileCardDisplayConfig DisplayConfig
     {
-        get => GetValue(StudentCountProperty);
-        set => SetValue(StudentCountProperty, value);
+        get => GetValue(DisplayConfigProperty);
+        set => SetValue(DisplayConfigProperty, value);
     }
 
     public ProfileCard()
@@ -28,31 +30,22 @@ public partial class ProfileCard : UserControl
     {
         base.OnPropertyChanged(change);
         
-        if (change.Property == StudentCountProperty)
+        if (change.Property == DisplayConfigProperty)
         {
-            UpdateCardSize(StudentCount);
+            UpdateCardAppearance(DisplayConfig);
         }
     }
 
-    private void UpdateCardSize(int count)
+    private void UpdateCardAppearance(ProfileCardDisplayConfig config)
     {
         if (ProfileImageBorder == null) return;
 
-        // Update image size based on student count
-        var imageSize = count switch
-        {
-            <= 4 => 150.0,   // Expanded
-            <= 8 => 120.0,   // Detailed  
-            <= 16 => 90.0,   // Standard
-            _ => 70.0         // Compact
-        };
-
-        var cornerRadius = imageSize / 2;
-        var innerSize = imageSize - 6;
+        var cornerRadius = config.ImageSize / 2;
+        var innerSize = config.ImageSize - 6;
 
         // Update image dimensions
-        ProfileImageBorder.Width = imageSize;
-        ProfileImageBorder.Height = imageSize;
+        ProfileImageBorder.Width = config.ImageSize;
+        ProfileImageBorder.Height = config.ImageSize;
         ProfileImageBorder.CornerRadius = new CornerRadius(cornerRadius);
         
         ProfileImageGrid.Width = innerSize;
@@ -63,33 +56,14 @@ public partial class ProfileCard : UserControl
         ProfileImageEllipse.Height = innerSize;
 
         // Update font sizes
-        NameText.FontSize = count switch
-        {
-            <= 4 => 20.0,    // Expanded
-            <= 8 => 18.0,    // Detailed
-            <= 16 => 16.0,   // Standard
-            _ => 14.0         // Compact
-        };
-
-        RoleText.FontSize = count switch
-        {
-            <= 4 => 16.0,    // Expanded
-            <= 8 => 14.0,    // Detailed
-            <= 16 => 12.0,   // Standard
-            _ => 10.0         // Compact
-        };
-
-        SecondaryText.FontSize = count switch
-        {
-            <= 4 => 14.0,    // Expanded
-            <= 8 => 12.0,    // Detailed
-            <= 16 => 10.0,   // Standard
-            _ => 9.0          // Compact
-        };
+        NameText.FontSize = config.NameFontSize;
+        RoleText.FontSize = config.RoleFontSize;
+        SecondaryText.FontSize = config.SecondaryFontSize;
 
         // Update visibility
-        EmailText.IsVisible = count <= 8 && !string.IsNullOrWhiteSpace(((IPerson?)DataContext)?.Email);
-        EnrollmentText.IsVisible = count <= 4;
+        EmailText.IsVisible = config.ShowEmail && !string.IsNullOrWhiteSpace(((IPerson?)DataContext)?.Email);
+        EnrollmentText.IsVisible = config.ShowEnrollmentDate;
+        SecondaryText.IsVisible = config.ShowSecondaryInfo;
     }
 
     private void OnProfileImageClicked(object? sender, RoutedEventArgs e)

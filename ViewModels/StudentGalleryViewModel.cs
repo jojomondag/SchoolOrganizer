@@ -9,7 +9,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SchoolOrganizer.Models;
 using SchoolOrganizer.Services;
-using SchoolOrganizer.Views;
 using SchoolOrganizer.Views.Converters;
 
 namespace SchoolOrganizer.ViewModels;
@@ -258,35 +257,13 @@ public partial class StudentGalleryViewModel : ViewModelBase
     {
         try
         {
-            student.Name = name;
-            student.ClassName = className;
-            student.Email = email;
-            student.EnrollmentDate = enrollmentDate;
-            student.PictureUrl = picturePath ?? string.Empty;
-            
-            // Update mentors
-            student.ClearMentors();
-            foreach (var mentor in mentors ?? new List<string>())
-            {
-                student.AddMentor(mentor);
-            }
+            UpdateStudentProperties(student, name, className, mentors, email, enrollmentDate, picturePath);
 
-            // Ensure the AllStudents collection reflects the same object state
+            // Ensure the AllStudents collection references the same object or update it
             var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
-            if (inAll != null)
+            if (inAll != null && inAll != student)
             {
-                inAll.Name = student.Name;
-                inAll.ClassName = student.ClassName;
-                inAll.Email = student.Email;
-                inAll.EnrollmentDate = student.EnrollmentDate;
-                inAll.PictureUrl = student.PictureUrl;
-                
-                // Update mentors
-                inAll.ClearMentors();
-                foreach (var mentor in mentors ?? new List<string>())
-                {
-                    inAll.AddMentor(mentor);
-                }
+                UpdateStudentProperties(inAll, name, className, mentors, email, enrollmentDate, picturePath);
             }
 
             await ApplySearchImmediate();
@@ -295,6 +272,22 @@ public partial class StudentGalleryViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error updating student: {ex.Message}");
+        }
+    }
+
+    private static void UpdateStudentProperties(Student student, string name, string className, List<string> mentors, string email, DateTime enrollmentDate, string picturePath)
+    {
+        student.Name = name;
+        student.ClassName = className;
+        student.Email = email;
+        student.EnrollmentDate = enrollmentDate;
+        student.PictureUrl = picturePath ?? string.Empty;
+        
+        // Update mentors
+        student.ClearMentors();
+        foreach (var mentor in mentors ?? new List<string>())
+        {
+            student.AddMentor(mentor);
         }
     }
 
@@ -329,50 +322,35 @@ public partial class StudentGalleryViewModel : ViewModelBase
             // Ensure the saved image file is readable before we update bindings
             await WaitForReadableFileAsync(newImagePath);
 
-            // Clear the image cache for the old path if it exists
-            if (!string.IsNullOrWhiteSpace(student.PictureUrl))
+            // Helper method to clear cache and update picture URL
+            void UpdateStudentPictureUrl(Student s, string oldPath, string newPath)
             {
-                UniversalImageConverter.ClearCache(student.PictureUrl);
+                if (!string.IsNullOrWhiteSpace(oldPath))
+                {
+                    UniversalImageConverter.ClearCache(oldPath);
+                }
+                UniversalImageConverter.ClearCache(newPath);
+                s.PictureUrl = newPath;
             }
-            
-            // Clear the cache for the new path as well (in case it's the same path but different image)
-            UniversalImageConverter.ClearCache(newImagePath);
 
+            // Update the passed student object
+            UpdateStudentPictureUrl(student, student.PictureUrl, newImagePath);
+
+            // Update in current filtered collection
             var studentInCollection = Students.FirstOrDefault(s => s.Id == student.Id);
-            if (studentInCollection != null)
+            if (studentInCollection != null && studentInCollection != student)
             {
-                System.Diagnostics.Debug.WriteLine($"Found student in collection, updating PictureUrl from '{studentInCollection.PictureUrl}' to '{newImagePath}'");
-                
-                // Clear cache for old path
-                if (!string.IsNullOrWhiteSpace(studentInCollection.PictureUrl))
-                {
-                    UniversalImageConverter.ClearCache(studentInCollection.PictureUrl);
-                }
-                
-                // Update the student's picture URL - this will trigger PropertyChanged due to ObservableProperty
-                studentInCollection.PictureUrl = newImagePath;
-                
-                System.Diagnostics.Debug.WriteLine($"Updated student PictureUrl to: {studentInCollection.PictureUrl}");
+                UpdateStudentPictureUrl(studentInCollection, studentInCollection.PictureUrl, newImagePath);
             }
-            
-            // Also update the passed student object
-            student.PictureUrl = newImagePath;
 
-            // Update in allStudents as well
+            // Update in full collection
             var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
-            if (inAll != null)
+            if (inAll != null && inAll != student)
             {
-                // Clear cache for old path
-                if (!string.IsNullOrWhiteSpace(inAll.PictureUrl))
-                {
-                    UniversalImageConverter.ClearCache(inAll.PictureUrl);
-                }
-                inAll.PictureUrl = newImagePath;
+                UpdateStudentPictureUrl(inAll, inAll.PictureUrl, newImagePath);
             }
             
-            // Save to JSON
             await SaveAllStudentsToJson();
-            
             System.Diagnostics.Debug.WriteLine("UpdateStudentImage completed successfully");
         }
         catch (Exception ex)

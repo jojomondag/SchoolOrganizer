@@ -5,16 +5,14 @@
              xmlns:vm="using:SchoolOrganizer.ViewModels"
              xmlns:models="using:SchoolOrganizer.Models"
              xmlns:views="using:SchoolOrganizer.Views.Converters"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="240" d:DesignHeight="320"
              x:Class="SchoolOrganizer.Views.ProfileCard.ProfileCard"
              x:DataType="models:IPerson">
 
   <UserControl.Resources>
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
-    <views:StudentEnrollmentConverter x:Key="StudentEnrollmentConverter"/>
-    <views:StudentCountToImageSizeConverter x:Key="StudentCountToImageSize"/>
-    <views:StudentCountToFontSizeConverter x:Key="StudentCountToFontSize"/>
-    <views:StudentCountToVisibilityConverter x:Key="StudentCountToVisibility"/>
+    <views:DisplayConfigConverter x:Key="DisplayConfigConverter"/>
   </UserControl.Resources>
 
   <UserControl.Styles>
@@ -125,13 +123,8 @@
                    TextAlignment="Center"
                    FontSize="8"
                    Margin="0,0,0,5"
-                   IsVisible="False">
-          <TextBlock.Text>
-            <MultiBinding StringFormat="Enrolled: {0:yyyy-MM-dd}">
-              <Binding Path="." Converter="{StaticResource StudentEnrollmentConverter}"/>
-            </MultiBinding>
-          </TextBlock.Text>
-        </TextBlock>
+                   IsVisible="False"
+                   Text="Enrollment date not available for this person type"/>
         
       </StackPanel>
     </StackPanel>

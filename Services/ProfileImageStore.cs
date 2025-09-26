@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
@@ -23,7 +22,6 @@ public class CropSettings
 
 public static class ProfileImageStore
 {
-    private static readonly object fileLock = new();
 
     private static string GetImagesDir()
     {

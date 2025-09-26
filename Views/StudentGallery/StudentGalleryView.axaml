@@ -15,10 +15,7 @@
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
     <views:StringIsNullOrWhiteSpaceConverter x:Key="IsNullOrWhiteSpace"/>
     <views:StudentSelectionBrushConverter x:Key="StudentSelectionBrushConverter"/>
-    <views:StudentCountToCardSizeConverter x:Key="StudentCountToCardSize"/>
-    <views:StudentCountToImageSizeConverter x:Key="StudentCountToImageSize"/>
-    <views:StudentCountToFontSizeConverter x:Key="StudentCountToFontSize"/>
-    <views:StudentCountToVisibilityConverter x:Key="StudentCountToVisibility"/>
+    <views:DisplayConfigConverter x:Key="DisplayConfigConverter"/>
     <ControlTemplate x:Key="FlatButtonTemplate">
       <Border Background="{TemplateBinding Background}"
               BorderBrush="{TemplateBinding BorderBrush}"
@@ -254,7 +251,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         BorderThickness="2"
-                        Width="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).Students, Converter={StaticResource StudentCountToCardSize}}"
+                        Width="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).DisplayConfig, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=CardWidth}"
                         RenderTransformOrigin="0.5,0.5"
                         >
                   
@@ -287,7 +284,7 @@
                   <!-- Use the generic ProfileCard inside a clipping border to preserve rounded corners -->
                   <Border CornerRadius="8" ClipToBounds="True" Background="{DynamicResource TransparentColor}">
                     <profileCard:ProfileCard DataContext="{Binding}" 
-                                           StudentCount="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).Students.Count}"
+                                           DisplayConfig="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).DisplayConfig}"
                                            Margin="0"/>
                   </Border>
                 </Border>
