@@ -1,92 +1,64 @@
-# Cursor IDE Rules for C# Avalonia Development
+# SchoolOrganizer - C# Avalonia Development Rules
 
-## Project Context
-This is a C# Avalonia UI application using AXAML markup. Always follow Avalonia-specific syntax and best practices.
+## Agent Approach
+**CONCISE PROBLEM-SOLVING**: Focus on direct solutions with minimal explanation.
 
-## Animation and Styling Rules
+## Project Overview
+C# Avalonia UI desktop app using AXAML, MVVM with CommunityToolkit.Mvvm. Manages student profiles with embedded `External/ImageSelector` for image editing.
 
-### 1. Avalonia Animation Syntax
-- **ALWAYS use Transitions instead of Animations for hover effects and property changes**
-  ```xml
-  <Border.Transitions>
-    <Transitions>
-      <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
-      <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2"/>
-    </Transitions>
-  </Border.Transitions>
-  ```
+## Architecture
 
-- **Use correct transform syntax**: `Value="scale(1.05)"` NOT `<ScaleTransform ScaleX="1.05" ScaleY="1.05"/>`
+### Core Patterns
+- All entities implement `IPerson` interface (`Models/IPerson.cs`)
+- `Views/ProfileCard/ProfileCard.axaml` is reusable component for any `IPerson`
+- ViewModels: `ViewModelBase` + `[ObservableProperty]` + `[RelayCommand]`
+- **Always use `async Task`, never `async void`**
+- Navigation via `MainWindowViewModel.CurrentViewModel` + DataTemplates
 
-- **For hover effects, use Style selectors with Transitions**:
-  ```xml
-  <Style Selector="Border">
-    <Setter Property="RenderTransform" Value="scale(1)"/>
-  </Style>
-  <Style Selector="Border:pointerover">
-    <Setter Property="RenderTransform" Value="scale(1.05)"/>
-  </Style>
-  ```
+### Data Flow
+1. JSON in `Data/students.json` → `StudentSearchService` → `StudentGalleryViewModel`
+2. Images: `Data/ProfileImages/` with original/crop mapping via `ProfileImageStore`
+3. Image editing: ProfileCard event → `ImageCropWindow` → `External/ImageSelector`
 
-### 2. Avalonia Styling Best Practices
-- Use `:pointerover` for hover states, NOT `:hover`
-- Use `RenderTransformOrigin="0.5,0.5"` for center-based scaling
-- Prefer `RenderTransform` over layout-affecting properties for animations
-- Use proper Avalonia easing functions: `QuadraticEaseInOut`, `CubicEaseInOut`, etc.
+### Services
+- No DI container - manual instantiation
+- `ProfileImageStore` (static), `StudentSearchService` (instance)
+- Try-catch with silent failures for non-critical operations
 
-### 3. AXAML Markup Rules
-- File extension must be `.axaml` for Avalonia XAML files
-- Use `xmlns="https://github.com/avaloniaui"` as the default namespace
-- Use `x:Class` attribute for code-behind files
-- Use `x:DataType` for compiled bindings in DataTemplates
+## Build & Debug
+**CRITICAL**: Always use build scripts instead of individual dotnet commands
+```bash
+./build.sh    # macOS/Linux
+build.bat     # Windows
+```
 
-### 4. C# Avalonia Code Rules
-- Use `[ObservableProperty]` from CommunityToolkit.Mvvm for ViewModels
-- Inherit ViewModels from `ViewModelBase` or `ObservableObject`
-- Use `[RelayCommand]` for command methods
-- Always use `async Task` for async operations, never `async void`
+## Avalonia Guidelines
 
-### 5. Performance and Stability
-- **NEVER use complex KeyFrame animations with object definitions - they cause crashes**
-- Use simple string-based transform values: `"scale(1.05)"`, `"rotate(45deg)"`
-- Prefer Transitions over Animations for UI state changes
-- Use `FillMode="Forward"` only when necessary
-- Keep animation durations reasonable (0.1s - 0.5s)
+### Animations (Stability Critical)
+- **Use Transitions only** for hover/property changes - never complex KeyFrame animations
+- Hover: `:pointerover` + Style selectors with Transitions
+- Transform syntax: `Value="scale(1.05)"` (string-based)
+- Duration: 0.1s-0.5s, `RenderTransformOrigin="0.5,0.5"`
 
-### 6. Common Avalonia Controls and Properties
-- Use `TextBox` with `Watermark` property instead of placeholder
-- Use `ItemsControl` with `ItemTemplate` for data binding
-- Use `Border` with `CornerRadius` for rounded corners
-- Use `BoxShadow` property for shadows, not effects
-- Use `Margin` and `Padding` with proper syntax: `"12"` or `"12,8"`
+### AXAML Essentials
+- Extension: `.axaml`
+- Namespace: `xmlns="https://github.com/avaloniaui"`
+- Use `x:DataType` for compiled bindings
+- Controls: `TextBox.Watermark`, `Border.CornerRadius`, `BoxShadow`
 
-### 7. Binding and Data Context
-- Use compiled bindings with `x:DataType` when possible
-- Use `{Binding}` for simple property bindings
-- Use `{Binding Property, Mode=TwoWay}` for input controls
-- Use `$parent[Type]` for accessing parent DataContext
-- Use proper converters for complex data transformations
+### C# Code
+- `[ObservableProperty] private string name = string.Empty;`
+- Inherit from `ViewModelBase` or `ObservableObject`
+- Null-conditional operators: `?.`
+- Compiled bindings preferred
 
-### 8. Resource Management
-- Define styles and templates in `UserControl.Resources` or `Application.Resources`
-- Use `x:Key` for resource keys
-- Use `StaticResource` for static resources, `DynamicResource` for theme-aware resources
+### Error Prevention
+- Test animations immediately after implementation
+- Use simple properties before adding transitions
+- Prioritize stability over complex animations
+- Incremental changes with validation
 
-### 9. Error Prevention
-- Always test animations in isolation before combining
-- Use simple property setters before adding transitions
-- Verify AXAML syntax with Avalonia designer preview
-- Check for proper closing tags and nested structures
-
-### 10. Debugging Guidelines
-- Use `System.Diagnostics.Debug.WriteLine()` for debugging output
-- Wrap potentially failing operations in try-catch blocks
-- Use null-conditional operators (`?.`) for safe property access
-- Test UI changes incrementally to isolate issues
-
-## When Working on This Project
-1. Always prioritize stability over complex animations
-2. Test hover effects and animations immediately after implementation
-3. Use the correct Avalonia documentation as reference
-4. If animations cause crashes, fall back to simple property changes
-5. Ensure all AXAML is well-formed and properly nested
+## Key Files
+- `Models/IPerson.cs` - Core interface
+- `Services/ProfileImageStore.cs` - Image patterns
+- `ViewModels/StudentGalleryViewModel.cs` - Main logic

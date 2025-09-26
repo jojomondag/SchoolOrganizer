@@ -18,6 +18,10 @@
     <Content Include="Data\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <AvaloniaResource Include="Views/Colors.axaml" />
   </ItemGroup>
 
   <!-- Exclude external project sources from main app compilation -->

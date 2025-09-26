@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using SchoolOrganizer.Models;
@@ -18,7 +19,7 @@ public class StudentSelectionBrushConverter : IMultiValueConverter
         
         if (selectedStudent != null && currentStudent != null && selectedStudent.Id == currentStudent.Id)
         {
-            return new SolidColorBrush(Color.Parse("#27ae60")); // Green for selected
+            return new SolidColorBrush((Color)Application.Current!.Resources["SuccessColor"]!);
         }
         
         return new SolidColorBrush(Colors.Transparent);

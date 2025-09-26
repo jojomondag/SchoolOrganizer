@@ -1,117 +1,64 @@
-# Copilot Instructions for SchoolOrganizer
+# SchoolOrganizer - C# Avalonia Development Rules
 
 ## Agent Approach
-**CONCISE PROBLEM-SOLVING**: Focus on solving the user's problem directly with minimal explanation. Avoid lengthy descriptions - implement the solution and provide only essential context when needed.
+**CONCISE PROBLEM-SOLVING**: Focus on direct solutions with minimal explanation.
 
 ## Project Overview
-SchoolOrganizer is a **C# Avalonia UI desktop application** using AXAML markup and MVVM pattern with CommunityToolkit.Mvvm. The app manages student profiles with image editing capabilities via an embedded `External/ImageSelector` project.
+C# Avalonia UI desktop app using AXAML, MVVM with CommunityToolkit.Mvvm. Manages student profiles with embedded `External/ImageSelector` for image editing.
 
-## Key Architecture Patterns
+## Architecture
 
-### IPerson Interface & Generic Components
-- All person entities implement `IPerson` interface (`Models/IPerson.cs`)
-- `Views/ProfileCard/ProfileCard.axaml` is a **generic, reusable component** for any `IPerson`
-- Student model extends `IPerson` with `RoleInfo` (ClassName) and `SecondaryInfo` (Mentor info)
-- Use ProfileCard for display-only; wrap with selection/interaction logic in consuming views
+### Core Patterns
+- All entities implement `IPerson` interface (`Models/IPerson.cs`)
+- `Views/ProfileCard/ProfileCard.axaml` is reusable component for any `IPerson`
+- ViewModels: `ViewModelBase` + `[ObservableProperty]` + `[RelayCommand]`
+- **Always use `async Task`, never `async void`**
+- Navigation via `MainWindowViewModel.CurrentViewModel` + DataTemplates
 
-### MVVM with CommunityToolkit
-- ViewModels inherit from `ViewModelBase` using `[ObservableProperty]` and `[RelayCommand]`
-- **Always use `async Task` for async operations, never `async void`**
-- Models like `Student` extend `ObservableObject` for data binding
-- Example pattern: `[ObservableProperty] private string name = string.Empty;`
+### Data Flow
+1. JSON in `Data/students.json` → `StudentSearchService` → `StudentGalleryViewModel`
+2. Images: `Data/ProfileImages/` with original/crop mapping via `ProfileImageStore`
+3. Image editing: ProfileCard event → `ImageCropWindow` → `External/ImageSelector`
 
-### Navigation & View Composition
-- `MainWindowViewModel` manages navigation via `CurrentViewModel` property
-- Views are resolved through DataTemplates in `MainWindow.axaml`
-- Navigation uses tab-style ToggleButtons with custom styling
-- Dynamic background colors based on active view (`ActiveContentBrush`)
+### Services
+- No DI container - manual instantiation
+- `ProfileImageStore` (static), `StudentSearchService` (instance)
+- Try-catch with silent failures for non-critical operations
 
-## Critical Avalonia Patterns (See .cursorrules)
-
-### Animation & Styling
-- **Use Transitions, NOT Animations** for hover effects: `<Transitions><TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/></Transitions>`
-- Transform syntax: `Value="scale(1.05)"` NOT `<ScaleTransform/>`
-- Hover states: `:pointerover` NOT `:hover`
-- **Avoid complex KeyFrame animations - they cause crashes**
-
-### File Extensions & Markup
-- Use `.axaml` for Avalonia XAML files
-- Namespace: `xmlns="https://github.com/avaloniaui"`
-- Enable compiled bindings: `x:DataType` in templates, `AvaloniaUseCompiledBindingsByDefault` in csproj
-
-## Data Management
-
-### Student Data Flow
-1. JSON persistence in `Data/students.json` (copied to output)
-2. `StudentGalleryViewModel` loads via `StudentSearchService`
-3. Profile images stored in `Data/ProfileImages/` with original/crop mapping
-4. `ProfileImageStore` service handles image lifecycle and crop settings persistence
-
-### Image Editing Workflow
-1. ProfileCard raises `ImageClicked` event → triggers `ImageCropWindow.ShowForStudentAsync()`
-2. `ImageCropWindow` embeds `External/ImageSelector` project for crop/edit functionality
-3. Original images stored in `Data/ProfileImages/Originals/`, mapped via JSON
-4. Crop settings persisted per student for re-editing
-
-## External Dependencies
-
-### ImageSelector Integration
-- Separate Avalonia project in `External/ImageSelector/`
-- Referenced as ProjectReference, excluded from main compilation
-- Provides image selection, cropping, rotation via `ImageSelectorView`
-- Configure with `SavePathProvider` delegate and `ImageSaved` event
-
-## Development Workflows
-
-### Build & Debug
+## Build & Debug
+**CRITICAL**: Always use build scripts instead of individual dotnet commands
 ```bash
-dotnet build                    # Standard build
-dotnet run                     # Run application
-dotnet build --verbosity normal # Detailed build output
+./build.sh    # macOS/Linux
+build.bat     # Windows
 ```
 
-### Post-Session Validation
-**REQUIRED**: After any agent session that modifies code, always run:
-1. `dotnet build` - Verify compilation success
-2. `dotnet run` - Test application functionality
+## Avalonia Guidelines
 
-This ensures changes are properly validated and the application runs correctly.
+### Animations (Stability Critical)
+- **Use Transitions only** for hover/property changes - never complex KeyFrame animations
+- Hover: `:pointerover` + Style selectors with Transitions
+- Transform syntax: `Value="scale(1.05)"` (string-based)
+- Duration: 0.1s-0.5s, `RenderTransformOrigin="0.5,0.5"`
 
-### Data Seeding
-- Modify `Data/students.json` for test data
-- Unsplash URLs used for demo profile images
-- Profile images auto-copied to output directory
+### AXAML Essentials
+- Extension: `.axaml`
+- Namespace: `xmlns="https://github.com/avaloniaui"`
+- Use `x:DataType` for compiled bindings
+- Controls: `TextBox.Watermark`, `Border.CornerRadius`, `BoxShadow`
 
-## Common Patterns
+### C# Code
+- `[ObservableProperty] private string name = string.Empty;`
+- Inherit from `ViewModelBase` or `ObservableObject`
+- Null-conditional operators: `?.`
+- Compiled bindings preferred
 
-### Event-Driven Communication
-```csharp
-// In ProfileCard
-public event EventHandler<Student>? ImageClicked;
+### Error Prevention
+- Test animations immediately after implementation
+- Use simple properties before adding transitions
+- Prioritize stability over complex animations
+- Incremental changes with validation
 
-// In consuming view
-profileCard.ImageClicked += OnProfileImageClicked;
-```
-
-### Service Registration & DI
-- Services manually instantiated (no DI container)
-- `ProfileImageStore` is static utility class
-- `StudentSearchService` instantiated in ViewModels
-
-### Error Handling
-- Services use try-catch with silent failures for non-critical operations
-- File operations wrapped with existence checks
-- Async operations properly awaited with error boundaries
-
-## Project Structure Notes
-- `External/` contains separate Avalonia projects (excluded from main build)
-- `Data/` contains runtime data (JSON files, images) - copied to output
-- `Views/ProfileCard/` demonstrates component documentation pattern
-- Converters in `Views/` for AXAML data binding transformations
-
-## Key Files for Context
-- `.cursorrules` - Detailed Avalonia-specific development rules
-- `Models/IPerson.cs` - Core interface for all person entities
-- `Views/ProfileCard/README.md` - Component usage documentation
-- `Services/ProfileImageStore.cs` - Image management patterns
-- `ViewModels/StudentGalleryViewModel.cs` - Main business logic
+## Key Files
+- `Models/IPerson.cs` - Core interface
+- `Services/ProfileImageStore.cs` - Image patterns
+- `ViewModels/StudentGalleryViewModel.cs` - Main logic

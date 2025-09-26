@@ -21,14 +21,14 @@
   <!-- Main Card Container -->
   <Border x:Name="DetailedCard"
           Classes="DetailedCard"
-          Background="White" 
+          Background="{DynamicResource WhiteColor}" 
           CornerRadius="16" 
-          BoxShadow="0 4 15 0 #15000000"
+          BoxShadow="{DynamicResource ShadowLight}"
           Margin="0"
           HorizontalAlignment="Stretch"
           VerticalAlignment="Stretch"
           BorderThickness="1"
-          BorderBrush="#E0E0E0"
+          BorderBrush="{DynamicResource BlackColor}"
           ClipToBounds="False">
 
     <!-- Main Content Grid -->
@@ -44,10 +44,10 @@
         <!-- Profile Image -->
         <Border x:Name="ProfileImageBorder"
                 Classes="ProfileImageBorder"
-                Background="Transparent"
+                Background="{DynamicResource TransparentColor}"
                 CornerRadius="120"
                 BorderThickness="4"
-                BorderBrush="#3b536b"
+                BorderBrush="{DynamicResource BlackColor}"
                 Padding="0"
                 PointerReleased="OnProfileImagePointerReleased"
                 Cursor="Hand"
@@ -63,7 +63,7 @@
             <Ellipse x:Name="ProfileImageBackground"
                      Width="230" 
                      Height="230"
-                     Fill="#f8f9fa"
+                     Fill="{DynamicResource BackgroundSecondaryColor}"
                      HorizontalAlignment="Center"
                      VerticalAlignment="Center"/>
             
@@ -83,7 +83,7 @@
 
         <!-- Image Edit Hint -->
         <TextBlock Text="Click image to edit"
-                   Foreground="#95a5a6"
+                   Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
                    FontSize="12"
                    FontStyle="Italic"/>
@@ -98,19 +98,19 @@
                    Text="{Binding Name}" 
                    FontWeight="Bold" 
                    FontSize="36"
-                   Foreground="#2c3e50"
+                   Foreground="{DynamicResource BlackColor}"
                    Margin="0,0,0,15"
                    TextWrapping="Wrap"/>
         
         <!-- Role/Class Information -->
-        <Border Background="#3b536b" 
+        <Border Background="{DynamicResource BlackColor}" 
                 CornerRadius="8" 
                 Padding="16,8" 
                 HorizontalAlignment="Left"
                 Margin="0,0,0,25">
           <TextBlock x:Name="RoleText"
                      Text="{Binding RoleInfo}" 
-                     Foreground="White"
+                     Foreground="{DynamicResource WhiteColor}"
                      FontSize="18"
                      FontWeight="SemiBold"/>
         </Border>
@@ -123,12 +123,12 @@
             <TextBlock Text="Email Address" 
                        FontSize="14" 
                        FontWeight="SemiBold" 
-                       Foreground="#7f8c8d"
+                       Foreground="{DynamicResource BlackColor}"
                        Margin="0,0,0,5"/>
             <TextBlock x:Name="EmailText"
                        Text="{Binding Email}" 
                        FontSize="18"
-                       Foreground="#2c3e50"
+                       Foreground="{DynamicResource BlackColor}"
                        Margin="0,0,0,0"/>
           </StackPanel>
           
@@ -137,12 +137,12 @@
             <TextBlock Text="Mentor" 
                        FontSize="14" 
                        FontWeight="SemiBold" 
-                       Foreground="#7f8c8d"
+                       Foreground="{DynamicResource BlackColor}"
                        Margin="0,0,0,5"/>
             <TextBlock x:Name="SecondaryText"
                        Text="{Binding SecondaryInfo}" 
                        FontSize="18"
-                       Foreground="#2c3e50"/>
+                       Foreground="{DynamicResource BlackColor}"/>
           </StackPanel>
           
           <!-- Enrollment Date (for Students) -->
@@ -150,11 +150,11 @@
             <TextBlock Text="Enrollment Date" 
                        FontSize="14" 
                        FontWeight="SemiBold" 
-                       Foreground="#7f8c8d"
+                       Foreground="{DynamicResource BlackColor}"
                        Margin="0,0,0,5"/>
             <TextBlock x:Name="EnrollmentText"
                        FontSize="18"
-                       Foreground="#2c3e50">
+                       Foreground="{DynamicResource BlackColor}">
               <TextBlock.Text>
                 <MultiBinding StringFormat="{}{0:MMMM d, yyyy}">
                   <Binding Path="." Converter="{StaticResource StudentEnrollmentConverter}"/>
@@ -168,12 +168,12 @@
             <TextBlock Text="Student ID" 
                        FontSize="14" 
                        FontWeight="SemiBold" 
-                       Foreground="#7f8c8d"
+                       Foreground="{DynamicResource BlackColor}"
                        Margin="0,0,0,5"/>
             <TextBlock x:Name="IdText"
                        Text="{Binding Id}" 
                        FontSize="18"
-                       Foreground="#2c3e50"
+                       Foreground="{DynamicResource BlackColor}"
                        FontFamily="Consolas"/>
           </StackPanel>
 

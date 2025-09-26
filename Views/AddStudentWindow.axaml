@@ -14,47 +14,65 @@
   <Window.Styles>
     <Style Selector="TextBox">
       <Setter Property="Padding" Value="12,8"/>
-      <Setter Property="BorderBrush" Value="#e0e0e0"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackColor}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="6"/>
-      <Setter Property="Background" Value="White"/>
+      <Setter Property="Background" Value="{DynamicResource WhiteColor}"/>
+      <Setter Property="FocusAdorner" Value="{x:Null}"/>
     </Style>
     
     <Style Selector="TextBox:focus">
-      <Setter Property="BorderBrush" Value="#3b536b"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="FocusAdorner" Value="{x:Null}"/>
+    </Style>
+    
+    <Style Selector="TextBox:focus /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
+      <Setter Property="BorderThickness" Value="2"/>
     </Style>
     
     <Style Selector="ComboBox">
       <Setter Property="Padding" Value="12,8"/>
-      <Setter Property="BorderBrush" Value="#e0e0e0"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackColor}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="6"/>
-      <Setter Property="Background" Value="White"/>
+      <Setter Property="Background" Value="{DynamicResource WhiteColor}"/>
     </Style>
     
     <Style Selector="DatePicker">
-      <Setter Property="BorderBrush" Value="#e0e0e0"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackColor}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="6"/>
-      <Setter Property="Background" Value="White"/>
+      <Setter Property="Background" Value="{DynamicResource WhiteColor}"/>
+    </Style>
+    
+    <Style Selector="ComboBox:focus">
+      <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
+      <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+    
+    <Style Selector="DatePicker:focus">
+      <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
+      <Setter Property="BorderThickness" Value="2"/>
     </Style>
     
     <Style Selector="Button.secondary">
-      <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="BorderBrush" Value="#e0e0e0"/>
+      <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackColor}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="Foreground" Value="#666"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/>
       <Setter Property="Padding" Value="20,8"/>
       <Setter Property="CornerRadius" Value="6"/>
     </Style>
     
     <Style Selector="Button.secondary:pointerover">
-      <Setter Property="Background" Value="#f5f5f5"/>
+      <Setter Property="Background" Value="{DynamicResource BackgroundLightColor}"/>
     </Style>
     
     <Style Selector="Button.primary">
-      <Setter Property="Background" Value="#3b536b"/>
-      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="Background" Value="{DynamicResource BlackColor}"/>
+      <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Padding" Value="24,8"/>
       <Setter Property="CornerRadius" Value="6"/>
@@ -62,16 +80,16 @@
     </Style>
     
     <Style Selector="Button.primary:pointerover">
-      <Setter Property="Background" Value="#2c3e50"/>
+      <Setter Property="Background" Value="{DynamicResource BlackColor}"/>
     </Style>
   </Window.Styles>
 
-  <Border Background="#f8f9fa" Padding="24">
+  <Border Background="{DynamicResource LightBlueColor}" Padding="24">
     <Grid RowDefinitions="Auto,*,Auto">
       <!-- Header -->
       <StackPanel Grid.Row="0" Margin="0,0,0,24">
-        <TextBlock Text="Add Student" FontSize="24" FontWeight="Light" Name="TitleText" Foreground="#2c3e50"/>
-        <Rectangle Height="1" Fill="#e0e0e0" Margin="0,8,0,0"/>
+        <TextBlock Text="Add Student" FontSize="24" FontWeight="Light" Name="TitleText" Foreground="{DynamicResource BlackColor}"/>
+        <Rectangle Height="1" Fill="{DynamicResource BlackColor}" Margin="0,8,0,0"/>
       </StackPanel>
 
       <!-- Content -->
@@ -82,14 +100,14 @@
             <!-- Profile Image -->
             <StackPanel Grid.Column="0" Spacing="8">
               <Grid Width="100" Height="100">
-                <Border Width="100" Height="100" CornerRadius="50" ClipToBounds="True" Background="#f0f0f0" BorderBrush="#e0e0e0" BorderThickness="2">
+                <Border Width="100" Height="100" CornerRadius="50" ClipToBounds="True" Background="{DynamicResource LightBlueColor}" BorderBrush="{DynamicResource BlackColor}" BorderThickness="2">
                   <Grid>
                     <Image Source="{Binding SelectedImagePath, Converter={StaticResource UniversalImageConverter}}" Stretch="UniformToFill"/>
-                    <TextBlock Text="+" FontSize="28" FontWeight="Light" Foreground="#999" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsImageMissing}"/>
+                    <TextBlock Text="+" FontSize="28" FontWeight="Light" Foreground="{DynamicResource BlackColor}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsImageMissing}"/>
                   </Grid>
                 </Border>
                 <!-- Transparent clickable overlay -->
-                <Button Background="Transparent"
+                <Button Background="{DynamicResource TransparentColor}"
                         BorderThickness="0"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
@@ -97,19 +115,19 @@
                         Click="OnChooseImageClick"
                         ToolTip.Tip="Add photo"/>
               </Grid>
-              <TextBlock Text="Add Photo" FontSize="12" Foreground="#666" HorizontalAlignment="Center"/>
+              <TextBlock Text="Add Photo" FontSize="12" Foreground="{DynamicResource BlackColor}" HorizontalAlignment="Center"/>
             </StackPanel>
 
             <!-- Class and Mentor in 2 rows -->
             <Grid Grid.Column="2" RowDefinitions="Auto,16,Auto">
               <StackPanel Grid.Row="0">
-                <TextBlock Text="Class" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
+                <TextBlock Text="Class" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource BlackColor}" Margin="0,0,0,6"/>
                 <ComboBox Name="ClassBox" ItemsSource="{Binding AvailableClasses}"/>
               </StackPanel>
 
               <StackPanel Grid.Row="2">
                 <Grid ColumnDefinitions="*,Auto">
-                  <TextBlock Grid.Column="0" Text="Mentors" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
+                  <TextBlock Grid.Column="0" Text="Mentors" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource BlackColor}" Margin="0,0,0,6"/>
                   <Button Grid.Column="1" Content="+ Add Mentor" 
                           Classes="secondary" FontSize="11" 
                           Padding="8,4" Margin="0,0,0,6"
@@ -120,12 +138,12 @@
                 <ItemsControl Name="SelectedMentorsList" ItemsSource="{Binding SelectedMentors}" Margin="0,0,0,8">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <Border Background="#e8f4f8" CornerRadius="4" Padding="8,4" Margin="0,2">
+                      <Border Background="{DynamicResource LightBlueColor}" CornerRadius="4" Padding="8,4" Margin="0,2">
                         <Grid ColumnDefinitions="*,Auto">
                           <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" FontSize="12"/>
                           <Button Grid.Column="1" Content="×" FontSize="14" FontWeight="Bold"
-                                  Background="Transparent" BorderThickness="0" 
-                                  Foreground="#666" Padding="4,0"
+                                  Background="{DynamicResource TransparentColor}" BorderThickness="0" 
+                                  Foreground="{DynamicResource BlackColor}" Padding="4,0"
                                   Click="OnRemoveMentorClick" Tag="{Binding}"
                                   ToolTip.Tip="Remove mentor"/>
                         </Grid>
@@ -144,17 +162,17 @@
           <!-- Other Form Fields -->
           <StackPanel Spacing="16">
             <StackPanel>
-              <TextBlock Text="Name *" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
+              <TextBlock Text="Name *" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource BlackColor}" Margin="0,0,0,6"/>
               <TextBox Name="NameBox" Watermark="Enter full name"/>
             </StackPanel>
 
             <StackPanel>
-              <TextBlock Text="Email" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
+              <TextBlock Text="Email" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource BlackColor}" Margin="0,0,0,6"/>
               <TextBox Name="EmailBox" Watermark="student@example.com"/>
             </StackPanel>
 
             <StackPanel>
-              <TextBlock Text="Enrollment Date" FontSize="13" FontWeight="Medium" Foreground="#555" Margin="0,0,0,6"/>
+              <TextBlock Text="Enrollment Date" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource BlackColor}" Margin="0,0,0,6"/>
               <DatePicker Name="EnrollmentPicker"/>
             </StackPanel>
           </StackPanel>
@@ -163,9 +181,9 @@
 
       <!-- Footer -->
       <StackPanel Grid.Row="2" Margin="0,24,0,0">
-        <Rectangle Height="1" Fill="#e0e0e0" Margin="0,0,0,16"/>
+        <Rectangle Height="1" Fill="{DynamicResource BlackColor}" Margin="0,0,0,16"/>
         <Grid ColumnDefinitions="*,Auto,Auto">
-          <TextBlock Grid.Column="0" Name="ValidationText" Foreground="#e74c3c" VerticalAlignment="Center" FontSize="13"/>
+          <TextBlock Grid.Column="0" Name="ValidationText" Foreground="{DynamicResource ErrorColor}" VerticalAlignment="Center" FontSize="13"/>
           <Button Grid.Column="1" Content="Cancel" Classes="secondary" Click="OnCancelClick" Margin="0,0,12,0"/>
           <Button Grid.Column="2" Content="Add Student" Classes="primary" Click="OnAddClick" Name="PrimaryButton"/>
         </Grid>

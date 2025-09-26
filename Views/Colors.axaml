@@ -1,0 +1,30 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Simplified 4-Color Palette -->
+    <Color x:Key="WhiteColor">#FFFFFF</Color>
+    <Color x:Key="BlackColor">#000000</Color>
+    <Color x:Key="LightBlueColor">#e8f4f8</Color>
+    <Color x:Key="DarkBlueColor">#2c3e50</Color>
+    
+    <!-- Transparent -->
+    <Color x:Key="TransparentColor">#00FFFFFF</Color>
+    
+    <!-- BoxShadows Definitions -->
+    <BoxShadows x:Key="ShadowLight">0 4 15 0 #15000000</BoxShadows>
+    <BoxShadows x:Key="ShadowMedium">0 2 8 0 #20000000</BoxShadows>
+    <BoxShadows x:Key="ShadowDark">0 4 12 0 #30000000</BoxShadows>
+    <BoxShadows x:Key="ShadowStrong">0 10 30 0 #60000000</BoxShadows>
+    
+    <!-- Status Colors (keeping minimal) -->
+    <Color x:Key="ErrorColor">#e74c3c</Color>
+    <Color x:Key="SuccessColor">#27ae60</Color>
+    
+    <!-- Text Selection Colors -->
+    <Color x:Key="SelectionBackgroundColor">#000000</Color>
+    <Color x:Key="SelectionForegroundColor">#FFFFFF</Color>
+    
+    <!-- Search Box Selection Color - more visible blue-gray that fits the design -->
+    <Color x:Key="SearchSelectionColor">#B8D4E3</Color>
+    
+</ResourceDictionary>

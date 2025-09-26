@@ -1,4 +1,5 @@
 ﻿using System;
+using Avalonia;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -25,7 +26,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public IBrush ActiveContentBrush => CurrentViewModel switch
     {
         StudentGalleryViewModel => Brushes.White,
-        HomeViewModel => new SolidColorBrush(Color.Parse("#f8f9fa")),
+        HomeViewModel => new SolidColorBrush((Color)Application.Current!.Resources["LightBlueColor"]!),
         _ => Brushes.White
     };
 
