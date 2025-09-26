@@ -250,7 +250,7 @@
 
         <!-- Single Student - Detailed View -->
         <ContentControl Grid.Row="0" 
-                       Content="{Binding Students[0]}"
+                       Content="{Binding FirstStudent}"
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
                        Margin="0">

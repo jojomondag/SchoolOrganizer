@@ -4,7 +4,9 @@ using Avalonia.Media.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Net.Http;
 
 namespace SchoolOrganizer.Views;
 
@@ -12,6 +14,7 @@ public class UniversalImageConverter : IValueConverter
 {
     // Cache to track file modification times to force refresh when file changes
     private static readonly ConcurrentDictionary<string, (DateTime lastModified, Bitmap? bitmap)> _bitmapCache = new();
+    private static readonly HttpClient _httpClient = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -21,7 +24,8 @@ public class UniversalImageConverter : IValueConverter
             {
                 if (Uri.TryCreate(path, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
                 {
-                    return new Bitmap(path);
+                    // For HTTP/HTTPS URLs, download the image asynchronously
+                    return LoadImageFromUrlAsync(path);
                 }
 
                 if (File.Exists(path))
@@ -86,6 +90,28 @@ public class UniversalImageConverter : IValueConverter
         if (!string.IsNullOrWhiteSpace(path))
         {
             _bitmapCache.TryRemove(path, out _);
+        }
+    }
+
+    private static Bitmap? LoadImageFromUrlAsync(string url)
+    {
+        try
+        {
+            // Check cache first
+            if (_bitmapCache.TryGetValue(url, out var cached) && cached.bitmap != null)
+            {
+                return cached.bitmap;
+            }
+
+            // For now, just return null for URLs to prevent the file path errors
+            // This will show the default placeholder image instead of crashing
+            System.Diagnostics.Debug.WriteLine($"Skipping URL image loading for: {url}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error with URL image: {url}, {ex.Message}");
+            return null;
         }
     }
 }

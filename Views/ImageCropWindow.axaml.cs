@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ImageSelector;
 using SchoolOrganizer.Services;
 using System.Linq;
+using Avalonia.Input;
 
 namespace SchoolOrganizer.Views;
 
@@ -17,6 +18,10 @@ public partial class ImageCropWindow : Window
     public ImageCropWindow()
     {
         InitializeComponent();
+        
+        // Add Escape key handling to close the window
+        this.KeyDown += OnKeyDown;
+        
         if (this.Content is ImageSelectorView selector)
         {
             selector.SavePathProvider = PrepareSavePath;
@@ -137,6 +142,15 @@ public partial class ImageCropWindow : Window
                     System.Diagnostics.Debug.WriteLine($"Error in OriginalImageSelected: {ex.Message}");
                 }
             };
+        }
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            Close();
+            e.Handled = true;
         }
     }
 

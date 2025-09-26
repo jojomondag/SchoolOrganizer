@@ -44,6 +44,9 @@ public partial class StudentGalleryViewModel : ViewModelBase
     // Properties for controlling view mode
     public bool ShowSingleStudent => Students.Count == 1;
     public bool ShowMultipleStudents => Students.Count != 1;
+    
+    // Safe property to get first student without index errors
+    public Student? FirstStudent => Students.Count > 0 ? Students[0] : null;
 
     // Event for requesting image selection
     public event EventHandler? AddStudentRequested;
@@ -137,6 +140,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
         UpdateDisplayLevelBasedOnItemCount();
         OnPropertyChanged(nameof(ShowSingleStudent));
         OnPropertyChanged(nameof(ShowMultipleStudents));
+        OnPropertyChanged(nameof(FirstStudent));
     }
 
     private void UpdateDisplayLevelBasedOnItemCount()
@@ -179,6 +183,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
             // Trigger property changes for view mode
             OnPropertyChanged(nameof(ShowSingleStudent));
             OnPropertyChanged(nameof(ShowMultipleStudents));
+            OnPropertyChanged(nameof(FirstStudent));
         }
         catch (Exception ex)
         {

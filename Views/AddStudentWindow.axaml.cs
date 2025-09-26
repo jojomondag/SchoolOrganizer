@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using Avalonia.Input;
 
 namespace SchoolOrganizer.Views;
 
@@ -48,6 +49,9 @@ public partial class AddStudentWindow : Window
         InitializeComponent();
         DataContext = state;
         EnrollmentPicker.SelectedDate = DateTimeOffset.Now;
+        
+        // Add Escape key handling to close the window
+        this.KeyDown += OnKeyDown;
     }
 
     public void InitializeForEdit(Models.Student student)
@@ -117,6 +121,15 @@ public partial class AddStudentWindow : Window
                     state.SelectedImagePath = path;
                 }
             });
+        }
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            Close(null);
+            e.Handled = true;
         }
     }
 
