@@ -16,6 +16,8 @@
     <views:StringIsNullOrWhiteSpaceConverter x:Key="IsNullOrWhiteSpace"/>
     <views:StudentSelectionBrushConverter x:Key="StudentSelectionBrushConverter"/>
     <views:DisplayConfigConverter x:Key="DisplayConfigConverter"/>
+    <views:IdToIsAddCardConverter x:Key="IdToIsAddCardConverter"/>
+    <views:IdToIsStudentCardConverter x:Key="IdToIsStudentCardConverter"/>
     <ControlTemplate x:Key="FlatButtonTemplate">
       <Border Background="{TemplateBinding Background}"
               BorderBrush="{TemplateBinding BorderBrush}"
@@ -130,24 +132,6 @@
             </TextBox>
           </Grid>
         </Border>
-
-        <!-- Add Student Button -->
-        <Button Grid.Column="1" 
-                Content="Add Student" 
-                Command="{Binding AddStudentCommand}"
-                Background="{DynamicResource BlackColor}"
-                Foreground="{DynamicResource WhiteColor}"
-                BorderThickness="0"
-                CornerRadius="8"
-                Padding="20,12"
-                FontWeight="SemiBold"
-                FontSize="14">
-          <Button.Styles>
-            <Style Selector="Button:pointerover">
-              <Setter Property="Background" Value="{DynamicResource DarkBlue}"/>
-            </Style>
-          </Button.Styles>
-        </Button>
       </Grid>
     </Border>
 
@@ -217,7 +201,7 @@
           </ItemsControl.ItemsPanel>
 
           <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="models:Student">
+            <DataTemplate x:DataType="models:IPerson">
               <!-- Wrap ProfileCard with selection functionality -->
               <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
                       CommandParameter="{Binding}"
@@ -252,8 +236,20 @@
                         VerticalAlignment="Top"
                         BorderThickness="2"
                         Width="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).DisplayConfig, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=CardWidth}"
-                        RenderTransformOrigin="0.5,0.5"
-                        >
+                        RenderTransformOrigin="0.5,0.5">
+                  
+                  <Border.Styles>
+                    <Style Selector="Border">
+                      <Setter Property="RenderTransform" Value="scale(1)"/>
+                      <Setter Property="Panel.ZIndex" Value="0"/>
+                      <Setter Property="Opacity" Value="1"/>
+                    </Style>
+                    <Style Selector="Border:pointerover">
+                      <Setter Property="RenderTransform" Value="scale(1.05)"/>
+                      <Setter Property="BoxShadow" Value="{DynamicResource ShadowStrong}"/>
+                      <Setter Property="Panel.ZIndex" Value="10"/>
+                    </Style>
+                  </Border.Styles>
                   
                   <Border.BorderBrush>
                     <MultiBinding Converter="{StaticResource StudentSelectionBrushConverter}">
@@ -266,22 +262,11 @@
                     <Transitions>
                       <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.4" Easing="QuadraticEaseInOut"/>
                       <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.4" Easing="QuadraticEaseInOut"/>
+                      <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="QuadraticEaseInOut"/>
                     </Transitions>
                   </Border.Transitions>
-                  
-                  <Border.Styles>
-                    <Style Selector="Border">
-                      <Setter Property="RenderTransform" Value="scale(1)"/>
-                      <Setter Property="Panel.ZIndex" Value="0"/>
-                    </Style>
-                    <Style Selector="Border:pointerover">
-                      <Setter Property="RenderTransform" Value="scale(1.05)"/>
-                      <Setter Property="BoxShadow" Value="{DynamicResource ShadowStrong}"/>
-                      <Setter Property="Panel.ZIndex" Value="10"/>
-                    </Style>
-                  </Border.Styles>
 
-                  <!-- Use the generic ProfileCard inside a clipping border to preserve rounded corners -->
+                  <!-- Use ProfileCard for all cards -->
                   <Border CornerRadius="8" ClipToBounds="True" Background="{DynamicResource TransparentColor}">
                     <profileCard:ProfileCard DataContext="{Binding}" 
                                            DisplayConfig="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).DisplayConfig}"

@@ -34,6 +34,10 @@ public partial class ProfileCard : UserControl
         {
             UpdateCardAppearance(DisplayConfig);
         }
+        else if (change.Property == DataContextProperty)
+        {
+            UpdateImageInteractivity();
+        }
     }
 
     private void UpdateCardAppearance(ProfileCardDisplayConfig config)
@@ -64,6 +68,24 @@ public partial class ProfileCard : UserControl
         EmailText.IsVisible = config.ShowEmail && !string.IsNullOrWhiteSpace(((IPerson?)DataContext)?.Email);
         EnrollmentText.IsVisible = config.ShowEnrollmentDate;
         SecondaryText.IsVisible = config.ShowSecondaryInfo;
+        
+        // Update image interactivity
+        UpdateImageInteractivity();
+    }
+    
+    private void UpdateImageInteractivity()
+    {
+        if (ProfileImageBorder == null) return;
+        
+        // Only allow image interaction for actual students, not add cards
+        if (DataContext is AddStudentCard)
+        {
+            ProfileImageBorder.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
+        }
+        else if (DataContext is Student)
+        {
+            ProfileImageBorder.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand);
+        }
     }
 
     private void OnProfileImageClicked(object? sender, RoutedEventArgs e)
@@ -76,7 +98,7 @@ public partial class ProfileCard : UserControl
 
     private void OnProfileImagePointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
     {
-        // Only respond to primary button releases
+        // Only respond to primary button releases for actual students (not add cards)
         try
         {
             if (e.InitialPressMouseButton == Avalonia.Input.MouseButton.Left)
@@ -86,6 +108,7 @@ public partial class ProfileCard : UserControl
                     ImageClicked?.Invoke(this, student);
                     e.Handled = true;
                 }
+                // For add cards (AddStudentCard), we don't do anything - the parent button handles the click
             }
         }
         catch (Exception ex)

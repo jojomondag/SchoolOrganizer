@@ -23,7 +23,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
     public ObservableCollection<Student> AllStudents => allStudents;
 
     [ObservableProperty]
-    private ObservableCollection<Student> students = new();
+    private ObservableCollection<IPerson> students = new();
 
     [ObservableProperty]
     private Student? selectedStudent;
@@ -42,11 +42,11 @@ public partial class StudentGalleryViewModel : ViewModelBase
     private ProfileCardDisplayConfig displayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
 
     // Properties for controlling view mode
-    public bool ShowSingleStudent => Students.Count == 1;
-    public bool ShowMultipleStudents => Students.Count != 1;
+    public bool ShowSingleStudent => Students.Count == 2 && Students.Any(s => s is Student); // Only one actual student + add card
+    public bool ShowMultipleStudents => Students.Count != 2 || !Students.Any(s => s is Student); // Multiple students or no students
     
     // Safe property to get first student without index errors
-    public Student? FirstStudent => Students.Count > 0 ? Students[0] : null;
+    public Student? FirstStudent => Students.OfType<Student>().FirstOrDefault();
 
     // Event for requesting image selection
     public event EventHandler? AddStudentRequested;
@@ -102,11 +102,18 @@ public partial class StudentGalleryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void SelectStudent(Student? student)
+    private void SelectStudent(IPerson? person)
     {
-        System.Diagnostics.Debug.WriteLine($"SelectStudent called with: {student?.Name ?? "null"}");
+        System.Diagnostics.Debug.WriteLine($"SelectStudent called with: {person?.Name ?? "null"}");
         
-        if (student != null)
+        if (person is AddStudentCard)
+        {
+            // Handle add student card click
+            AddStudent();
+            return;
+        }
+        
+        if (person is Student student)
         {
             SelectedStudent = student;
         }
@@ -135,7 +142,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
         _ = ApplySearchDebounced();
     }
 
-    partial void OnStudentsChanged(ObservableCollection<Student> value)
+    partial void OnStudentsChanged(ObservableCollection<IPerson> value)
     {
         UpdateDisplayLevelBasedOnItemCount();
         OnPropertyChanged(nameof(ShowSingleStudent));
@@ -145,8 +152,9 @@ public partial class StudentGalleryViewModel : ViewModelBase
 
     private void UpdateDisplayLevelBasedOnItemCount()
     {
-        var itemCount = Students.Count;
-        var newLevel = itemCount switch
+        // Count only actual students, not the add card
+        var studentCount = Students.OfType<Student>().Count();
+        var newLevel = studentCount switch
         {
             <= 4 => ProfileCardDisplayLevel.Expanded,
             <= 8 => ProfileCardDisplayLevel.Detailed,
@@ -171,11 +179,14 @@ public partial class StudentGalleryViewModel : ViewModelBase
             
             // Instead of clearing and re-adding, create a new collection
             // This helps ensure proper event handling in the UI
-            var newStudents = new ObservableCollection<Student>();
+            var newStudents = new ObservableCollection<IPerson>();
             foreach (var s in results)
             {
                 newStudents.Add(s);
             }
+            
+            // Always add the AddStudentCard as the last item
+            newStudents.Add(new AddStudentCard());
             
             // Replace the entire collection to ensure fresh event binding
             Students = newStudents;
@@ -337,7 +348,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
             UpdateStudentPictureUrl(student, student.PictureUrl, newImagePath);
 
             // Update in current filtered collection
-            var studentInCollection = Students.FirstOrDefault(s => s.Id == student.Id);
+            var studentInCollection = Students.OfType<Student>().FirstOrDefault(s => s.Id == student.Id);
             if (studentInCollection != null && studentInCollection != student)
             {
                 UpdateStudentPictureUrl(studentInCollection, studentInCollection.PictureUrl, newImagePath);
