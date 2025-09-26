@@ -20,10 +20,6 @@
     </Design.DataContext>
 
     <Window.Styles>
-        <!-- Override default focus colors globally -->
-        <Style Selector="TextBox:focus">
-            <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
-        </Style>
         <Style Selector="ComboBox:focus">
             <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
         </Style>
@@ -37,6 +33,7 @@
             <Setter Property="SelectionForegroundBrush" Value="{DynamicResource SelectionForegroundColor}"/>
             <Setter Property="CaretBrush" Value="{DynamicResource BlackColor}"/>
         </Style>
+        
         
         <Style Selector="ToggleButton.tab">
             <Setter Property="FontWeight" Value="SemiBold"/>

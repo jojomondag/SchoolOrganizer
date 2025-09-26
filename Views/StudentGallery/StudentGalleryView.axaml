@@ -84,26 +84,50 @@
                      Name="SearchTextBox"
                      Text="{Binding SearchText, Mode=TwoWay}" 
                      Watermark="Search students by name, class, or mentor..." 
-                     Background="{DynamicResource TransparentColor}"
-                     BorderThickness="2"
-                     BorderBrush="{DynamicResource TransparentColor}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     BorderBrush="Transparent"
                      Padding="8,12"
-                     FontSize="14">
+                     FontSize="14"
+                     FocusAdorner="{x:Null}">
               <TextBox.Styles>
-                <!-- Custom search box styling with visible selection and focus -->
                 <Style Selector="TextBox">
                   <Setter Property="SelectionBrush" Value="{DynamicResource SearchSelectionColor}"/>
                   <Setter Property="SelectionForegroundBrush" Value="{DynamicResource BlackColor}"/>
                   <Setter Property="CaretBrush" Value="{DynamicResource BlackColor}"/>
+                  <Setter Property="Background" Value="Transparent"/>
                 </Style>
+                <!-- Remove all hover effects -->
+                <Style Selector="TextBox:pointerover">
+                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderThickness" Value="0"/>
+                  <Setter Property="Background" Value="Transparent"/>
+                </Style>
+                <Style Selector="TextBox:pointerover /template/ Border">
+                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderThickness" Value="0"/>
+                  <Setter Property="Background" Value="Transparent"/>
+                </Style>
+                <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderThickness" Value="0"/>
+                  <Setter Property="Background" Value="Transparent"/>
+                </Style>
+                <!-- Override all focus-related template elements -->
                 <Style Selector="TextBox:focus">
-                  <Setter Property="BorderBrush" Value="{DynamicResource SearchSelectionColor}"/>
-                  <Setter Property="BorderThickness" Value="2"/>
+                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderThickness" Value="0"/>
+                  <Setter Property="Background" Value="Transparent"/>
                 </Style>
-                <!-- Override template border focus -->
                 <Style Selector="TextBox:focus /template/ Border">
-                  <Setter Property="BorderBrush" Value="{DynamicResource SearchSelectionColor}"/>
-                  <Setter Property="BorderThickness" Value="2"/>
+                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderThickness" Value="0"/>
+                  <Setter Property="Background" Value="Transparent"/>
+                </Style>
+                <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderThickness" Value="0"/>
+                  <Setter Property="Background" Value="Transparent"/>
                 </Style>
               </TextBox.Styles>
             </TextBox>
