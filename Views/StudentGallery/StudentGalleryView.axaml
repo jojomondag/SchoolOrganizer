@@ -94,6 +94,7 @@
                 BorderThickness="2" 
                 CornerRadius="25" 
                 Padding="16,0" 
+                Width="400"
                 HorizontalAlignment="Center">
           <Border.Styles>
             <Style Selector="Border:pointerover">
