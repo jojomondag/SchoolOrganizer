@@ -175,6 +175,41 @@ public partial class StudentGalleryViewModel : ViewModelBase
         SelectedStudent = null;
     }
 
+    [RelayCommand]
+    private async Task DeleteStudent(Student? student)
+    {
+        if (student == null) return;
+
+        try
+        {
+            // Remove from all collections
+            allStudents.Remove(student);
+            
+            // Remove from current filtered view
+            var studentInView = Students.OfType<Student>().FirstOrDefault(s => s.Id == student.Id);
+            if (studentInView != null)
+            {
+                Students.Remove(studentInView);
+            }
+
+            // Clear selection if this was the selected student
+            if (SelectedStudent?.Id == student.Id)
+            {
+                SelectedStudent = null;
+            }
+
+            // Save changes to JSON
+            await SaveAllStudentsToJson();
+            
+            // Refresh the search to update the view
+            await ApplySearchImmediate();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error deleting student: {ex.Message}");
+        }
+    }
+
     partial void OnSearchTextChanged(string value)
     {
         _ = ApplySearchDebounced();

@@ -335,15 +335,24 @@
               Padding="16"
               BoxShadow="{DynamicResource ShadowMedium}">
         <Grid>
-          <Button Content="✎"
-                  Width="24" Height="24"
-                  Background="{DynamicResource LightBlueColor}" BorderBrush="{DynamicResource BlackColor}"
-                  HorizontalAlignment="Left" VerticalAlignment="Top"
-                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                  Padding="0"
-                  Command="{Binding EditStudentCommand}"
-                  CommandParameter="{Binding SelectedStudent}"
-                  Template="{StaticResource FlatButtonTemplate}"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Spacing="8">
+            <Button Content="✎"
+                    Width="24" Height="24"
+                    Background="{DynamicResource LightBlueColor}" BorderBrush="{DynamicResource BlackColor}"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Padding="0"
+                    Command="{Binding EditStudentCommand}"
+                    CommandParameter="{Binding SelectedStudent}"
+                    Template="{StaticResource FlatButtonTemplate}"/>
+            <Button Content="🗑"
+                    Width="24" Height="24"
+                    Background="{DynamicResource LightRedColor}" BorderBrush="{DynamicResource BlackColor}"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Padding="0"
+                    Command="{Binding DeleteStudentCommand}"
+                    CommandParameter="{Binding SelectedStudent}"
+                    Template="{StaticResource FlatButtonTemplate}"/>
+          </StackPanel>
           <StackPanel Margin="0,32,0,0">
             <TextBlock Text="Selected Student Details" FontSize="18" FontWeight="Bold"/>
             <Separator Margin="0,8,0,8"/>

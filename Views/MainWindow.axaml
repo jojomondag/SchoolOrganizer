@@ -104,7 +104,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Navigation Tabs -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
                     <ToggleButton Classes="tab"
                                   IsChecked="{Binding IsHomeActive}"
                                   Command="{Binding NavigateToHomeCommand}"

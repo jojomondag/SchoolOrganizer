@@ -19,6 +19,7 @@
     <!-- Status Colors (keeping minimal) -->
     <Color x:Key="ErrorColor">#e74c3c</Color>
     <Color x:Key="SuccessColor">#27ae60</Color>
+    <Color x:Key="LightRedColor">#ffebee</Color>
     
     <!-- Text Selection Colors -->
     <Color x:Key="SelectionBackgroundColor">#000000</Color>
