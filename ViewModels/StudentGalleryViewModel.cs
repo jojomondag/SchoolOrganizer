@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SchoolOrganizer.Models;
@@ -16,6 +17,8 @@ namespace SchoolOrganizer.ViewModels;
 public partial class StudentGalleryViewModel : ViewModelBase
 {
     private readonly StudentSearchService searchService = new();
+    private GoogleAuthService? authService;
+    private UserProfileService? userProfileService;
 
     // Full, unfiltered dataset kept in-memory
     private ObservableCollection<Student> allStudents = new();
@@ -41,6 +44,21 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [ObservableProperty]
     private ProfileCardDisplayConfig displayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
 
+    // Authentication properties
+    [ObservableProperty]
+    private Bitmap? profileImage;
+
+    [ObservableProperty]
+    private string teacherName = "Unknown Teacher";
+
+    [ObservableProperty]
+    private bool isAuthenticated = false;
+
+    partial void OnIsAuthenticatedChanged(bool value)
+    {
+        System.Diagnostics.Debug.WriteLine($"IsAuthenticated changed to: {value}");
+    }
+
     // Properties for controlling view mode
     public bool ShowSingleStudent => Students.Count == 2 && Students.Any(s => s is Student); // Only one actual student + add card
     public bool ShowMultipleStudents => Students.Count != 2 || !Students.Any(s => s is Student); // Multiple students or no students
@@ -56,8 +74,28 @@ public partial class StudentGalleryViewModel : ViewModelBase
     public event EventHandler<Student>? EditStudentRequested;
 
 
-    public StudentGalleryViewModel()
+    public StudentGalleryViewModel(GoogleAuthService? authService = null)
     {
+        this.authService = authService;
+        if (authService != null)
+        {
+            userProfileService = new UserProfileService(authService);
+            IsAuthenticated = true;
+            TeacherName = authService.TeacherName;
+            Task.Run(LoadProfileImageAsync);
+        }
+        else
+        {
+            // Check if user might be already authenticated to avoid flickering
+            if (IsUserLikelyAuthenticated())
+            {
+                // Set initial state to authenticated to prevent flickering
+                IsAuthenticated = true;
+                TeacherName = "Loading...";
+            }
+            // Check for existing authentication
+            _ = CheckExistingAuthenticationAsync();
+        }
         _ = LoadStudents();
     }
 
@@ -409,5 +447,160 @@ public partial class StudentGalleryViewModel : ViewModelBase
         }
         
         return new List<Student>();
+    }
+
+    [RelayCommand]
+    private async Task Login()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("Login command triggered");
+            
+            // Always create new auth service for login
+            var newAuthService = new GoogleAuthService();
+            var isAuthenticated = await newAuthService.AuthenticateAsync();
+            
+            if (isAuthenticated)
+            {
+                // Assign to instance fields so LoadProfileImageAsync can access them
+                this.authService = newAuthService;
+                this.userProfileService = new UserProfileService(newAuthService);
+                
+                IsAuthenticated = true;
+                TeacherName = newAuthService.TeacherName;
+                await LoadProfileImageAsync();
+                System.Diagnostics.Debug.WriteLine("Login successful");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Login failed - authentication unsuccessful");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Login error: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private void Logout()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("Logout command triggered!");
+            if (authService != null)
+            {
+                authService.ClearCredentials();
+                // Reset all authentication-related fields
+                authService = null;
+                userProfileService = null;
+                IsAuthenticated = false;
+                TeacherName = "Unknown Teacher";
+                ProfileImage = null;
+                System.Diagnostics.Debug.WriteLine("User logged out successfully");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("AuthService is null, but still resetting UI state");
+                IsAuthenticated = false;
+                TeacherName = "Unknown Teacher";
+                ProfileImage = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Logout error: {ex.Message}");
+        }
+    }
+
+    private async Task LoadProfileImageAsync()
+    {
+        try
+        {
+            if (userProfileService != null)
+            {
+                System.Diagnostics.Debug.WriteLine("Loading profile image...");
+                var (profileImage, statusMessage) = await userProfileService.LoadProfileImageAsync();
+                
+                // Ensure UI thread update
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    ProfileImage = profileImage;
+                    System.Diagnostics.Debug.WriteLine($"Profile image loaded: {profileImage != null}");
+                });
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("UserProfileService is null, cannot load profile image");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading profile image: {ex.Message}");
+            // Set profile image to null on error to clear any stale image
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                ProfileImage = null;
+            });
+        }
+    }
+
+    private bool IsUserLikelyAuthenticated()
+    {
+        try
+        {
+            var credPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SchoolOrganizer", "Google.Apis.Auth.OAuth2.Responses.TokenResponse-user");
+            return File.Exists(credPath);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async Task CheckExistingAuthenticationAsync()
+    {
+        try
+        {
+            // First check if credentials file exists to avoid unnecessary API calls
+            var credPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SchoolOrganizer", "Google.Apis.Auth.OAuth2.Responses.TokenResponse-user");
+            
+            if (File.Exists(credPath))
+            {
+                System.Diagnostics.Debug.WriteLine("Credentials file found, checking authentication...");
+                var authService = new GoogleAuthService();
+                bool isAuthenticated = await authService.CheckAndAuthenticateAsync();
+                if (isAuthenticated)
+                {
+                    this.authService = authService;
+                    userProfileService = new UserProfileService(authService);
+                    IsAuthenticated = true;
+                    TeacherName = authService.TeacherName;
+                    await LoadProfileImageAsync();
+                    System.Diagnostics.Debug.WriteLine("Existing authentication found and restored");
+                }
+                else
+                {
+                    // Authentication failed, reset to not authenticated
+                    IsAuthenticated = false;
+                    TeacherName = "Unknown Teacher";
+                    System.Diagnostics.Debug.WriteLine("Credentials file exists but authentication failed");
+                }
+            }
+            else
+            {
+                // No credentials file, ensure we're not authenticated
+                IsAuthenticated = false;
+                TeacherName = "Unknown Teacher";
+                System.Diagnostics.Debug.WriteLine("No credentials file found, user not authenticated");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error checking existing authentication: {ex.Message}");
+            // On error, assume not authenticated
+            IsAuthenticated = false;
+            TeacherName = "Unknown Teacher";
+        }
     }
 }

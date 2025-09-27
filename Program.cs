@@ -17,9 +17,9 @@ sealed class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Application crashed with exception: {ex}");
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
+            // Log the exception but don't try to read from console in GUI app
+            System.Diagnostics.Debug.WriteLine($"Application crashed with exception: {ex}");
+            // Don't use Console.ReadKey() in GUI applications
         }
     }
 

@@ -103,7 +103,8 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <!-- Navigation Tabs -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
                     <ToggleButton Classes="tab"
                                   IsChecked="{Binding IsHomeActive}"
                                   Command="{Binding NavigateToHomeCommand}"
@@ -113,6 +114,18 @@
                                   IsChecked="{Binding IsStudentGalleryActive}"
                                   Command="{Binding NavigateToStudentGalleryCommand}"
                                   Content="Student Gallery"/>
+                </StackPanel>
+
+                <!-- Status/Teacher Name Display -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding TeacherName}" 
+                               FontWeight="SemiBold"
+                               IsVisible="{Binding IsAuthenticated}"/>
+                    <TextBlock Text="{Binding Greeting}" 
+                               FontSize="12"
+                               Foreground="{DynamicResource DarkBlueColor}"
+                               TextWrapping="Wrap"
+                               MaxWidth="300"/>
                 </StackPanel>
             </Grid>
         </Border>
