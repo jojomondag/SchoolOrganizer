@@ -35,7 +35,7 @@
           BorderThickness="0"
           ClipToBounds="False"
           Width="240"
-          Height="220"
+          Height="176"
           Opacity="{Binding PictureUrl, Converter={StaticResource AddCardOpacityConverter}}">
     
     <Border.Styles>
@@ -63,25 +63,25 @@
         PointerReleased="OnProfileImagePointerReleased"
         HorizontalAlignment="Center"
         VerticalAlignment="Center"
-        Width="90"
-        Height="90"
+        Width="72"
+        Height="72"
         Margin="0,0,0,8">
     
         
         <!-- Circular Profile Image -->
-        <Grid x:Name="ProfileImageGrid" Width="84" Height="84">
+        <Grid x:Name="ProfileImageGrid" Width="67" Height="67">
           <!-- Background circle for when no image is present -->
           <Ellipse x:Name="ProfileImageBackground"
-                   Width="84" 
-                   Height="84"
+                   Width="67" 
+                   Height="67"
                    Fill="{DynamicResource BackgroundTertiaryColor}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
           
           <!-- Special background for add card -->
           <Ellipse x:Name="AddCardBackground"
-                   Width="84" 
-                   Height="84"
+                   Width="67" 
+                   Height="67"
                    Fill="{DynamicResource LightBlueColor}"
                    Opacity="0.3"
                    HorizontalAlignment="Center"
@@ -90,8 +90,8 @@
           
           <!-- Profile image overlay (for regular students) -->
           <Ellipse x:Name="ProfileImageEllipse"
-                   Width="84" 
-                   Height="84"
+                   Width="67" 
+                   Height="67"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    IsVisible="{Binding PictureUrl, Converter={StaticResource RegularImageConverter}}">
@@ -103,13 +103,13 @@
           
           <!-- Plus sign for add card (perfectly centered) -->
           <Grid x:Name="AddCardPlusSign"
-                Width="84"
-                Height="84"
+                Width="67"
+                Height="67"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 IsVisible="{Binding PictureUrl, Converter={StaticResource AddCardImageConverter}}">
             <TextBlock Text="+"
-                       FontSize="36"
+                       FontSize="29"
                        FontWeight="Normal"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -130,7 +130,7 @@
                    TextWrapping="NoWrap"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis"
-                   FontSize="16"
+                   FontSize="13"
                    MaxWidth="160"
                    Margin="0,0,0,3"/>
         
@@ -141,7 +141,7 @@
                    TextWrapping="NoWrap"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis"
-                   FontSize="12"
+                   FontSize="10"
                    MaxWidth="160"
                    Margin="0,0,0,3"/>
         
@@ -152,7 +152,7 @@
                    TextWrapping="NoWrap"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis"
-                   FontSize="10"
+                   FontSize="8"
                    MaxWidth="160"
                    Margin="0,0,0,6"
                    IsVisible="{Binding SecondaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
@@ -164,7 +164,7 @@
                    TextWrapping="NoWrap"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis"
-                   FontSize="9"
+                   FontSize="7"
                    MaxWidth="160"
                    Margin="0,0,0,5"
                    IsVisible="False"/>
@@ -175,7 +175,7 @@
                    TextWrapping="NoWrap"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis"
-                   FontSize="8"
+                   FontSize="6"
                    MaxWidth="160"
                    Margin="0,0,0,5"
                    IsVisible="False"

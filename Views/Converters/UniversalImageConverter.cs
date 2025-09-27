@@ -15,6 +15,7 @@ public class UniversalImageConverter : IValueConverter
     // Cache to track file modification times to force refresh when file changes
     private static readonly ConcurrentDictionary<string, (DateTime lastModified, Bitmap? bitmap)> _bitmapCache = new();
     private static readonly HttpClient _httpClient = new();
+    private static readonly ConcurrentDictionary<string, Task<Bitmap?>> _loadingTasks = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -24,8 +25,15 @@ public class UniversalImageConverter : IValueConverter
             {
                 if (Uri.TryCreate(path, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
                 {
-                    // For HTTP/HTTPS URLs, download the image asynchronously
-                    return LoadImageFromUrlAsync(path);
+                    // For HTTP/HTTPS URLs, check cache first
+                    if (_bitmapCache.TryGetValue(path, out var cached) && cached.bitmap != null)
+                    {
+                        return cached.bitmap;
+                    }
+                    
+                    // For now, return null to show placeholder - this eliminates the blocking network calls
+                    // TODO: Implement proper async image loading with UI updates
+                    return null;
                 }
 
                 if (File.Exists(path))
@@ -93,7 +101,7 @@ public class UniversalImageConverter : IValueConverter
         }
     }
 
-    private static Bitmap? LoadImageFromUrlAsync(string url)
+    private static async Task<Bitmap?> LoadImageFromUrlAsync(string url)
     {
         try
         {
@@ -103,14 +111,27 @@ public class UniversalImageConverter : IValueConverter
                 return cached.bitmap;
             }
 
-            // For now, just return null for URLs to prevent the file path errors
-            // This will show the default placeholder image instead of crashing
-            System.Diagnostics.Debug.WriteLine($"Skipping URL image loading for: {url}");
-            return null;
+            // Download the image
+            using var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            
+            using var stream = await response.Content.ReadAsStreamAsync();
+            var bitmap = new Bitmap(stream);
+            
+            // Cache the result
+            _bitmapCache.TryAdd(url, (DateTime.Now, bitmap));
+            
+            // Clean up loading task
+            _loadingTasks.TryRemove(url, out _);
+            
+            return bitmap;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error with URL image: {url}, {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Error loading URL image: {url}, {ex.Message}");
+            
+            // Clean up loading task on error
+            _loadingTasks.TryRemove(url, out _);
             return null;
         }
     }

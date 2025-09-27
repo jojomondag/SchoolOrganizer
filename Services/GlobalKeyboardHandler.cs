@@ -161,6 +161,11 @@ public class GlobalKeyboardHandler
                 // Ctrl+Up: Clear selection while keeping search focused
                 _viewModel.DeselectStudentCommand.Execute(null);
                 return true;
+
+            case Key.Back when (e.KeyModifiers & KeyModifiers.Control) != 0:
+                // Ctrl+Backspace: Clear entire search text
+                _viewModel.SearchText = string.Empty;
+                return true;
         }
 
         return false; // Let the textbox handle the key

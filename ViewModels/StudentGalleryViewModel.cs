@@ -175,21 +175,17 @@ public partial class StudentGalleryViewModel : ViewModelBase
     {
         try
         {
-            var results = searchService.Search(allStudents, SearchText);
+            var results = searchService.Search(allStudents, SearchText).ToList();
             
-            // Instead of clearing and re-adding, create a new collection
-            // This helps ensure proper event handling in the UI
-            var newStudents = new ObservableCollection<IPerson>();
+            // Clear current collection and add results
+            Students.Clear();
             foreach (var s in results)
             {
-                newStudents.Add(s);
+                Students.Add(s);
             }
             
             // Always add the AddStudentCard as the last item
-            newStudents.Add(new AddStudentCard());
-            
-            // Replace the entire collection to ensure fresh event binding
-            Students = newStudents;
+            Students.Add(new AddStudentCard());
             
             // Trigger property changes for view mode
             OnPropertyChanged(nameof(ShowSingleStudent));

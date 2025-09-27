@@ -27,15 +27,15 @@ public partial class StudentGalleryView : UserControl
     private const double CARD_PADDING = 12; // Margin around each card
     private const double CONTAINER_PADDING = 40; // ScrollViewer padding (20 * 2)
     
-    // Current sizing values for newly created containers
+    // Current sizing values for newly created containers (20% reduction applied)
     private double _currentCardWidth = 240;
-    private double _currentImageSize = 168;
-    private double _currentImageRadius = 84;
-    private double _currentNameFontSize = 16;
-    private double _currentClassFontSize = 12;
-    private double _currentMentorFontSize = 10;
-    private double _currentPlaceholderFontSize = 67;
-    private double _currentCardPadding = 18;
+    private double _currentImageSize = 134; // 168 * 0.8
+    private double _currentImageRadius = 67; // 84 * 0.8
+    private double _currentNameFontSize = 13; // 16 * 0.8
+    private double _currentClassFontSize = 10; // 12 * 0.8
+    private double _currentMentorFontSize = 8; // 10 * 0.8
+    private double _currentPlaceholderFontSize = 54; // 67 * 0.8
+    private double _currentCardPadding = 14; // 18 * 0.8
     
     private GlobalKeyboardHandler? _keyboardHandler;
     
@@ -410,14 +410,14 @@ public partial class StudentGalleryView : UserControl
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
         if (studentsContainer == null) return;
 
-        // Calculate proportional sizes based on card width
-        var imageSize = Math.Max(120, cardWidth * 0.7); // Image is 70% of card width, min 120px
+        // Calculate proportional sizes based on card width (20% reduction applied)
+        var imageSize = Math.Max(96, cardWidth * 0.56); // Image is 56% of card width, min 96px (was 120px)
         var imageRadius = imageSize / 2;
-        var nameFontSize = Math.Max(14, cardWidth * 0.065); // Proportional to card width
-        var classFontSize = Math.Max(11, cardWidth * 0.05);
-        var mentorFontSize = Math.Max(10, cardWidth * 0.043);
-        var placeholderFontSize = Math.Max(48, imageSize * 0.4);
-        var cardPadding = Math.Max(15, cardWidth * 0.075);
+        var nameFontSize = Math.Max(11, cardWidth * 0.052); // Proportional to card width (was 14px)
+        var classFontSize = Math.Max(9, cardWidth * 0.04); // (was 11px)
+        var mentorFontSize = Math.Max(8, cardWidth * 0.034); // (was 10px)
+        var placeholderFontSize = Math.Max(38, imageSize * 0.4); // (was 48px)
+        var cardPadding = Math.Max(12, cardWidth * 0.06); // (was 15px)
 
         // Update all existing card containers
         for (int i = 0; i < studentsContainer.ItemCount; i++)
@@ -471,7 +471,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update image elements only if size changed significantly
-            if (Math.Abs(imageSize - 168) > 1)
+            if (Math.Abs(imageSize - 134) > 1) // 168 * 0.8 = 134
             {
                 var imageContainer = FindNamedChild<Grid>(container, "ImageContainer");
                 if (imageContainer != null)
@@ -505,7 +505,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update text elements only if font sizes changed
-            if (Math.Abs(nameFontSize - 16) > 0.5)
+            if (Math.Abs(nameFontSize - 13) > 0.5) // 16 * 0.8 = 13
             {
                 var nameText = FindNamedChild<TextBlock>(container, "NameText");
                 if (nameText != null)
@@ -515,7 +515,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
 
-            if (Math.Abs(classFontSize - 12) > 0.5)
+            if (Math.Abs(classFontSize - 10) > 0.5) // 12 * 0.8 = 10
             {
                 var classText = FindNamedChild<TextBlock>(container, "ClassText");
                 if (classText != null)
@@ -525,7 +525,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
 
-            if (Math.Abs(mentorFontSize - 10) > 0.5)
+            if (Math.Abs(mentorFontSize - 8) > 0.5) // 10 * 0.8 = 8
             {
                 var mentorText = FindNamedChild<TextBlock>(container, "MentorText");
                 if (mentorText != null)
@@ -535,7 +535,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
 
-            if (Math.Abs(placeholderFontSize - 67) > 1)
+            if (Math.Abs(placeholderFontSize - 54) > 1) // 67 * 0.8 = 54
             {
                 var placeholderText = FindNamedChild<TextBlock>(container, "PlaceholderText");
                 if (placeholderText != null)
