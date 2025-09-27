@@ -444,3 +444,8 @@ Resources.Inputs.cache
 *.pdb
 *.runtimeconfig.json
 *.deps.json
+
+# Credentials and secrets
+Resources/credentials.json
+credentials.json
+**/credentials.json
