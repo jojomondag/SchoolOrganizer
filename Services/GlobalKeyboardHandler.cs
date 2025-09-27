@@ -191,10 +191,18 @@ public class GlobalKeyboardHandler
                 FocusSearchBoxAndBackspace();
                 return true;
 
-            // Delete - focus search box and delete from current position
+            // Delete - delete selected student if one is selected, otherwise focus search box
             case Key.Delete:
-                FocusSearchBoxAndDelete();
-                return true;
+                if (_viewModel.SelectedStudent != null)
+                {
+                    _viewModel.DeleteStudentCommand.Execute(_viewModel.SelectedStudent);
+                    return true;
+                }
+                else
+                {
+                    FocusSearchBoxAndDelete();
+                    return true;
+                }
 
             // Arrow keys for navigation
             case Key.Left:
