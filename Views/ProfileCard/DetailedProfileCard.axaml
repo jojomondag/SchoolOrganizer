@@ -23,7 +23,7 @@
           Background="{DynamicResource WhiteColor}" 
           CornerRadius="16" 
           BoxShadow="{DynamicResource ShadowLight}"
-          Margin="0"
+          Margin="40,20,40,20"
           HorizontalAlignment="Stretch"
           VerticalAlignment="Stretch"
           BorderThickness="1"
