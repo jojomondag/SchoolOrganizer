@@ -36,7 +36,8 @@
           ClipToBounds="False"
           Width="240"
           Height="176"
-          Opacity="{Binding PictureUrl, Converter={StaticResource AddCardOpacityConverter}}">
+          Opacity="{Binding PictureUrl, Converter={StaticResource AddCardOpacityConverter}}"
+          DoubleTapped="OnPersonCardDoubleTapped">
     
     <Border.Styles>
       <!-- Add transitions for smooth opacity changes -->
@@ -50,7 +51,8 @@
     </Border.Styles>
 
     <!-- Card Content -->
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,8">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,8"
+                DoubleTapped="OnPersonCardDoubleTapped">
       
       <!-- Profile Image -->
   <Border x:Name="ProfileImageBorder"

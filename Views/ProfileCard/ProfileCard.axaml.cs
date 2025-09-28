@@ -1,14 +1,18 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using SchoolOrganizer.Models;
+using SchoolOrganizer.ViewModels;
+using SchoolOrganizer.Views.StudentGallery;
 
 namespace SchoolOrganizer.Views.ProfileCard;
 
 public partial class ProfileCard : UserControl
 {
     public event EventHandler<Student>? ImageClicked;
+    public event EventHandler<Student>? CardDoubleClicked;
 
     public static readonly StyledProperty<ProfileCardDisplayConfig> DisplayConfigProperty =
         AvaloniaProperty.Register<ProfileCard, ProfileCardDisplayConfig>(
@@ -114,6 +118,71 @@ public partial class ProfileCard : UserControl
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"ProfileImage pointer handler error: {ex.Message}");
+        }
+    }
+
+    private async void OnPersonCardDoubleTapped(object? sender, RoutedEventArgs e)
+    {
+        // Only respond to double-clicks for actual students (not add cards)
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("ProfileCard double-tapped - OnPersonCardDoubleTapped called");
+            if (DataContext is Student student)
+            {
+                System.Diagnostics.Debug.WriteLine($"ProfileCard double-clicked for student: {student.Name}");
+                
+                // Fire the event for external handlers
+                CardDoubleClicked?.Invoke(this, student);
+                
+                // Find the parent StudentGalleryViewModel through the visual tree
+                var parentViewModel = FindParentStudentGalleryViewModel();
+                if (parentViewModel != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("ProfileCard found parent ViewModel, handling double-click directly");
+                    // Clear search first, then set it to the student's name to ensure the search triggers
+                    parentViewModel.SearchText = string.Empty;
+                    await Task.Delay(10); // Small delay to ensure the clear takes effect
+                    parentViewModel.SearchText = student.Name;
+                    System.Diagnostics.Debug.WriteLine($"ProfileCard set search text to '{student.Name}' to show big view mode");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("ProfileCard could not find parent ViewModel - cannot handle double-click directly");
+                }
+                
+                e.Handled = true;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"ProfileCard double-clicked but DataContext is not a Student, it's: {DataContext?.GetType().Name ?? "null"}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"ProfileCard double-tap handler error: {ex.Message}");
+        }
+    }
+
+    private StudentGalleryViewModel? FindParentStudentGalleryViewModel()
+    {
+        try
+        {
+            // Walk up the visual tree to find the StudentGalleryView
+            var current = this.Parent;
+            while (current != null)
+            {
+                if (current is StudentGalleryView galleryView)
+                {
+                    return galleryView.ViewModel;
+                }
+                current = current.Parent;
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error finding parent ViewModel: {ex.Message}");
+            return null;
         }
     }
 }

@@ -202,6 +202,36 @@ public partial class StudentGalleryView : UserControl
         }
     }
 
+    /// <summary>
+    /// Re-initializes the keyboard handler and ProfileCard events to ensure everything works after returning from detailed view
+    /// </summary>
+    public void ReinitializeKeyboardHandler()
+    {
+        System.Diagnostics.Debug.WriteLine("ReinitializeKeyboardHandler called");
+        if (DataContext is StudentGalleryViewModel viewModel)
+        {
+            var searchTextBox = this.FindControl<TextBox>("SearchTextBox");
+            if (searchTextBox != null)
+            {
+                _keyboardHandler?.Dispose(); // Clean up previous handler
+                _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox, this);
+                System.Diagnostics.Debug.WriteLine("GlobalKeyboardHandler re-initialized successfully");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("SearchTextBox not found, keyboard handler not re-initialized");
+            }
+            
+            // Also re-wire ProfileCard events to ensure double-click works
+            WireUpAllProfileCardEvents();
+            System.Diagnostics.Debug.WriteLine("ProfileCard events re-wired");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("DataContext is not StudentGalleryViewModel, cannot re-initialize keyboard handler");
+        }
+    }
+
     private async void HandleAddStudentRequested(object? sender, EventArgs e)
     {
         await HandleAddStudent();
@@ -580,11 +610,13 @@ public partial class StudentGalleryView : UserControl
             var profileCard = container.FindDescendantOfType<ProfileCard.ProfileCard>();
             if (profileCard != null)
             {
-                // Remove existing handler to avoid duplicates
+                // Remove existing handlers to avoid duplicates
                 profileCard.ImageClicked -= OnProfileCardImageClicked;
-                // Add the handler
+                profileCard.CardDoubleClicked -= OnProfileCardDoubleClicked;
+                // Add the handlers
                 profileCard.ImageClicked += OnProfileCardImageClicked;
-                System.Diagnostics.Debug.WriteLine($"Wired up ImageClicked event for ProfileCard with DataContext: {(profileCard.DataContext as SchoolOrganizer.Models.Student)?.Name ?? "null"}");
+                profileCard.CardDoubleClicked += OnProfileCardDoubleClicked;
+                System.Diagnostics.Debug.WriteLine($"Wired up ImageClicked and CardDoubleClicked events for ProfileCard with DataContext: {(profileCard.DataContext as SchoolOrganizer.Models.Student)?.Name ?? "null"}");
             }
             else
             {
@@ -606,9 +638,32 @@ public partial class StudentGalleryView : UserControl
         }
     }
 
+    private async void OnProfileCardDoubleClicked(object? sender, SchoolOrganizer.Models.Student student)
+    {
+        System.Diagnostics.Debug.WriteLine($"ProfileCard CardDoubleClicked event fired for student: {student?.Name ?? "null"}");
+        if (student != null && ViewModel != null)
+        {
+            // Clear search first, then set it to the student's name to ensure the search triggers
+            ViewModel.SearchText = string.Empty;
+            await Task.Delay(10); // Small delay to ensure the clear takes effect
+            ViewModel.SearchText = student.Name;
+            System.Diagnostics.Debug.WriteLine($"Set search text to '{student.Name}' to show big view mode");
+        }
+    }
+
     private async void OnDetailedProfileImageClicked(object? sender, SchoolOrganizer.Models.Student student)
     {
         await HandleStudentImageChange(student);
+    }
+
+    private void OnBackToGalleryRequested(object? sender, EventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            ViewModel.BackToGalleryCommand.Execute(null);
+            // Re-initialize keyboard handler to ensure keyboard detection works after returning from detailed view
+            ReinitializeKeyboardHandler();
+        }
     }
 
     private void WireUpAllProfileCardEvents()
@@ -622,10 +677,12 @@ public partial class StudentGalleryView : UserControl
             var profileCards = studentsContainer.GetVisualDescendants().OfType<ProfileCard.ProfileCard>();
             foreach (var profileCard in profileCards)
             {
-                // Remove existing handler to avoid duplicates
+                // Remove existing handlers to avoid duplicates
                 profileCard.ImageClicked -= OnProfileCardImageClicked;
-                // Add the handler
+                profileCard.CardDoubleClicked -= OnProfileCardDoubleClicked;
+                // Add the handlers
                 profileCard.ImageClicked += OnProfileCardImageClicked;
+                profileCard.CardDoubleClicked += OnProfileCardDoubleClicked;
             }
             
             // Also wire up events for containers that might not be rendered yet

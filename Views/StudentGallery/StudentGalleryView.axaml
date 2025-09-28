@@ -186,6 +186,62 @@
           </StackPanel>
         </Border>
 
+        <!-- Empty State - No Students -->
+        <Border Grid.Row="0" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center"
+                Background="{DynamicResource WhiteColor}"
+                CornerRadius="16"
+                Padding="40"
+                BoxShadow="{DynamicResource ShadowMedium}"
+                Margin="40">
+          <Border.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="!IsLoading"/>
+              <Binding Path="ShowEmptyState"/>
+            </MultiBinding>
+          </Border.IsVisible>
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+            <TextBlock Text="No students found" 
+                       FontSize="24" 
+                       FontWeight="Bold" 
+                       HorizontalAlignment="Center"
+                       Foreground="{DynamicResource BlackColor}"/>
+            <TextBlock Text="It looks like there are no students in your gallery." 
+                       FontSize="16" 
+                       HorizontalAlignment="Center"
+                       Foreground="{DynamicResource BlackColor}"
+                       TextWrapping="Wrap"/>
+            <Button Content="← Back to All Students" 
+                    Command="{Binding BackToGalleryCommand}"
+                    HorizontalAlignment="Center"
+                    Padding="12,8"
+                    Background="{DynamicResource LightBlueColor}"
+                    BorderBrush="{DynamicResource BlackColor}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    FontSize="14"
+                    FontWeight="Normal"
+                    Foreground="{DynamicResource BlackColor}"
+                    Cursor="Hand">
+              <Button.Styles>
+                <Style Selector="Button">
+                  <Setter Property="Background" Value="{DynamicResource LightBlueColor}"/>
+                  <Setter Property="Foreground" Value="{DynamicResource BlackColor}"/>
+                </Style>
+                <Style Selector="Button:pointerover">
+                  <Setter Property="Background" Value="{DynamicResource DarkBlueColor}"/>
+                  <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
+                </Style>
+                <Style Selector="Button:pressed">
+                  <Setter Property="Background" Value="{DynamicResource BlackColor}"/>
+                  <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
+                </Style>
+              </Button.Styles>
+            </Button>
+          </StackPanel>
+        </Border>
+
         <!-- Students Grid - Multiple Students -->
         <ItemsControl x:Name="StudentsContainer" 
                       Grid.Row="0"
@@ -198,6 +254,7 @@
             <MultiBinding Converter="{x:Static BoolConverters.And}">
               <Binding Path="!IsLoading"/>
               <Binding Path="ShowMultipleStudents"/>
+              <Binding Path="!ShowEmptyState"/>
             </MultiBinding>
           </ItemsControl.IsVisible>
           <ItemsControl.ItemsPanel>
@@ -303,7 +360,8 @@
           <ContentControl.ContentTemplate>
             <DataTemplate x:DataType="models:Student">
               <profileCard:DetailedProfileCard DataContext="{Binding}" 
-                                              ImageClicked="OnDetailedProfileImageClicked"/>
+                                              ImageClicked="OnDetailedProfileImageClicked"
+                                              BackToGalleryRequested="OnBackToGalleryRequested"/>
             </DataTemplate>
           </ContentControl.ContentTemplate>
         </ContentControl>

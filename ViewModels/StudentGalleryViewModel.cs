@@ -62,6 +62,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
     // Properties for controlling view mode
     public bool ShowSingleStudent => Students.Count == 2 && Students.Any(s => s is Student); // Only one actual student + add card
     public bool ShowMultipleStudents => Students.Count != 2 || !Students.Any(s => s is Student); // Multiple students or no students
+    public bool ShowEmptyState => Students.Count == 1 && !Students.Any(s => s is Student); // Only add card, no actual students
     
     // Safe property to get first student without index errors
     public Student? FirstStudent => Students.OfType<Student>().FirstOrDefault();
@@ -220,6 +221,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
         UpdateDisplayLevelBasedOnItemCount();
         OnPropertyChanged(nameof(ShowSingleStudent));
         OnPropertyChanged(nameof(ShowMultipleStudents));
+        OnPropertyChanged(nameof(ShowEmptyState));
         OnPropertyChanged(nameof(FirstStudent));
     }
 
@@ -263,6 +265,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
             // Trigger property changes for view mode
             OnPropertyChanged(nameof(ShowSingleStudent));
             OnPropertyChanged(nameof(ShowMultipleStudents));
+            OnPropertyChanged(nameof(ShowEmptyState));
             OnPropertyChanged(nameof(FirstStudent));
         }
         catch (Exception ex)
@@ -294,6 +297,16 @@ public partial class StudentGalleryViewModel : ViewModelBase
     private void AddStudent()
     {
         AddStudentRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    private void BackToGallery()
+    {
+        System.Diagnostics.Debug.WriteLine("BackToGallery command executed - clearing search text");
+        // Clear search to show all students
+        SearchText = string.Empty;
+        System.Diagnostics.Debug.WriteLine("Search text cleared, new value: '{SearchText}'");
+        // This will trigger ApplySearchImmediate which will show all students
     }
 
     [RelayCommand]
@@ -522,7 +535,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("Logout command triggered!");
+            System.Diagnostics.Debug.WriteLine("LOGOUT COMMAND TRIGGERED! - This should not happen when clicking back button");
             if (authService != null)
             {
                 authService.ClearCredentials();

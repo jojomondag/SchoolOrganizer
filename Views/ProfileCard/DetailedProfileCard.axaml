@@ -37,6 +37,48 @@
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
+      <!-- Back Button - Subtle arrow in top-left corner of profile card -->
+      <Button x:Name="BackButton"
+              Grid.Column="0"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Top"
+              Margin="0,0,0,0"
+              Padding="0"
+              Background="Transparent"
+              BorderThickness="0"
+              CornerRadius="15"
+              FontSize="16"
+              FontWeight="Bold"
+              Foreground="{DynamicResource BlackColor}"
+              Cursor="Hand"
+              Width="30"
+              Height="30"
+              Opacity="0.6">
+        <Button.Content>
+          <TextBlock Text="←" 
+                     HorizontalAlignment="Center" 
+                     VerticalAlignment="Center"
+                     FontSize="18"/>
+        </Button.Content>
+        <Button.Styles>
+          <Style Selector="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource BlackColor}"/>
+            <Setter Property="Opacity" Value="0.6"/>
+          </Style>
+          <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="{DynamicResource LightBlueColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BlackColor}"/>
+            <Setter Property="Opacity" Value="1"/>
+          </Style>
+          <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="{DynamicResource DarkBlueColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
+            <Setter Property="Opacity" Value="1"/>
+          </Style>
+        </Button.Styles>
+      </Button>
+
       <!-- Left Side - Profile Image -->
       <StackPanel Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,10,40,0">
         
