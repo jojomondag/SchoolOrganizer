@@ -96,11 +96,6 @@
                 Padding="16,0" 
                 Width="400"
                 HorizontalAlignment="Center">
-          <Border.Styles>
-            <Style Selector="Border:pointerover">
-              <Setter Property="BorderBrush" Value="{DynamicResource SearchSelectionColor}"/>
-            </Style>
-          </Border.Styles>
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
@@ -120,18 +115,25 @@
                      Name="SearchTextBox"
                      Text="{Binding SearchText, Mode=TwoWay}" 
                      Watermark="Search students by name, class, or mentor..." 
-                     Background="{DynamicResource TransparentColor}"
+                     Background="Transparent"
                      BorderThickness="0"
-                     BorderBrush="{DynamicResource TransparentColor}"
+                     BorderBrush="Transparent"
                      Padding="8,12"
                      FontSize="14"
-                     FocusAdorner="{x:Null}">
+                     FocusAdorner="{x:Null}"
+                     SelectionBrush="{DynamicResource SearchSelectionColor}"
+                     SelectionForegroundBrush="{DynamicResource BlackColor}"
+                     CaretBrush="{DynamicResource BlackColor}">
               <TextBox.Styles>
-                <Style Selector="TextBox">
-                  <Setter Property="SelectionBrush" Value="{DynamicResource SearchSelectionColor}"/>
-                  <Setter Property="SelectionForegroundBrush" Value="{DynamicResource BlackColor}"/>
-                  <Setter Property="CaretBrush" Value="{DynamicResource BlackColor}"/>
-                  <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
+                <Style Selector="TextBox:focus">
+                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderThickness" Value="0"/>
+                  <Setter Property="Background" Value="Transparent"/>
+                </Style>
+                <Style Selector="TextBox:focus /template/ Border">
+                  <Setter Property="BorderBrush" Value="Transparent"/>
+                  <Setter Property="BorderThickness" Value="0"/>
+                  <Setter Property="Background" Value="Transparent"/>
                 </Style>
               </TextBox.Styles>
             </TextBox>

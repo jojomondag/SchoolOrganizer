@@ -29,12 +29,6 @@
             <Setter Property="BorderBrush" Value="{DynamicResource DarkBlueColor}"/>
         </Style>
         
-        <!-- TextBox selection styling -->
-        <Style Selector="TextBox">
-            <Setter Property="SelectionBrush" Value="{DynamicResource SelectionBackgroundColor}"/>
-            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource SelectionForegroundColor}"/>
-            <Setter Property="CaretBrush" Value="{DynamicResource BlackColor}"/>
-        </Style>
         
         
         <Style Selector="ToggleButton.tab">
