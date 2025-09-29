@@ -301,6 +301,15 @@ public partial class StudentGalleryViewModel : ViewModelBase
         // This will be handled by the UI layer
     }
 
+    /// <summary>
+    /// Triggers event re-wiring for ProfileCard instances
+    /// </summary>
+    public void TriggerEventRewiring()
+    {
+        // This will be handled by the UI layer
+        OnPropertyChanged(nameof(Students));
+    }
+
     private void UpdateDisplayLevelBasedOnItemCount()
     {
         // Don't change display level if we're forcing grid view
@@ -373,6 +382,9 @@ public partial class StudentGalleryViewModel : ViewModelBase
             OnPropertyChanged(nameof(ShowMultipleStudents));
             OnPropertyChanged(nameof(ShowEmptyState));
             OnPropertyChanged(nameof(FirstStudent));
+            
+            // Trigger event re-wiring after a short delay to ensure UI is updated
+            Dispatcher.UIThread.Post(() => TriggerEventRewiring(), DispatcherPriority.Loaded);
         }
         catch (Exception ex)
         {

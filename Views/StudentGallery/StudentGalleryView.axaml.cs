@@ -142,7 +142,8 @@ public partial class StudentGalleryView : UserControl
         else if (e.PropertyName == "Students")
         {
             // When Students collection changes, re-wire events after UI updates
-            Dispatcher.UIThread.Post(() => WireUpAllProfileCardEvents(), DispatcherPriority.Background);
+            // Use a longer delay to ensure the UI has fully rendered the new items
+            Dispatcher.UIThread.Post(() => WireUpAllProfileCardEvents(), DispatcherPriority.Loaded);
         }
         else if (e.PropertyName == "DisplayConfig")
         {
@@ -654,11 +655,11 @@ public partial class StudentGalleryView : UserControl
                 // Add the handlers
                 profileCard.ImageClicked += OnProfileCardImageClicked;
                 profileCard.CardDoubleClicked += OnProfileCardDoubleClicked;
-                // Wired up ProfileCard events
+                System.Diagnostics.Debug.WriteLine($"Wired up ProfileCard events for student: {((profileCard.DataContext as Student)?.Name ?? "Unknown")}");
             }
             else
             {
-                // No ProfileCard found in container
+                System.Diagnostics.Debug.WriteLine("No ProfileCard found in container");
             }
         }
         catch (Exception ex)
@@ -711,8 +712,10 @@ public partial class StudentGalleryView : UserControl
             var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
             if (studentsContainer == null) return;
 
-            // Find all ProfileCard controls in the ItemsControl
-            var profileCards = studentsContainer.GetVisualDescendants().OfType<ProfileCard.ProfileCard>();
+            // First, try to find all ProfileCard controls in the ItemsControl
+            var profileCards = studentsContainer.GetVisualDescendants().OfType<ProfileCard.ProfileCard>().ToList();
+            System.Diagnostics.Debug.WriteLine($"Found {profileCards.Count} ProfileCard instances via GetVisualDescendants");
+            
             foreach (var profileCard in profileCards)
             {
                 // Remove existing handlers to avoid duplicates
@@ -724,6 +727,7 @@ public partial class StudentGalleryView : UserControl
             }
             
             // Also wire up events for containers that might not be rendered yet
+            // This is the more reliable method for newly created containers
             for (int i = 0; i < studentsContainer.ItemCount; i++)
             {
                 var container = studentsContainer.ContainerFromIndex(i);
@@ -733,7 +737,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
             
-            // Wired up ProfileCard events
+            System.Diagnostics.Debug.WriteLine($"Wired up ProfileCard events for {studentsContainer.ItemCount} items");
         }
         catch (Exception ex)
         {
