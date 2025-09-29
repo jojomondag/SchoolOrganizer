@@ -45,8 +45,8 @@ public class GoogleAuthService
     {
         try
         {
-            Log.Information($"Starting authentication process...");
-            Log.Information($"Checking credentials file at: {CredentialsPath}");
+            Log.Debug($"Starting authentication process...");
+            Log.Debug($"Checking credentials file at: {CredentialsPath}");
             
             if (!File.Exists(CredentialsPath))
             {
@@ -54,10 +54,10 @@ public class GoogleAuthService
                 return false;
             }
 
-            Log.Information("Credentials file found, attempting to read...");
+            Log.Debug("Credentials file found, attempting to read...");
             var secrets = GoogleClientSecrets.FromFile(CredentialsPath);
             
-            Log.Information("Starting Google authorization...");
+            Log.Debug("Starting Google authorization...");
             
             // Use LocalServerCodeReceiver for desktop applications
             var codeReceiver = new LocalServerCodeReceiver();
@@ -78,7 +78,7 @@ public class GoogleAuthService
 
             if (_credential.Token.IsStale)
             {
-                Log.Information("Token is stale, attempting refresh...");
+                Log.Debug("Token is stale, attempting refresh...");
                 if (!await RefreshTokenAsync())
                 {
                     return false;
@@ -106,7 +106,7 @@ public class GoogleAuthService
                 try
                 {
                     bool refreshed = await _credential!.RefreshTokenAsync(CancellationToken.None);
-                    Log.Information(refreshed ? "Token refreshed successfully." : "Token refresh failed.");
+                    Log.Debug(refreshed ? "Token refreshed successfully." : "Token refresh failed.");
                     return refreshed;
                 }
                 catch (IOException ex) when (ex.Message.Contains("being used by another process"))
@@ -143,7 +143,7 @@ public class GoogleAuthService
             ApplicationName = ApplicationName
         });
 
-        Log.Information("Google services initialized successfully.");
+        Log.Debug("Google services initialized successfully.");
     }
 
     private async Task FetchTeacherNameAsync()

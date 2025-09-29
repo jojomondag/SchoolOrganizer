@@ -51,22 +51,22 @@ public class UserProfileService
     {
         try
         {
-            Log.Information("Starting to load profile image...");
+            Log.Debug("Starting to load profile image...");
             string imageUrl = await _authService.GetTeacherProfileImageUrlAsync();
             
             if (!string.IsNullOrEmpty(imageUrl))
             {
-                Log.Information($"Profile image URL found: {imageUrl}");
+                Log.Debug($"Profile image URL found: {imageUrl}");
                 
                 using var httpClient = new HttpClient();
                 httpClient.Timeout = TimeSpan.FromSeconds(30); // Add timeout
                 
-                Log.Information("Downloading profile image...");
+                Log.Debug("Downloading profile image...");
                 var imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
                 
                 if (imageBytes.Length > 0)
                 {
-                    Log.Information($"Profile image downloaded successfully, size: {imageBytes.Length} bytes");
+                    Log.Debug($"Profile image downloaded successfully, size: {imageBytes.Length} bytes");
                     using var ms = new MemoryStream(imageBytes);
                     var profileImage = new Bitmap(ms);
 
@@ -75,7 +75,7 @@ public class UserProfileService
                     var messageIndex = random.Next(_cheerfulMessages.Count);
                     var cheerfulMessage = _cheerfulMessages[messageIndex];
 
-                    Log.Information("Profile image loaded successfully");
+                    Log.Debug("Profile image loaded successfully");
                     return (profileImage, cheerfulMessage);
                 }
                 else

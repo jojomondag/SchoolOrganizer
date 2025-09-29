@@ -49,7 +49,7 @@ public partial class Student : ObservableObject, IPerson
     public string RoleInfo => ClassName;
     public string? SecondaryInfo => Mentors.Count == 0 ? null : 
         Mentors.Count == 1 ? $"Mentor: {Mentors[0]}" : 
-        $"Mentors: {string.Join(", ", Mentors)}";
+        $"Mentors:\n{string.Join("\n", Mentors)}";
     public PersonType PersonType => PersonType.Student;
 
     public Student()

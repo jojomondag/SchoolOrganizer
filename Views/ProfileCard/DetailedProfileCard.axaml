@@ -183,7 +183,8 @@
             <TextBlock x:Name="SecondaryText"
                        Text="{Binding SecondaryInfo}" 
                        FontSize="18"
-                       Foreground="{DynamicResource BlackColor}"/>
+                       Foreground="{DynamicResource BlackColor}"
+                       TextWrapping="Wrap"/>
           </StackPanel>
           
           <!-- Enrollment Date (for Students) -->

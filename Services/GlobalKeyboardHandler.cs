@@ -32,7 +32,7 @@ public class GlobalKeyboardHandler
     /// </summary>
     private void Initialize()
     {
-        System.Diagnostics.Debug.WriteLine("GlobalKeyboardHandler: Initializing keyboard handling");
+        // Initializing keyboard handling
         
         // Make the host control focusable and set up keyboard event handling
         _hostControl.Focusable = true;
@@ -51,7 +51,7 @@ public class GlobalKeyboardHandler
             _hostControl.Loaded += OnHostControlLoaded;
         }
         
-        System.Diagnostics.Debug.WriteLine("GlobalKeyboardHandler: Initialization complete");
+        // Keyboard handler initialization complete
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class GlobalKeyboardHandler
             if (_hostControl.Focusable)
             {
                 var focused = _hostControl.Focus();
-                System.Diagnostics.Debug.WriteLine($"GlobalKeyboardHandler: Focus attempt result: {focused}");
+                // Focus attempt completed
             }
         }, DispatcherPriority.Background);
     }
@@ -83,17 +83,10 @@ public class GlobalKeyboardHandler
     /// </summary>
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"GlobalKeyboardHandler: KeyDown event - Key: {e.Key}, SearchBox focused: {_searchTextBox.IsFocused}");
-        
         bool handled = HandleKeyDown(e);
         if (handled)
         {
-            System.Diagnostics.Debug.WriteLine($"GlobalKeyboardHandler: Key {e.Key} was handled");
             e.Handled = true;
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine($"GlobalKeyboardHandler: Key {e.Key} was not handled");
         }
     }
 
@@ -103,18 +96,13 @@ public class GlobalKeyboardHandler
     /// </summary>
     public bool HandleKeyDown(KeyEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"GlobalKeyboardHandler.HandleKeyDown called with key: {e.Key}");
-        System.Diagnostics.Debug.WriteLine($"SearchBox focused: {_searchTextBox.IsFocused}");
-        
         // If search box is already focused, let it handle most keys normally
         if (_searchTextBox.IsFocused)
         {
-            System.Diagnostics.Debug.WriteLine("SearchBox is focused, handling search box keys");
             return HandleSearchBoxKeys(e);
         }
 
         // Global key handlers when search box is not focused
-        System.Diagnostics.Debug.WriteLine("SearchBox not focused, handling global keys");
         return HandleGlobalKeys(e);
     }
 
@@ -176,20 +164,46 @@ public class GlobalKeyboardHandler
     /// </summary>
     private bool HandleGlobalKeys(KeyEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"HandleGlobalKeys called with key: {e.Key}");
-        
         switch (e.Key)
         {
             // Typing keys - focus search box and start typing
             case var key when IsTypingKey(key):
-                System.Diagnostics.Debug.WriteLine($"Typing key detected: {key}");
                 FocusSearchBoxAndStartTyping(e);
                 return true;
 
-            // Backspace - focus search box and delete from end
+            // Backspace - handle different cases for Mac compatibility
             case Key.Back:
-                FocusSearchBoxAndBackspace();
-                return true;
+                // Check for modifier keys first
+                if ((e.KeyModifiers & KeyModifiers.Meta) != 0)
+                {
+                    // Cmd+Backspace on Mac - delete selected student if one is selected
+                    if (_viewModel.SelectedStudent != null)
+                    {
+                        _viewModel.DeleteStudentCommand.Execute(_viewModel.SelectedStudent);
+                        return true;
+                    }
+                    else
+                    {
+                        FocusSearchBoxAndDelete();
+                        return true;
+                    }
+                }
+                else if ((e.KeyModifiers & KeyModifiers.Alt) != 0)
+                {
+                    // Alt+Backspace on Mac - delete selected student
+                    if (_viewModel.SelectedStudent != null)
+                    {
+                        _viewModel.DeleteStudentCommand.Execute(_viewModel.SelectedStudent);
+                        return true;
+                    }
+                    return true;
+                }
+                else
+                {
+                    // Regular backspace - focus search box and delete from end
+                    FocusSearchBoxAndBackspace();
+                    return true;
+                }
 
             // Delete - delete selected student if one is selected, otherwise focus search box
             case Key.Delete:
@@ -248,6 +262,7 @@ public class GlobalKeyboardHandler
             case Key.A when (e.KeyModifiers & KeyModifiers.Control) != 0:
                 FocusSearchBoxAndSelectAll();
                 return true;
+
         }
 
         return false; // Key not handled
@@ -345,13 +360,11 @@ public class GlobalKeyboardHandler
     /// </summary>
     private void FocusSearchBoxAndStartTyping(KeyEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("FocusSearchBoxAndStartTyping called");
         _searchTextBox.Focus();
         
         var keyChar = GetCharFromKey(e.Key, e.KeyModifiers);
         if (keyChar != null)
         {
-            System.Diagnostics.Debug.WriteLine($"Setting search text to: {keyChar}");
             _viewModel.SearchText = keyChar;
             // Position cursor at the end
             Dispatcher.UIThread.Post(() =>

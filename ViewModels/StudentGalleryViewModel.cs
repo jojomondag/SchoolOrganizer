@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SchoolOrganizer.Models;
@@ -17,6 +19,7 @@ namespace SchoolOrganizer.ViewModels;
 public partial class StudentGalleryViewModel : ViewModelBase
 {
     private readonly StudentSearchService searchService = new();
+    private readonly CardSizeManager cardSizeManager = new();
     private GoogleAuthService? authService;
     private UserProfileService? userProfileService;
 
@@ -39,10 +42,10 @@ public partial class StudentGalleryViewModel : ViewModelBase
     private bool isLoading = false;
 
     [ObservableProperty]
-    private ProfileCardDisplayLevel currentDisplayLevel = ProfileCardDisplayLevel.Standard;
+    private ProfileCardDisplayLevel currentDisplayLevel = ProfileCardDisplayLevel.Medium;
 
     [ObservableProperty]
-    private ProfileCardDisplayConfig displayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
+    private ProfileCardDisplayConfig displayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium);
 
     [ObservableProperty]
     private bool forceGridView = false;
@@ -59,7 +62,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
 
     partial void OnIsAuthenticatedChanged(bool value)
     {
-        System.Diagnostics.Debug.WriteLine($"IsAuthenticated changed to: {value}");
+        // Authentication state changed - no need to log every change
     }
 
     // Properties for controlling view mode
@@ -77,6 +80,22 @@ public partial class StudentGalleryViewModel : ViewModelBase
     public event EventHandler<Student>? StudentImageChangeRequested;
     public event EventHandler<Student>? EditStudentRequested;
 
+    // Method to update authentication state from MainWindowViewModel
+    public void UpdateAuthenticationState(GoogleAuthService authService)
+    {
+        this.authService = authService;
+        userProfileService = new UserProfileService(authService);
+        IsAuthenticated = true;
+        TeacherName = authService.TeacherName;
+        // Profile image loading is handled by MainWindowViewModel
+    }
+
+    // Method to set profile image from MainWindowViewModel
+    public void SetProfileImage(Bitmap? profileImage)
+    {
+        ProfileImage = profileImage;
+    }
+
 
     public StudentGalleryViewModel(GoogleAuthService? authService = null)
     {
@@ -90,15 +109,10 @@ public partial class StudentGalleryViewModel : ViewModelBase
         }
         else
         {
-            // Check if user might be already authenticated to avoid flickering
-            if (IsUserLikelyAuthenticated())
-            {
-                // Set initial state to authenticated to prevent flickering
-                IsAuthenticated = true;
-                TeacherName = "Loading...";
-            }
-            // Check for existing authentication
-            _ = CheckExistingAuthenticationAsync();
+            // Don't authenticate here - let MainWindowViewModel handle it
+            // Just set initial state
+            IsAuthenticated = false;
+            TeacherName = "Not Authenticated";
         }
         _ = LoadStudents();
     }
@@ -146,7 +160,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [RelayCommand]
     private void SelectStudent(IPerson? person)
     {
-        System.Diagnostics.Debug.WriteLine($"SelectStudent called with: {person?.Name ?? "null"}");
+        // SelectStudent called
         
         if (person is AddStudentCard)
         {
@@ -182,12 +196,18 @@ public partial class StudentGalleryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task DeleteStudent(Student? student)
+    private void DeleteStudent(Student? student)
     {
         if (student == null) return;
 
         try
         {
+            // Clear selection first to prevent binding errors
+            if (SelectedStudent?.Id == student.Id)
+            {
+                SelectedStudent = null;
+            }
+
             // Remove from all collections
             allStudents.Remove(student);
             
@@ -198,17 +218,34 @@ public partial class StudentGalleryViewModel : ViewModelBase
                 Students.Remove(studentInView);
             }
 
-            // Clear selection if this was the selected student
-            if (SelectedStudent?.Id == student.Id)
-            {
-                SelectedStudent = null;
-            }
+            // Update display properties immediately to prevent UI issues
+            OnPropertyChanged(nameof(ShowSingleStudent));
+            OnPropertyChanged(nameof(ShowMultipleStudents));
+            OnPropertyChanged(nameof(ShowEmptyState));
+            OnPropertyChanged(nameof(FirstStudent));
 
-            // Save changes to JSON
-            await SaveAllStudentsToJson();
-            
-            // Refresh the search to update the view
-            await ApplySearchImmediate();
+            // Delay display level update to allow UI to stabilize after deletion
+            Dispatcher.UIThread.Post(() => 
+            {
+                var studentCount = Students?.OfType<Student>().Count() ?? 0;
+                var newLevel = CalculateOptimalDisplayLevelFast(studentCount);
+                
+                if (newLevel != CurrentDisplayLevel)
+                {
+                    CurrentDisplayLevel = newLevel;
+                    DisplayConfig = ProfileCardDisplayConfig.GetConfig(newLevel);
+                    OnPropertyChanged(nameof(DisplayConfig));
+                    
+                    // Force UI to update card layout with new dimensions
+                    Dispatcher.UIThread.Post(() => 
+                    {
+                        OnPropertyChanged(nameof(DisplayConfig));
+                    }, DispatcherPriority.Render);
+                }
+            }, DispatcherPriority.Background);
+
+            // Save changes to JSON in background (don't wait for it)
+            _ = Task.Run(async () => await SaveAllStudentsToJson());
         }
         catch (Exception ex)
         {
@@ -228,7 +265,13 @@ public partial class StudentGalleryViewModel : ViewModelBase
 
     partial void OnStudentsChanged(ObservableCollection<IPerson> value)
     {
-        UpdateDisplayLevelBasedOnItemCount();
+        // Clear selection when students collection changes to avoid binding issues
+        if (SelectedStudent != null && !Students.Contains(SelectedStudent))
+        {
+            SelectedStudent = null;
+        }
+        
+        // Update display properties immediately (no delay for better performance)
         OnPropertyChanged(nameof(ShowSingleStudent));
         OnPropertyChanged(nameof(ShowMultipleStudents));
         OnPropertyChanged(nameof(ShowEmptyState));
@@ -241,32 +284,71 @@ public partial class StudentGalleryViewModel : ViewModelBase
         OnPropertyChanged(nameof(ShowMultipleStudents));
     }
 
+    /// <summary>
+    /// Called when the window is resized to recalculate display levels
+    /// </summary>
+    public void OnWindowResized()
+    {
+        UpdateDisplayLevelBasedOnItemCount();
+    }
+
+    /// <summary>
+    /// Triggers a card layout update in the UI
+    /// </summary>
+    public void TriggerCardLayoutUpdate()
+    {
+        // Triggering card layout update
+        // This will be handled by the UI layer
+    }
+
     private void UpdateDisplayLevelBasedOnItemCount()
     {
         // Don't change display level if we're forcing grid view
         if (ForceGridView)
         {
-            System.Diagnostics.Debug.WriteLine("ForceGridView is true, skipping display level update");
+            // ForceGridView is true, skipping display level update
             return;
         }
 
         // Count only actual students, not the add card
-        var studentCount = Students.OfType<Student>().Count();
-        var newLevel = studentCount switch
-        {
-            <= 4 => ProfileCardDisplayLevel.Expanded,
-            <= 8 => ProfileCardDisplayLevel.Detailed,
-            <= 16 => ProfileCardDisplayLevel.Standard,
-            _ => ProfileCardDisplayLevel.Compact
-        };
+        var studentCount = Students?.OfType<Student>().Count() ?? 0;
+        
+        // Calculate optimal display level based on both student count and available space
+        var newLevel = CalculateOptimalDisplayLevel(studentCount);
 
         if (newLevel != CurrentDisplayLevel)
         {
-            System.Diagnostics.Debug.WriteLine($"Updating display level from {CurrentDisplayLevel} to {newLevel} (student count: {studentCount})");
+            // Updating display level
             CurrentDisplayLevel = newLevel;
             DisplayConfig = ProfileCardDisplayConfig.GetConfig(newLevel);
+            
+            // Notify property changes after display level update
+            OnPropertyChanged(nameof(DisplayConfig));
         }
     }
+
+    /// <summary>
+    /// Fast display level calculation for delete operations (no window size calculation)
+    /// </summary>
+    private ProfileCardDisplayLevel CalculateOptimalDisplayLevelFast(int studentCount)
+    {
+        return cardSizeManager.DetermineSizeByCount(studentCount);
+    }
+
+    /// <summary>
+    /// Calculates the optimal display level based on student count and available view space
+    /// </summary>
+    private ProfileCardDisplayLevel CalculateOptimalDisplayLevel(int studentCount)
+    {
+        // Get the current view width from the main window
+        var mainWindow = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop 
+            ? desktop.MainWindow 
+            : null;
+        
+        var windowWidth = mainWindow?.Width ?? 1200; // Default fallback width
+        return cardSizeManager.DetermineOptimalSize(studentCount, windowWidth);
+    }
+
 
     private System.Threading.CancellationTokenSource? searchCts;
 
@@ -326,17 +408,17 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [RelayCommand]
     private void BackToGallery()
     {
-        System.Diagnostics.Debug.WriteLine("BackToGallery command executed - clearing search text, deselecting student, and forcing grid view");
+        // BackToGallery command executed
         // Clear search to show all students
         SearchText = string.Empty;
         // Also deselect the current student to ensure we exit single student mode
         SelectedStudent = null;
         // Force grid view to prevent single student mode
         ForceGridView = true;
-        // Set display level to Standard to maintain consistent card sizes
-        CurrentDisplayLevel = ProfileCardDisplayLevel.Standard;
-        DisplayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
-        System.Diagnostics.Debug.WriteLine("Search text cleared, student deselected, grid view forced, and display level set to Standard");
+        // Set display level to Medium to maintain consistent card sizes
+        CurrentDisplayLevel = ProfileCardDisplayLevel.Medium;
+        DisplayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium);
+        // Search cleared, student deselected, grid view forced
         // This will trigger ApplySearchImmediate which will show all students
     }
 
@@ -533,7 +615,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("Login command triggered");
+            // Login command triggered
             
             // Always create new auth service for login
             var newAuthService = new GoogleAuthService();
@@ -549,7 +631,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
                 }
                 catch (IOException ex) when (ex.Message.Contains("being used by another process"))
                 {
-                    System.Diagnostics.Debug.WriteLine($"Login attempt {attempt + 1} failed due to file lock, retrying...");
+                    // Login attempt failed due to file lock, retrying
                     if (attempt < 2)
                     {
                         await Task.Delay(300 * (attempt + 1)); // Exponential backoff
@@ -568,11 +650,11 @@ public partial class StudentGalleryViewModel : ViewModelBase
                 IsAuthenticated = true;
                 TeacherName = newAuthService.TeacherName;
                 await LoadProfileImageAsync();
-                System.Diagnostics.Debug.WriteLine("Login successful");
+                // Login successful
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("Login failed - authentication unsuccessful");
+                // Login failed - authentication unsuccessful
             }
         }
         catch (Exception ex)
@@ -586,7 +668,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("LOGOUT COMMAND TRIGGERED! - This should not happen when clicking back button");
+            // Logout command triggered
             if (authService != null)
             {
                 authService.ClearCredentials();
@@ -596,11 +678,11 @@ public partial class StudentGalleryViewModel : ViewModelBase
                 IsAuthenticated = false;
                 TeacherName = "Unknown Teacher";
                 ProfileImage = null;
-                System.Diagnostics.Debug.WriteLine("User logged out successfully");
+                // User logged out successfully
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("AuthService is null, but still resetting UI state");
+                // AuthService is null, but still resetting UI state
                 IsAuthenticated = false;
                 TeacherName = "Unknown Teacher";
                 ProfileImage = null;
@@ -618,19 +700,19 @@ public partial class StudentGalleryViewModel : ViewModelBase
         {
             if (userProfileService != null)
             {
-                System.Diagnostics.Debug.WriteLine("Loading profile image...");
+                // Loading profile image
                 var (profileImage, statusMessage) = await userProfileService.LoadProfileImageAsync();
                 
                 // Ensure UI thread update
                 await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     ProfileImage = profileImage;
-                    System.Diagnostics.Debug.WriteLine($"Profile image loaded: {profileImage != null}");
+                    // Profile image loaded
                 });
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("UserProfileService is null, cannot load profile image");
+                // UserProfileService is null, cannot load profile image
             }
         }
         catch (Exception ex)
@@ -644,83 +726,5 @@ public partial class StudentGalleryViewModel : ViewModelBase
         }
     }
 
-    private bool IsUserLikelyAuthenticated()
-    {
-        try
-        {
-            var credPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SchoolOrganizer", "Google.Apis.Auth.OAuth2.Responses.TokenResponse-user");
-            return File.Exists(credPath);
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
-    private async Task CheckExistingAuthenticationAsync()
-    {
-        try
-        {
-            // First check if credentials file exists to avoid unnecessary API calls
-            var credPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SchoolOrganizer", "Google.Apis.Auth.OAuth2.Responses.TokenResponse-user");
-            
-            if (File.Exists(credPath))
-            {
-                System.Diagnostics.Debug.WriteLine("Credentials file found, checking authentication...");
-                var authService = new GoogleAuthService();
-                
-                // Add retry logic for authentication
-                bool isAuthenticated = false;
-                for (int attempt = 0; attempt < 3; attempt++)
-                {
-                    try
-                    {
-                        isAuthenticated = await authService.CheckAndAuthenticateAsync();
-                        if (isAuthenticated) break;
-                    }
-                    catch (IOException ex) when (ex.Message.Contains("being used by another process"))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Authentication attempt {attempt + 1} failed due to file lock, retrying...");
-                        if (attempt < 2)
-                        {
-                            await Task.Delay(200 * (attempt + 1)); // Exponential backoff
-                            continue;
-                        }
-                        throw;
-                    }
-                }
-                
-                if (isAuthenticated)
-                {
-                    this.authService = authService;
-                    userProfileService = new UserProfileService(authService);
-                    IsAuthenticated = true;
-                    TeacherName = authService.TeacherName;
-                    await LoadProfileImageAsync();
-                    System.Diagnostics.Debug.WriteLine("Existing authentication found and restored");
-                }
-                else
-                {
-                    // Authentication failed, reset to not authenticated
-                    IsAuthenticated = false;
-                    TeacherName = "Unknown Teacher";
-                    System.Diagnostics.Debug.WriteLine("Credentials file exists but authentication failed");
-                }
-            }
-            else
-            {
-                // No credentials file, ensure we're not authenticated
-                IsAuthenticated = false;
-                TeacherName = "Unknown Teacher";
-                System.Diagnostics.Debug.WriteLine("No credentials file found, user not authenticated");
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error checking existing authentication: {ex.Message}");
-            // On error, assume not authenticated
-            IsAuthenticated = false;
-            TeacherName = "Unknown Teacher";
-        }
-    }
 }

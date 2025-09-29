@@ -144,16 +144,22 @@ public partial class StudentGalleryView : UserControl
             // When Students collection changes, re-wire events after UI updates
             Dispatcher.UIThread.Post(() => WireUpAllProfileCardEvents(), DispatcherPriority.Background);
         }
+        else if (e.PropertyName == "DisplayConfig")
+        {
+            // When DisplayConfig changes, update card layout with new dimensions
+            // DisplayConfig changed, updating card layout
+            Dispatcher.UIThread.Post(() => UpdateCardLayout(), DispatcherPriority.Render);
+        }
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("StudentGalleryView DataContextChanged called");
+        // DataContext changed
         
         // Unsubscribe from previous ViewModel if any
         if (sender is StudentGalleryView view && view.Tag is StudentGalleryViewModel oldViewModel)
         {
-            System.Diagnostics.Debug.WriteLine("Unsubscribing from old ViewModel");
+            // Unsubscribing from old ViewModel
             oldViewModel.AddStudentRequested -= HandleAddStudentRequested;
             oldViewModel.StudentImageChangeRequested -= HandleStudentImageChangeRequested;
             oldViewModel.EditStudentRequested -= HandleEditStudentRequested;
@@ -167,7 +173,7 @@ public partial class StudentGalleryView : UserControl
         // Subscribe to new ViewModel
         if (DataContext is StudentGalleryViewModel viewModel)
         {
-            System.Diagnostics.Debug.WriteLine("ViewModel found via DataContextChanged, subscribing to events");
+            // Subscribing to ViewModel events
             viewModel.AddStudentRequested += HandleAddStudentRequested;
             viewModel.StudentImageChangeRequested += HandleStudentImageChangeRequested;
             viewModel.EditStudentRequested += HandleEditStudentRequested;
@@ -182,11 +188,11 @@ public partial class StudentGalleryView : UserControl
             {
                 _keyboardHandler?.Dispose(); // Clean up previous handler
                 _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox, this);
-                System.Diagnostics.Debug.WriteLine("GlobalKeyboardHandler initialized successfully");
+                // GlobalKeyboardHandler initialized
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("SearchTextBox not found, keyboard handler not initialized");
+                // SearchTextBox not found, keyboard handler not initialized
             }
             
             // Ensure ItemsControl container events are properly subscribed
@@ -199,7 +205,7 @@ public partial class StudentGalleryView : UserControl
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine($"DataContext is not StudentGalleryViewModel, it's: {DataContext?.GetType().Name ?? "null"}");
+            // DataContext is not StudentGalleryViewModel
         }
     }
 
@@ -208,7 +214,7 @@ public partial class StudentGalleryView : UserControl
     /// </summary>
     public void ReinitializeKeyboardHandler()
     {
-        System.Diagnostics.Debug.WriteLine("ReinitializeKeyboardHandler called");
+        // Reinitializing keyboard handler
         if (DataContext is StudentGalleryViewModel viewModel)
         {
             var searchTextBox = this.FindControl<TextBox>("SearchTextBox");
@@ -216,20 +222,20 @@ public partial class StudentGalleryView : UserControl
             {
                 _keyboardHandler?.Dispose(); // Clean up previous handler
                 _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox, this);
-                System.Diagnostics.Debug.WriteLine("GlobalKeyboardHandler re-initialized successfully");
+                // GlobalKeyboardHandler re-initialized
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("SearchTextBox not found, keyboard handler not re-initialized");
+                // SearchTextBox not found, keyboard handler not re-initialized
             }
             
             // Also re-wire ProfileCard events to ensure double-click works
             WireUpAllProfileCardEvents();
-            System.Diagnostics.Debug.WriteLine("ProfileCard events re-wired");
+            // ProfileCard events re-wired
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine("DataContext is not StudentGalleryViewModel, cannot re-initialize keyboard handler");
+            // DataContext is not StudentGalleryViewModel, cannot re-initialize keyboard handler
         }
     }
 
@@ -242,7 +248,7 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine("Add student requested");
+            // Add student requested
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             if (parentWindow == null || ViewModel == null) return;
 
@@ -333,7 +339,7 @@ public partial class StudentGalleryView : UserControl
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("StudentGalleryView loaded");
+        // StudentGalleryView loaded
         
         // Ensure we have the container prepared event subscribed after loading
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
@@ -380,6 +386,12 @@ public partial class StudentGalleryView : UserControl
         UpdateCardLayout();
         // Recenter selected student on size changes
         Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
+        
+        // Update display level based on new window size
+        if (ViewModel != null)
+        {
+            ViewModel.OnWindowResized();
+        }
     }
 
     private void UpdateCardLayout()
@@ -391,13 +403,15 @@ public partial class StudentGalleryView : UserControl
 
             // Get the DisplayConfig card width instead of calculating it
             var viewModel = DataContext as StudentGalleryViewModel;
-            var displayConfig = viewModel?.DisplayConfig ?? ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
+            var displayConfig = viewModel?.DisplayConfig ?? ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium);
             var cardWidth = displayConfig.CardWidth;
+            
+            // Updating card layout
             
             // Apply the DisplayConfig sizing to all cards
             ApplyCardSizing(cardWidth);
 
-            System.Diagnostics.Debug.WriteLine($"Layout updated: Width={availableWidth:F0}, CardWidth={cardWidth:F0} (from DisplayConfig)");
+            // Layout updated successfully
         }
         catch (Exception ex)
         {
@@ -442,7 +456,7 @@ public partial class StudentGalleryView : UserControl
 
         // Use DisplayConfig dimensions instead of calculated ones to maintain proper proportions
         var viewModel = DataContext as StudentGalleryViewModel;
-        var displayConfig = viewModel?.DisplayConfig ?? ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
+        var displayConfig = viewModel?.DisplayConfig ?? ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium);
         
         var imageSize = displayConfig.ImageSize;
         var imageRadius = imageSize / 2;
@@ -452,20 +466,11 @@ public partial class StudentGalleryView : UserControl
         var placeholderFontSize = imageSize * 0.4;
         var cardPadding = 15; // Use standard padding
 
-        // DEBUG: Log the actual dimensions being applied
-        System.Diagnostics.Debug.WriteLine($"=== CARD SIZING DEBUG ===");
-        System.Diagnostics.Debug.WriteLine($"DisplayConfig Level: {displayConfig.Level}");
-        System.Diagnostics.Debug.WriteLine($"CardWidth (parameter): {cardWidth}");
-        System.Diagnostics.Debug.WriteLine($"DisplayConfig.CardWidth: {displayConfig.CardWidth}");
-        System.Diagnostics.Debug.WriteLine($"ImageSize: {imageSize} (should be 90 for Standard)");
-        System.Diagnostics.Debug.WriteLine($"NameFontSize: {nameFontSize} (should be 16 for Standard)");
-        System.Diagnostics.Debug.WriteLine($"ClassFontSize: {classFontSize} (should be 12 for Standard)");
-        System.Diagnostics.Debug.WriteLine($"MentorFontSize: {mentorFontSize} (should be 10 for Standard)");
-        System.Diagnostics.Debug.WriteLine($"CardPadding: {cardPadding} (should be 15)");
-        System.Diagnostics.Debug.WriteLine($"PlaceholderFontSize: {placeholderFontSize} (should be 36 for Standard)");
-        System.Diagnostics.Debug.WriteLine($"=========================");
+        // Applying card sizing
+        // Updating card containers
 
         // Update all existing card containers
+        int updatedContainers = 0;
         for (int i = 0; i < studentsContainer.ItemCount; i++)
         {
             var container = studentsContainer.ContainerFromIndex(i);
@@ -473,11 +478,12 @@ public partial class StudentGalleryView : UserControl
             {
                 UpdateCardElements(container, cardWidth, imageSize, imageRadius, nameFontSize, 
                                  classFontSize, mentorFontSize, placeholderFontSize, cardPadding);
+                updatedContainers++;
             }
         }
 
         // Store values for newly created containers
-        _currentCardWidth = cardWidth; // Use the cardWidth parameter
+        _currentCardWidth = cardWidth;
         _currentImageSize = imageSize;
         _currentImageRadius = imageRadius;
         _currentNameFontSize = nameFontSize;
@@ -485,6 +491,8 @@ public partial class StudentGalleryView : UserControl
         _currentMentorFontSize = mentorFontSize;
         _currentPlaceholderFontSize = placeholderFontSize;
         _currentCardPadding = cardPadding;
+
+        // Card sizing completed
     }
 
     private void UpdateCardElements(Control container, double cardWidth, double imageSize, double imageRadius,
@@ -495,14 +503,6 @@ public partial class StudentGalleryView : UserControl
         {
             // Only update elements that need to change from their default values
             var textMaxWidth = cardWidth - (cardPadding * 2);
-            
-            // DEBUG: Log what's being applied to individual elements
-            System.Diagnostics.Debug.WriteLine($"--- UpdateCardElements DEBUG ---");
-            System.Diagnostics.Debug.WriteLine($"Container: {container.GetType().Name}");
-            System.Diagnostics.Debug.WriteLine($"CardWidth: {cardWidth}, ImageSize: {imageSize}");
-            System.Diagnostics.Debug.WriteLine($"NameFont: {nameFontSize}, ClassFont: {classFontSize}, MentorFont: {mentorFontSize}");
-            System.Diagnostics.Debug.WriteLine($"TextMaxWidth: {textMaxWidth}");
-            System.Diagnostics.Debug.WriteLine($"--------------------------------");
             
             // Update card border width only if different from default
             if (Math.Abs(cardWidth - 240) > 1)
@@ -515,7 +515,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update button padding only if different from default
-            if (Math.Abs(cardPadding - 15) > 1) // Use DisplayConfig standard padding
+            if (Math.Abs(cardPadding - 15) > 1)
             {
                 var cardButton = FindNamedChild<Button>(container, "CardButton");
                 if (cardButton != null)
@@ -525,7 +525,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update image elements only if size changed significantly
-            if (Math.Abs(imageSize - 90) > 1) // Use DisplayConfig Standard image size
+            if (Math.Abs(imageSize - 90) > 1)
             {
                 var imageContainer = FindNamedChild<Grid>(container, "ImageContainer");
                 if (imageContainer != null)
@@ -559,7 +559,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update text elements only if font sizes changed
-            if (Math.Abs(nameFontSize - 16) > 0.5) // Use DisplayConfig Standard name font size
+            if (Math.Abs(nameFontSize - 16) > 0.5)
             {
                 var nameText = FindNamedChild<TextBlock>(container, "NameText");
                 if (nameText != null)
@@ -569,7 +569,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
 
-            if (Math.Abs(classFontSize - 12) > 0.5) // Use DisplayConfig Standard role font size
+            if (Math.Abs(classFontSize - 12) > 0.5)
             {
                 var classText = FindNamedChild<TextBlock>(container, "ClassText");
                 if (classText != null)
@@ -579,7 +579,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
 
-            if (Math.Abs(mentorFontSize - 10) > 0.5) // Use DisplayConfig Standard secondary font size
+            if (Math.Abs(mentorFontSize - 10) > 0.5)
             {
                 var mentorText = FindNamedChild<TextBlock>(container, "MentorText");
                 if (mentorText != null)
@@ -589,7 +589,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
 
-            if (Math.Abs(placeholderFontSize - 36) > 1) // 90 * 0.4 = 36 (DisplayConfig Standard image size * 0.4)
+            if (Math.Abs(placeholderFontSize - 36) > 1)
             {
                 var placeholderText = FindNamedChild<TextBlock>(container, "PlaceholderText");
                 if (placeholderText != null)
@@ -599,7 +599,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update info container max width if needed
-            if (Math.Abs(textMaxWidth - 210) > 1) // 240 - (15 * 2) = 210 (DisplayConfig Standard card width - padding)
+            if (Math.Abs(textMaxWidth - 210) > 1)
             {
                 var infoContainer = FindNamedChild<StackPanel>(container, "InfoContainer");
                 if (infoContainer != null)
@@ -654,11 +654,11 @@ public partial class StudentGalleryView : UserControl
                 // Add the handlers
                 profileCard.ImageClicked += OnProfileCardImageClicked;
                 profileCard.CardDoubleClicked += OnProfileCardDoubleClicked;
-                System.Diagnostics.Debug.WriteLine($"Wired up ImageClicked and CardDoubleClicked events for ProfileCard with DataContext: {(profileCard.DataContext as SchoolOrganizer.Models.Student)?.Name ?? "null"}");
+                // Wired up ProfileCard events
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"No ProfileCard found in container. Container type: {container.GetType().Name}, Children count: {container.GetVisualChildren().Count()}");
+                // No ProfileCard found in container
             }
         }
         catch (Exception ex)
@@ -669,7 +669,7 @@ public partial class StudentGalleryView : UserControl
 
     private async void OnProfileCardImageClicked(object? sender, SchoolOrganizer.Models.Student student)
     {
-        System.Diagnostics.Debug.WriteLine($"ProfileCard ImageClicked event fired for student: {student?.Name ?? "null"}");
+        // ProfileCard ImageClicked event fired
         if (student != null)
         {
             await HandleStudentImageChange(student);
@@ -678,14 +678,14 @@ public partial class StudentGalleryView : UserControl
 
     private async void OnProfileCardDoubleClicked(object? sender, SchoolOrganizer.Models.Student student)
     {
-        System.Diagnostics.Debug.WriteLine($"ProfileCard CardDoubleClicked event fired for student: {student?.Name ?? "null"}");
+        // ProfileCard CardDoubleClicked event fired
         if (student != null && ViewModel != null)
         {
             // Clear search first, then set it to the student's name to ensure the search triggers
             ViewModel.SearchText = string.Empty;
             await Task.Delay(10); // Small delay to ensure the clear takes effect
             ViewModel.SearchText = student.Name;
-            System.Diagnostics.Debug.WriteLine($"Set search text to '{student.Name}' to show big view mode");
+            // Set search text to show big view mode
         }
     }
 
@@ -733,7 +733,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
             
-            System.Diagnostics.Debug.WriteLine($"Wired up events for {profileCards.Count()} ProfileCards");
+            // Wired up ProfileCard events
         }
         catch (Exception ex)
         {

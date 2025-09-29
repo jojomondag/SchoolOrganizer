@@ -95,6 +95,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 TeacherName = _authService.TeacherName;
                 await LoadProfileImageAsync();
                 Greeting = $"Welcome, {TeacherName}!";
+                
+                // Update StudentGalleryViewModel with authentication state
+                _studentGalleryViewModel.UpdateAuthenticationState(_authService);
             }
             else
             {
@@ -136,6 +139,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 TeacherName = _authService.TeacherName;
                 await LoadProfileImageAsync();
                 Greeting = $"Welcome back, {TeacherName}!";
+                
+                // Update StudentGalleryViewModel with authentication state
+                _studentGalleryViewModel.UpdateAuthenticationState(_authService);
             }
         }
         catch (Exception ex)
@@ -150,10 +156,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var (profileImage, statusMessage) = await _userProfileService.LoadProfileImageAsync();
             ProfileImage = profileImage;
-            if (profileImage != null)
-            {
-                Log.Information("Profile image loaded successfully");
-            }
+            
+            // Also set the profile image in StudentGalleryViewModel
+            _studentGalleryViewModel.SetProfileImage(profileImage);
+            
+            // Logging is handled by UserProfileService
         }
         catch (Exception ex)
         {

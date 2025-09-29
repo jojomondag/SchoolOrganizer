@@ -6,8 +6,8 @@ echo 🧹 Cleaning project...
 ::dotnet clean
 
 echo.
-echo 🔨 Building project...
-dotnet build
+echo 🔨 Building project in Debug mode...
+dotnet build --configuration Debug
 
 if %ERRORLEVEL% EQU 0 (
     echo.

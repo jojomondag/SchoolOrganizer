@@ -19,7 +19,7 @@
   </UserControl.Resources>
 
   <UserControl.Styles>
-    <!-- Disable hover effects when in Expanded level (student count <= 4) -->
+    <!-- Disable hover effects when in Full level -->
     <Style Selector="Border.ProfileImageBorder:pointerover">
       <Setter Property="RenderTransform" Value="scale(1)"/>
       <Setter Property="Opacity" Value="1"/>
@@ -34,8 +34,8 @@
           VerticalAlignment="Stretch"
           BorderThickness="0"
           ClipToBounds="False"
-          Width="240"
-          Height="176"
+          Width="200"
+          Height="220"
           Opacity="{Binding PictureUrl, Converter={StaticResource AddCardOpacityConverter}}"
           DoubleTapped="OnPersonCardDoubleTapped">
     
@@ -58,32 +58,32 @@
   <Border x:Name="ProfileImageBorder"
         Background="{DynamicResource TransparentColor}"
         Classes="ProfileImageBorder"
-        CornerRadius="46"
+        CornerRadius="40"
         BorderThickness="2"
         BorderBrush="{DynamicResource BlackColor}"
         Padding="0"
         PointerReleased="OnProfileImagePointerReleased"
         HorizontalAlignment="Center"
         VerticalAlignment="Center"
-        Width="72"
-        Height="72"
+        Width="80"
+        Height="80"
         Margin="0,0,0,8">
     
         
         <!-- Circular Profile Image -->
-        <Grid x:Name="ProfileImageGrid" Width="67" Height="67">
+        <Grid x:Name="ProfileImageGrid" Width="75" Height="75">
           <!-- Background circle for when no image is present -->
           <Ellipse x:Name="ProfileImageBackground"
-                   Width="67" 
-                   Height="67"
+                   Width="75" 
+                   Height="75"
                    Fill="{DynamicResource BackgroundTertiaryColor}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
           
           <!-- Special background for add card -->
           <Ellipse x:Name="AddCardBackground"
-                   Width="67" 
-                   Height="67"
+                   Width="75" 
+                   Height="75"
                    Fill="{DynamicResource LightBlueColor}"
                    Opacity="0.3"
                    HorizontalAlignment="Center"
@@ -92,8 +92,8 @@
           
           <!-- Profile image overlay (for regular students) -->
           <Ellipse x:Name="ProfileImageEllipse"
-                   Width="67" 
-                   Height="67"
+                   Width="75" 
+                   Height="75"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    IsVisible="{Binding PictureUrl, Converter={StaticResource RegularImageConverter}}">
@@ -105,13 +105,13 @@
           
           <!-- Plus sign for add card (perfectly centered) -->
           <Grid x:Name="AddCardPlusSign"
-                Width="67"
-                Height="67"
+                Width="75"
+                Height="75"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 IsVisible="{Binding PictureUrl, Converter={StaticResource AddCardImageConverter}}">
             <TextBlock Text="+"
-                       FontSize="29"
+                       FontSize="32"
                        FontWeight="Normal"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -132,7 +132,7 @@
                    TextWrapping="NoWrap"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis"
-                   FontSize="13"
+                   FontSize="14"
                    MaxWidth="160"
                    Margin="0,0,0,3"/>
         
@@ -143,21 +143,22 @@
                    TextWrapping="NoWrap"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis"
-                   FontSize="10"
+                   FontSize="11"
                    MaxWidth="160"
-                   Margin="0,0,0,3"/>
+                   Margin="0,0,0,3"
+                   IsVisible="True"/>
         
         <TextBlock x:Name="SecondaryText"
                    Text="{Binding SecondaryInfo}" 
                    Foreground="{DynamicResource BlackColor}"
                    HorizontalAlignment="Center"
-                   TextWrapping="NoWrap"
+                   TextWrapping="Wrap"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis"
-                   FontSize="8"
+                   FontSize="10"
                    MaxWidth="160"
                    Margin="0,0,0,6"
-                   IsVisible="{Binding SecondaryInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                   IsVisible="True"/>
         
         <TextBlock x:Name="EmailText"
                    Text="{Binding Email}" 

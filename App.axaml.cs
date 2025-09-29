@@ -17,9 +17,9 @@ public partial class App : Application
 {
     public override void Initialize()
     {
-        // Initialize Serilog
+        // Initialize Serilog - only show warnings and errors in console
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
+            .WriteTo.Console(restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
             .WriteTo.File("logs/schoolorganizer-.txt", rollingInterval: RollingInterval.Day)
             .CreateLogger();
 

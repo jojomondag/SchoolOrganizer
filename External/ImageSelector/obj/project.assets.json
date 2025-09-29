@@ -1417,31 +1417,25 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Josef\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "/Users/josef.nobach/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\External\\ImageSelector\\ImageSelector.csproj",
+      "projectUniqueName": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/External/ImageSelector/ImageSelector.csproj",
       "projectName": "ImageSelector",
-      "projectPath": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\External\\ImageSelector\\ImageSelector.csproj",
-      "packagesPath": "C:\\Users\\Josef\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\External\\ImageSelector\\obj\\",
+      "projectPath": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/External/ImageSelector/ImageSelector.csproj",
+      "packagesPath": "/Users/josef.nobach/.nuget/packages/",
+      "outputPath": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/External/ImageSelector/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\Josef\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/Users/josef.nobach/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "/usr/local/share/dotnet/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -1507,7 +1501,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.202/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

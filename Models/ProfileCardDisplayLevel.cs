@@ -1,33 +1,27 @@
 namespace SchoolOrganizer.Models;
 
 /// <summary>
-/// Defines different display levels for ProfileCard based on available space and context
+/// Defines different display levels for ProfileCard - simplified to 3 sizes
 /// </summary>
 public enum ProfileCardDisplayLevel
 {
     /// <summary>
-    /// Compact view - Small card with minimal info (90x90 image, name only)
-    /// Used when many cards are displayed or limited space
+    /// Small view - Name and image only
+    /// Used when many cards are displayed
     /// </summary>
-    Compact,
+    Small,
     
     /// <summary>
-    /// Standard view - Default card size with basic info (120x120 image, name + role)
+    /// Medium view - Name, class, mentor name, and image
     /// Used for normal gallery view
     /// </summary>
-    Standard,
+    Medium,
     
     /// <summary>
-    /// Detailed view - Larger card with extended info (150x150 image, name + role + secondary + email)
-    /// Used when fewer cards are shown or more space is available
+    /// Full view - Single card in full detail view
+    /// Used when showing one student in detail
     /// </summary>
-    Detailed,
-    
-    /// <summary>
-    /// Expanded view - Maximum card size with all available information (180x180 image, all details + enrollment date)
-    /// Used when very few cards are displayed or in single-card context
-    /// </summary>
-    Expanded
+    Full
 }
 
 /// <summary>
@@ -50,59 +44,46 @@ public class ProfileCardDisplayConfig
     {
         return level switch
         {
-            ProfileCardDisplayLevel.Compact => new()
+            ProfileCardDisplayLevel.Small => new()
             {
                 Level = level,
                 ImageSize = 70,
-                CardWidth = 180,
-                CardHeight = 240,
-                NameFontSize = 14,
-                RoleFontSize = 10,
-                SecondaryFontSize = 9,
+                CardWidth = 160,
+                CardHeight = 180,
+                NameFontSize = 13,
+                RoleFontSize = 11, // Class name - show this
+                SecondaryFontSize = 1, // Mentor name - hide this
                 ShowEmail = false,
                 ShowEnrollmentDate = false,
-                ShowSecondaryInfo = false
+                ShowSecondaryInfo = false // Only show class, not mentor
             },
-            ProfileCardDisplayLevel.Standard => new()
+            ProfileCardDisplayLevel.Medium => new()
             {
                 Level = level,
-                ImageSize = 90,
-                CardWidth = 240,
-                CardHeight = 320,
-                NameFontSize = 16,
-                RoleFontSize = 12,
-                SecondaryFontSize = 10,
+                ImageSize = 80,
+                CardWidth = 200,
+                CardHeight = 220,
+                NameFontSize = 14,
+                RoleFontSize = 11, // Class name
+                SecondaryFontSize = 10, // Mentor name
                 ShowEmail = false,
                 ShowEnrollmentDate = false,
                 ShowSecondaryInfo = true
             },
-            ProfileCardDisplayLevel.Detailed => new()
+            ProfileCardDisplayLevel.Full => new()
             {
                 Level = level,
                 ImageSize = 120,
                 CardWidth = 300,
                 CardHeight = 400,
                 NameFontSize = 18,
-                RoleFontSize = 14,
-                SecondaryFontSize = 12,
-                ShowEmail = true,
-                ShowEnrollmentDate = false,
-                ShowSecondaryInfo = true
-            },
-            ProfileCardDisplayLevel.Expanded => new()
-            {
-                Level = level,
-                ImageSize = 150,
-                CardWidth = 360,
-                CardHeight = 480,
-                NameFontSize = 20,
-                RoleFontSize = 16,
-                SecondaryFontSize = 14,
+                RoleFontSize = 14, // Class name
+                SecondaryFontSize = 12, // Mentor name
                 ShowEmail = true,
                 ShowEnrollmentDate = true,
                 ShowSecondaryInfo = true
             },
-            _ => GetConfig(ProfileCardDisplayLevel.Standard)
+            _ => GetConfig(ProfileCardDisplayLevel.Medium)
         };
     }
 }

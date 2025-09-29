@@ -302,7 +302,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         BorderThickness="2"
-                        Width="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).DisplayConfig, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=CardWidth}"
+                        Width="{Binding $parent[UserControl].DataContext.DisplayConfig, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=CardWidth}"
                         RenderTransformOrigin="0.5,0.5">
                   
                   <Border.Styles>
@@ -320,7 +320,7 @@
                   
                   <Border.BorderBrush>
                     <MultiBinding Converter="{StaticResource StudentSelectionBrushConverter}">
-                      <Binding Path="$parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectedStudent"/>
+                      <Binding Path="$parent[UserControl].DataContext.SelectedStudent"/>
                       <Binding Path="."/>
                     </MultiBinding>
                   </Border.BorderBrush>
@@ -336,7 +336,7 @@
                   <!-- Use ProfileCard for all cards -->
                   <Border CornerRadius="8" ClipToBounds="True" Background="{DynamicResource TransparentColor}">
                     <profileCard:ProfileCard DataContext="{Binding}" 
-                                           DisplayConfig="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).DisplayConfig}"
+                                           DisplayConfig="{Binding $parent[UserControl].DataContext.DisplayConfig}"
                                            Margin="0"/>
                   </Border>
                 </Border>
@@ -430,16 +430,16 @@
               </Grid.RowDefinitions>
 
               <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="Bold" Margin="0,0,10,0"/>
-              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedStudent.Name, FallbackValue='', TargetNullValue=''}" Margin="0,0,20,0"/>
+              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedStudent.Name, FallbackValue='No student selected', TargetNullValue='No student selected'}" Margin="0,0,20,0"/>
               
               <TextBlock Grid.Row="0" Grid.Column="2" Text="Email:" FontWeight="Bold" Margin="0,0,10,0"/>
-              <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding SelectedStudent.Email, FallbackValue='', TargetNullValue=''}"/>
+              <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding SelectedStudent.Email, FallbackValue='No student selected', TargetNullValue='No student selected'}"/>
 
               <TextBlock Grid.Row="1" Grid.Column="0" Text="Class:" FontWeight="Bold" Margin="0,0,10,0"/>
-              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedStudent.ClassName, FallbackValue='', TargetNullValue=''}" Margin="0,0,20,0"/>
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedStudent.ClassName, FallbackValue='No student selected', TargetNullValue='No student selected'}" Margin="0,0,20,0"/>
               
               <TextBlock Grid.Row="1" Grid.Column="2" Text="Mentors:" FontWeight="Bold" Margin="0,0,10,0"/>
-              <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudent.SecondaryInfo, FallbackValue='', TargetNullValue=''}"/>
+              <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudent.SecondaryInfo, FallbackValue='No student selected', TargetNullValue='No student selected'}"/>
             </Grid>
           </StackPanel>
         </Grid>

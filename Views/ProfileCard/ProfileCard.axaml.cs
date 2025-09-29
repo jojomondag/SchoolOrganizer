@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using SchoolOrganizer.Models;
 using SchoolOrganizer.ViewModels;
 using SchoolOrganizer.Views.StudentGallery;
@@ -17,7 +18,7 @@ public partial class ProfileCard : UserControl
     public static readonly StyledProperty<ProfileCardDisplayConfig> DisplayConfigProperty =
         AvaloniaProperty.Register<ProfileCard, ProfileCardDisplayConfig>(
             nameof(DisplayConfig), 
-            ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard));
+            ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium));
 
     public ProfileCardDisplayConfig DisplayConfig
     {
@@ -28,6 +29,15 @@ public partial class ProfileCard : UserControl
     public ProfileCard()
     {
         InitializeComponent();
+        
+        // Initialize appearance after the component is loaded
+        this.Loaded += (s, e) => 
+        {
+            if (DisplayConfig != null)
+            {
+                UpdateCardAppearance(DisplayConfig);
+            }
+        };
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -47,6 +57,23 @@ public partial class ProfileCard : UserControl
     private void UpdateCardAppearance(ProfileCardDisplayConfig config)
     {
         if (ProfileImageBorder == null) return;
+
+        var person = DataContext as IPerson;
+        var student = person as Student;
+        
+        Console.WriteLine($"=== ProfileCard UpdateCardAppearance ===");
+        Console.WriteLine($"Person: {person?.Name ?? "null"}");
+        Console.WriteLine($"Display Level: {config.Level}");
+        Console.WriteLine($"ShowSecondaryInfo: {config.ShowSecondaryInfo}");
+        Console.WriteLine($"RoleFontSize: {config.RoleFontSize}");
+        Console.WriteLine($"SecondaryFontSize: {config.SecondaryFontSize}");
+        
+        if (student != null)
+        {
+            Console.WriteLine($"Student Class: {student.ClassName}");
+            Console.WriteLine($"Student RoleInfo: {student.RoleInfo}");
+            Console.WriteLine($"Student SecondaryInfo: {student.SecondaryInfo}");
+        }
 
         var cornerRadius = config.ImageSize / 2;
         var innerSize = config.ImageSize - 6;
@@ -71,7 +98,14 @@ public partial class ProfileCard : UserControl
         // Update visibility
         EmailText.IsVisible = config.ShowEmail && !string.IsNullOrWhiteSpace(((IPerson?)DataContext)?.Email);
         EnrollmentText.IsVisible = config.ShowEnrollmentDate;
-        SecondaryText.IsVisible = config.ShowSecondaryInfo;
+        RoleText.IsVisible = true; // Always show class name (RoleInfo)
+        SecondaryText.IsVisible = config.ShowSecondaryInfo; // Only show mentor when ShowSecondaryInfo is true
+        
+        Console.WriteLine($"RoleText.IsVisible: {RoleText.IsVisible}");
+        Console.WriteLine($"SecondaryText.IsVisible: {SecondaryText.IsVisible}");
+        Console.WriteLine($"RoleText.Text: '{RoleText.Text}'");
+        Console.WriteLine($"SecondaryText.Text: '{SecondaryText.Text}'");
+        Console.WriteLine($"=== End ProfileCard UpdateCardAppearance ===");
         
         // Update image interactivity
         UpdateImageInteractivity();
