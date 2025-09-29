@@ -14,6 +14,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly GoogleAuthService _authService;
     private readonly UserProfileService _userProfileService;
+    private readonly StudentGalleryViewModel _studentGalleryViewModel;
 
     [ObservableProperty]
     private ViewModelBase currentViewModel;
@@ -34,7 +35,8 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         _authService = authService ?? new GoogleAuthService();
         _userProfileService = new UserProfileService(_authService);
-        CurrentViewModel = new StudentGalleryViewModel(authService);
+        _studentGalleryViewModel = new StudentGalleryViewModel(authService);
+        CurrentViewModel = _studentGalleryViewModel;
         
         // If we have an authService, we're already authenticated
         if (authService != null)
@@ -72,7 +74,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void NavigateToStudentGallery()
     {
-        CurrentViewModel = new StudentGalleryViewModel();
+        CurrentViewModel = _studentGalleryViewModel;
     }
 
     [RelayCommand]

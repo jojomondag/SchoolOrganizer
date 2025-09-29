@@ -98,9 +98,35 @@ public class GoogleAuthService
 
     private async Task<bool> RefreshTokenAsync()
     {
-        bool refreshed = await _credential!.RefreshTokenAsync(CancellationToken.None);
-        Log.Information(refreshed ? "Token refreshed successfully." : "Token refresh failed.");
-        return refreshed;
+        try
+        {
+            // Use a retry mechanism with file locking
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    bool refreshed = await _credential!.RefreshTokenAsync(CancellationToken.None);
+                    Log.Information(refreshed ? "Token refreshed successfully." : "Token refresh failed.");
+                    return refreshed;
+                }
+                catch (IOException ex) when (ex.Message.Contains("being used by another process"))
+                {
+                    Log.Warning($"Token refresh attempt {attempt + 1} failed due to file lock, retrying...");
+                    if (attempt < 2)
+                    {
+                        await Task.Delay(100 * (attempt + 1)); // Exponential backoff
+                        continue;
+                    }
+                    throw;
+                }
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Token refresh failed after retries");
+            return false;
+        }
     }
 
     private void InitializeServices()

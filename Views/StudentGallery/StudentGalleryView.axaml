@@ -430,16 +430,16 @@
               </Grid.RowDefinitions>
 
               <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="Bold" Margin="0,0,10,0"/>
-              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedStudent.Name}" Margin="0,0,20,0"/>
+              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedStudent.Name, FallbackValue='', TargetNullValue=''}" Margin="0,0,20,0"/>
               
               <TextBlock Grid.Row="0" Grid.Column="2" Text="Email:" FontWeight="Bold" Margin="0,0,10,0"/>
-              <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding SelectedStudent.Email}"/>
+              <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding SelectedStudent.Email, FallbackValue='', TargetNullValue=''}"/>
 
               <TextBlock Grid.Row="1" Grid.Column="0" Text="Class:" FontWeight="Bold" Margin="0,0,10,0"/>
-              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedStudent.ClassName}" Margin="0,0,20,0"/>
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedStudent.ClassName, FallbackValue='', TargetNullValue=''}" Margin="0,0,20,0"/>
               
               <TextBlock Grid.Row="1" Grid.Column="2" Text="Mentors:" FontWeight="Bold" Margin="0,0,10,0"/>
-              <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudent.SecondaryInfo}"/>
+              <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudent.SecondaryInfo, FallbackValue='', TargetNullValue=''}"/>
             </Grid>
           </StackPanel>
         </Grid>

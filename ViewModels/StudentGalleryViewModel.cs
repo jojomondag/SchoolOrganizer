@@ -44,6 +44,9 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [ObservableProperty]
     private ProfileCardDisplayConfig displayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
 
+    [ObservableProperty]
+    private bool forceGridView = false;
+
     // Authentication properties
     [ObservableProperty]
     private Bitmap? profileImage;
@@ -60,8 +63,8 @@ public partial class StudentGalleryViewModel : ViewModelBase
     }
 
     // Properties for controlling view mode
-    public bool ShowSingleStudent => Students.Count == 2 && Students.Any(s => s is Student); // Only one actual student + add card
-    public bool ShowMultipleStudents => Students.Count != 2 || !Students.Any(s => s is Student); // Multiple students or no students
+    public bool ShowSingleStudent => !ForceGridView && Students.Count == 2 && Students.Any(s => s is Student); // Only one actual student + add card
+    public bool ShowMultipleStudents => ForceGridView || Students.Count != 2 || !Students.Any(s => s is Student); // Multiple students or no students
     public bool ShowEmptyState => Students.Count == 1 && !Students.Any(s => s is Student); // Only add card, no actual students
     
     // Safe property to get first student without index errors
@@ -155,6 +158,8 @@ public partial class StudentGalleryViewModel : ViewModelBase
         if (person is Student student)
         {
             SelectedStudent = student;
+            // Reset force grid view when a student is selected
+            ForceGridView = false;
         }
     }
 
@@ -213,6 +218,11 @@ public partial class StudentGalleryViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string value)
     {
+        // Reset force grid view when user starts a new search
+        if (ForceGridView && !string.IsNullOrEmpty(value))
+        {
+            ForceGridView = false;
+        }
         _ = ApplySearchDebounced();
     }
 
@@ -225,8 +235,21 @@ public partial class StudentGalleryViewModel : ViewModelBase
         OnPropertyChanged(nameof(FirstStudent));
     }
 
+    partial void OnForceGridViewChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowSingleStudent));
+        OnPropertyChanged(nameof(ShowMultipleStudents));
+    }
+
     private void UpdateDisplayLevelBasedOnItemCount()
     {
+        // Don't change display level if we're forcing grid view
+        if (ForceGridView)
+        {
+            System.Diagnostics.Debug.WriteLine("ForceGridView is true, skipping display level update");
+            return;
+        }
+
         // Count only actual students, not the add card
         var studentCount = Students.OfType<Student>().Count();
         var newLevel = studentCount switch
@@ -239,6 +262,7 @@ public partial class StudentGalleryViewModel : ViewModelBase
 
         if (newLevel != CurrentDisplayLevel)
         {
+            System.Diagnostics.Debug.WriteLine($"Updating display level from {CurrentDisplayLevel} to {newLevel} (student count: {studentCount})");
             CurrentDisplayLevel = newLevel;
             DisplayConfig = ProfileCardDisplayConfig.GetConfig(newLevel);
         }
@@ -302,10 +326,17 @@ public partial class StudentGalleryViewModel : ViewModelBase
     [RelayCommand]
     private void BackToGallery()
     {
-        System.Diagnostics.Debug.WriteLine("BackToGallery command executed - clearing search text");
+        System.Diagnostics.Debug.WriteLine("BackToGallery command executed - clearing search text, deselecting student, and forcing grid view");
         // Clear search to show all students
         SearchText = string.Empty;
-        System.Diagnostics.Debug.WriteLine("Search text cleared, new value: '{SearchText}'");
+        // Also deselect the current student to ensure we exit single student mode
+        SelectedStudent = null;
+        // Force grid view to prevent single student mode
+        ForceGridView = true;
+        // Set display level to Standard to maintain consistent card sizes
+        CurrentDisplayLevel = ProfileCardDisplayLevel.Standard;
+        DisplayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
+        System.Diagnostics.Debug.WriteLine("Search text cleared, student deselected, grid view forced, and display level set to Standard");
         // This will trigger ApplySearchImmediate which will show all students
     }
 
@@ -506,7 +537,27 @@ public partial class StudentGalleryViewModel : ViewModelBase
             
             // Always create new auth service for login
             var newAuthService = new GoogleAuthService();
-            var isAuthenticated = await newAuthService.AuthenticateAsync();
+            
+            // Add retry logic for login
+            bool isAuthenticated = false;
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    isAuthenticated = await newAuthService.AuthenticateAsync();
+                    if (isAuthenticated) break;
+                }
+                catch (IOException ex) when (ex.Message.Contains("being used by another process"))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Login attempt {attempt + 1} failed due to file lock, retrying...");
+                    if (attempt < 2)
+                    {
+                        await Task.Delay(300 * (attempt + 1)); // Exponential backoff
+                        continue;
+                    }
+                    throw;
+                }
+            }
             
             if (isAuthenticated)
             {
@@ -617,7 +668,28 @@ public partial class StudentGalleryViewModel : ViewModelBase
             {
                 System.Diagnostics.Debug.WriteLine("Credentials file found, checking authentication...");
                 var authService = new GoogleAuthService();
-                bool isAuthenticated = await authService.CheckAndAuthenticateAsync();
+                
+                // Add retry logic for authentication
+                bool isAuthenticated = false;
+                for (int attempt = 0; attempt < 3; attempt++)
+                {
+                    try
+                    {
+                        isAuthenticated = await authService.CheckAndAuthenticateAsync();
+                        if (isAuthenticated) break;
+                    }
+                    catch (IOException ex) when (ex.Message.Contains("being used by another process"))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Authentication attempt {attempt + 1} failed due to file lock, retrying...");
+                        if (attempt < 2)
+                        {
+                            await Task.Delay(200 * (attempt + 1)); // Exponential backoff
+                            continue;
+                        }
+                        throw;
+                    }
+                }
+                
                 if (isAuthenticated)
                 {
                     this.authService = authService;

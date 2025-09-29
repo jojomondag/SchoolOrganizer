@@ -14,6 +14,7 @@ using Avalonia.Input;
 using SchoolOrganizer.Views.ProfileCard;
 using SchoolOrganizer.Views.Windows;
 using SchoolOrganizer.Services;
+using SchoolOrganizer.Models;
 
 
 namespace SchoolOrganizer.Views.StudentGallery;
@@ -388,16 +389,15 @@ public partial class StudentGalleryView : UserControl
             var availableWidth = Bounds.Width;
             if (availableWidth <= 0) return;
 
-            // Account for scrollviewer padding and potential scrollbar
-            var usableWidth = availableWidth - CONTAINER_PADDING - 20; // 20px for potential scrollbar
-
-            // Calculate optimal card width and columns
-            var (cardWidth, columns) = CalculateOptimalLayout(usableWidth);
+            // Get the DisplayConfig card width instead of calculating it
+            var viewModel = DataContext as StudentGalleryViewModel;
+            var displayConfig = viewModel?.DisplayConfig ?? ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
+            var cardWidth = displayConfig.CardWidth;
             
-            // Apply the calculated sizing to all cards
+            // Apply the DisplayConfig sizing to all cards
             ApplyCardSizing(cardWidth);
 
-            System.Diagnostics.Debug.WriteLine($"Layout updated: Width={availableWidth:F0}, Usable={usableWidth:F0}, CardWidth={cardWidth:F0}, Columns={columns}");
+            System.Diagnostics.Debug.WriteLine($"Layout updated: Width={availableWidth:F0}, CardWidth={cardWidth:F0} (from DisplayConfig)");
         }
         catch (Exception ex)
         {
@@ -440,14 +440,30 @@ public partial class StudentGalleryView : UserControl
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
         if (studentsContainer == null) return;
 
-        // Calculate proportional sizes based on card width (20% reduction applied)
-        var imageSize = Math.Max(96, cardWidth * 0.56); // Image is 56% of card width, min 96px (was 120px)
+        // Use DisplayConfig dimensions instead of calculated ones to maintain proper proportions
+        var viewModel = DataContext as StudentGalleryViewModel;
+        var displayConfig = viewModel?.DisplayConfig ?? ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Standard);
+        
+        var imageSize = displayConfig.ImageSize;
         var imageRadius = imageSize / 2;
-        var nameFontSize = Math.Max(11, cardWidth * 0.052); // Proportional to card width (was 14px)
-        var classFontSize = Math.Max(9, cardWidth * 0.04); // (was 11px)
-        var mentorFontSize = Math.Max(8, cardWidth * 0.034); // (was 10px)
-        var placeholderFontSize = Math.Max(38, imageSize * 0.4); // (was 48px)
-        var cardPadding = Math.Max(12, cardWidth * 0.06); // (was 15px)
+        var nameFontSize = displayConfig.NameFontSize;
+        var classFontSize = displayConfig.RoleFontSize;
+        var mentorFontSize = displayConfig.SecondaryFontSize;
+        var placeholderFontSize = imageSize * 0.4;
+        var cardPadding = 15; // Use standard padding
+
+        // DEBUG: Log the actual dimensions being applied
+        System.Diagnostics.Debug.WriteLine($"=== CARD SIZING DEBUG ===");
+        System.Diagnostics.Debug.WriteLine($"DisplayConfig Level: {displayConfig.Level}");
+        System.Diagnostics.Debug.WriteLine($"CardWidth (parameter): {cardWidth}");
+        System.Diagnostics.Debug.WriteLine($"DisplayConfig.CardWidth: {displayConfig.CardWidth}");
+        System.Diagnostics.Debug.WriteLine($"ImageSize: {imageSize} (should be 90 for Standard)");
+        System.Diagnostics.Debug.WriteLine($"NameFontSize: {nameFontSize} (should be 16 for Standard)");
+        System.Diagnostics.Debug.WriteLine($"ClassFontSize: {classFontSize} (should be 12 for Standard)");
+        System.Diagnostics.Debug.WriteLine($"MentorFontSize: {mentorFontSize} (should be 10 for Standard)");
+        System.Diagnostics.Debug.WriteLine($"CardPadding: {cardPadding} (should be 15)");
+        System.Diagnostics.Debug.WriteLine($"PlaceholderFontSize: {placeholderFontSize} (should be 36 for Standard)");
+        System.Diagnostics.Debug.WriteLine($"=========================");
 
         // Update all existing card containers
         for (int i = 0; i < studentsContainer.ItemCount; i++)
@@ -461,7 +477,7 @@ public partial class StudentGalleryView : UserControl
         }
 
         // Store values for newly created containers
-        _currentCardWidth = cardWidth;
+        _currentCardWidth = cardWidth; // Use the cardWidth parameter
         _currentImageSize = imageSize;
         _currentImageRadius = imageRadius;
         _currentNameFontSize = nameFontSize;
@@ -480,6 +496,14 @@ public partial class StudentGalleryView : UserControl
             // Only update elements that need to change from their default values
             var textMaxWidth = cardWidth - (cardPadding * 2);
             
+            // DEBUG: Log what's being applied to individual elements
+            System.Diagnostics.Debug.WriteLine($"--- UpdateCardElements DEBUG ---");
+            System.Diagnostics.Debug.WriteLine($"Container: {container.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine($"CardWidth: {cardWidth}, ImageSize: {imageSize}");
+            System.Diagnostics.Debug.WriteLine($"NameFont: {nameFontSize}, ClassFont: {classFontSize}, MentorFont: {mentorFontSize}");
+            System.Diagnostics.Debug.WriteLine($"TextMaxWidth: {textMaxWidth}");
+            System.Diagnostics.Debug.WriteLine($"--------------------------------");
+            
             // Update card border width only if different from default
             if (Math.Abs(cardWidth - 240) > 1)
             {
@@ -491,7 +515,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update button padding only if different from default
-            if (Math.Abs(cardPadding - 18) > 1)
+            if (Math.Abs(cardPadding - 15) > 1) // Use DisplayConfig standard padding
             {
                 var cardButton = FindNamedChild<Button>(container, "CardButton");
                 if (cardButton != null)
@@ -501,7 +525,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update image elements only if size changed significantly
-            if (Math.Abs(imageSize - 134) > 1) // 168 * 0.8 = 134
+            if (Math.Abs(imageSize - 90) > 1) // Use DisplayConfig Standard image size
             {
                 var imageContainer = FindNamedChild<Grid>(container, "ImageContainer");
                 if (imageContainer != null)
@@ -535,7 +559,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update text elements only if font sizes changed
-            if (Math.Abs(nameFontSize - 13) > 0.5) // 16 * 0.8 = 13
+            if (Math.Abs(nameFontSize - 16) > 0.5) // Use DisplayConfig Standard name font size
             {
                 var nameText = FindNamedChild<TextBlock>(container, "NameText");
                 if (nameText != null)
@@ -545,7 +569,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
 
-            if (Math.Abs(classFontSize - 10) > 0.5) // 12 * 0.8 = 10
+            if (Math.Abs(classFontSize - 12) > 0.5) // Use DisplayConfig Standard role font size
             {
                 var classText = FindNamedChild<TextBlock>(container, "ClassText");
                 if (classText != null)
@@ -555,7 +579,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
 
-            if (Math.Abs(mentorFontSize - 8) > 0.5) // 10 * 0.8 = 8
+            if (Math.Abs(mentorFontSize - 10) > 0.5) // Use DisplayConfig Standard secondary font size
             {
                 var mentorText = FindNamedChild<TextBlock>(container, "MentorText");
                 if (mentorText != null)
@@ -565,7 +589,7 @@ public partial class StudentGalleryView : UserControl
                 }
             }
 
-            if (Math.Abs(placeholderFontSize - 54) > 1) // 67 * 0.8 = 54
+            if (Math.Abs(placeholderFontSize - 36) > 1) // 90 * 0.4 = 36 (DisplayConfig Standard image size * 0.4)
             {
                 var placeholderText = FindNamedChild<TextBlock>(container, "PlaceholderText");
                 if (placeholderText != null)
@@ -575,7 +599,7 @@ public partial class StudentGalleryView : UserControl
             }
 
             // Update info container max width if needed
-            if (Math.Abs(textMaxWidth - 204) > 1)
+            if (Math.Abs(textMaxWidth - 210) > 1) // 240 - (15 * 2) = 210 (DisplayConfig Standard card width - padding)
             {
                 var infoContainer = FindNamedChild<StackPanel>(container, "InfoContainer");
                 if (infoContainer != null)
@@ -606,8 +630,22 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
-            // Find the ProfileCard within the container
+            // Find the ProfileCard within the container - try multiple approaches
             var profileCard = container.FindDescendantOfType<ProfileCard.ProfileCard>();
+            
+            // If not found, try looking in the visual tree more thoroughly
+            if (profileCard == null)
+            {
+                var allChildren = container.GetVisualDescendants().ToList();
+                profileCard = allChildren.OfType<ProfileCard.ProfileCard>().FirstOrDefault();
+            }
+            
+            // If still not found, try looking in the content
+            if (profileCard == null && container is ContentControl contentControl && contentControl.Content is ProfileCard.ProfileCard directCard)
+            {
+                profileCard = directCard;
+            }
+            
             if (profileCard != null)
             {
                 // Remove existing handlers to avoid duplicates
@@ -620,7 +658,7 @@ public partial class StudentGalleryView : UserControl
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("No ProfileCard found in container");
+                System.Diagnostics.Debug.WriteLine($"No ProfileCard found in container. Container type: {container.GetType().Name}, Children count: {container.GetVisualChildren().Count()}");
             }
         }
         catch (Exception ex)
