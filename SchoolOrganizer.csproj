@@ -43,6 +43,13 @@
       <AvaloniaResource Include="Views/Styles/Colors.axaml" />
   </ItemGroup>
 
+  <!-- Application icons -->
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\icon.ico" />
+    <AvaloniaResource Include="Assets\icon.icns" />
+    <AvaloniaResource Include="Assets\Logo.png" />
+  </ItemGroup>
+
   <!-- Exclude external project sources from main app compilation -->
   <ItemGroup>
     <Compile Remove="External/**" />
@@ -68,6 +75,7 @@
     <PackageReference Include="Google.Apis.Auth" Version="1.71.0" />
     <PackageReference Include="Google.Apis.Classroom.v1" Version="1.70.0.3891" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.71.0.3905" />
+    <PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />

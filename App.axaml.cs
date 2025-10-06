@@ -1,7 +1,9 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
@@ -24,6 +26,9 @@ public partial class App : Application
             .CreateLogger();
 
         AvaloniaXamlLoader.Load(this);
+
+        // Initialize theme system
+        ThemeManager.Initialize();
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -40,9 +45,43 @@ public partial class App : Application
             desktop.MainWindow = mainWindow;
             mainWindow.Show();
             Log.Information("Opened MainWindow - authentication handled in Student Gallery.");
+
+            // Prevent the app from shutting down when the main window is closed
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void TrayIcon_Clicked(object? sender, EventArgs e)
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            if (desktop.MainWindow != null)
+            {
+                desktop.MainWindow.Show();
+                desktop.MainWindow.WindowState = WindowState.Normal;
+                desktop.MainWindow.Activate();
+            }
+        }
+    }
+
+    private void DarkMode_Click(object? sender, EventArgs e)
+    {
+        ThemeManager.ApplyTheme(AppTheme.Dark);
+    }
+
+    private void LightMode_Click(object? sender, EventArgs e)
+    {
+        ThemeManager.ApplyTheme(AppTheme.Light);
+    }
+
+    private void Exit_Click(object? sender, EventArgs e)
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

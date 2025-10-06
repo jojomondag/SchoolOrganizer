@@ -286,10 +286,10 @@ public partial class StudentGalleryView : UserControl
             System.Diagnostics.Debug.WriteLine($"HandleStudentImageChange called for student {student.Id} ({student.Name})");
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             if (parentWindow == null) return;
-            
+
             var newPath = await ImageCropWindow.ShowForStudentAsync(parentWindow, student.Id);
             System.Diagnostics.Debug.WriteLine($"ImageCropWindow returned path: {newPath}");
-            
+
             if (!string.IsNullOrEmpty(newPath) && DataContext is StudentGalleryViewModel vm)
             {
                 System.Diagnostics.Debug.WriteLine("Calling UpdateStudentImage on ViewModel");
@@ -631,36 +631,9 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
-            // Find the ProfileCard within the container - try multiple approaches
-            var profileCard = container.FindDescendantOfType<ProfileCard.ProfileCard>();
-            
-            // If not found, try looking in the visual tree more thoroughly
-            if (profileCard == null)
-            {
-                var allChildren = container.GetVisualDescendants().ToList();
-                profileCard = allChildren.OfType<ProfileCard.ProfileCard>().FirstOrDefault();
-            }
-            
-            // If still not found, try looking in the content
-            if (profileCard == null && container is ContentControl contentControl && contentControl.Content is ProfileCard.ProfileCard directCard)
-            {
-                profileCard = directCard;
-            }
-            
-            if (profileCard != null)
-            {
-                // Remove existing handlers to avoid duplicates
-                profileCard.ImageClicked -= OnProfileCardImageClicked;
-                profileCard.CardDoubleClicked -= OnProfileCardDoubleClicked;
-                // Add the handlers
-                profileCard.ImageClicked += OnProfileCardImageClicked;
-                profileCard.CardDoubleClicked += OnProfileCardDoubleClicked;
-                System.Diagnostics.Debug.WriteLine($"Wired up ProfileCard events for student: {((profileCard.DataContext as Student)?.Name ?? "Unknown")}");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("No ProfileCard found in container");
-            }
+            // Note: With the new card system, event wiring is handled directly in AXAML
+            // This method is kept for backwards compatibility but does minimal work
+            System.Diagnostics.Debug.WriteLine("WireUpProfileCardEvents called (new card system uses AXAML event handlers)");
         }
         catch (Exception ex)
         {
@@ -695,6 +668,21 @@ public partial class StudentGalleryView : UserControl
         await HandleStudentImageChange(student);
     }
 
+    private async void OnProfileImageClicked(object? sender, SchoolOrganizer.Models.Student student)
+    {
+        await HandleStudentImageChange(student);
+    }
+
+    private async void OnProfileImageUpdated(object? sender, (SchoolOrganizer.Models.Student student, string imagePath) args)
+    {
+        // ProfileCard ProfileImageUpdated event fired
+        if (args.student != null && !string.IsNullOrEmpty(args.imagePath) && ViewModel != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"OnProfileImageUpdated: Updating student {args.student.Id} with new image: {args.imagePath}");
+            await ViewModel.UpdateStudentImage(args.student, args.imagePath);
+        }
+    }
+
     private void OnBackToGalleryRequested(object? sender, EventArgs e)
     {
         if (ViewModel != null)
@@ -709,35 +697,9 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
-            var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
-            if (studentsContainer == null) return;
-
-            // First, try to find all ProfileCard controls in the ItemsControl
-            var profileCards = studentsContainer.GetVisualDescendants().OfType<ProfileCard.ProfileCard>().ToList();
-            System.Diagnostics.Debug.WriteLine($"Found {profileCards.Count} ProfileCard instances via GetVisualDescendants");
-            
-            foreach (var profileCard in profileCards)
-            {
-                // Remove existing handlers to avoid duplicates
-                profileCard.ImageClicked -= OnProfileCardImageClicked;
-                profileCard.CardDoubleClicked -= OnProfileCardDoubleClicked;
-                // Add the handlers
-                profileCard.ImageClicked += OnProfileCardImageClicked;
-                profileCard.CardDoubleClicked += OnProfileCardDoubleClicked;
-            }
-            
-            // Also wire up events for containers that might not be rendered yet
-            // This is the more reliable method for newly created containers
-            for (int i = 0; i < studentsContainer.ItemCount; i++)
-            {
-                var container = studentsContainer.ContainerFromIndex(i);
-                if (container != null)
-                {
-                    WireUpProfileCardEvents(container);
-                }
-            }
-            
-            System.Diagnostics.Debug.WriteLine($"Wired up ProfileCard events for {studentsContainer.ItemCount} items");
+            // Note: With the new card system, event wiring is handled directly in AXAML
+            // This method is kept for backwards compatibility but does minimal work
+            System.Diagnostics.Debug.WriteLine("WireUpAllProfileCardEvents called (new card system uses AXAML event handlers)");
         }
         catch (Exception ex)
         {

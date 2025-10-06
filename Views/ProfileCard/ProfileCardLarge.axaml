@@ -1,0 +1,102 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SchoolOrganizer.Views.ProfileCard"
+             xmlns:views="using:SchoolOrganizer.Views.Converters"
+             xmlns:models="using:SchoolOrganizer.Models"
+             x:Class="SchoolOrganizer.Views.ProfileCard.ProfileCardLarge"
+             x:DataType="models:Student">
+
+  <UserControl.Resources>
+    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
+  </UserControl.Resources>
+
+  <Border x:Name="CardBorder"
+          Background="{DynamicResource WhiteColor}"
+          CornerRadius="16"
+          BoxShadow="{DynamicResource ShadowLight}"
+          Margin="40,20"
+          BorderBrush="{DynamicResource BlackColor}"
+          BorderThickness="1">
+
+    <Grid Margin="40">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" MinWidth="280"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Profile Image -->
+      <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,10,40,0">
+        <Border x:Name="ProfileImageBorder"
+                Background="{DynamicResource TransparentColor}"
+                CornerRadius="120"
+                BorderThickness="3"
+                BorderBrush="{DynamicResource BlackColor}"
+                Padding="0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Width="240"
+                Height="240"
+                Margin="0,0,0,20"
+                Cursor="Hand">
+
+          <Grid>
+            <!-- Background circle -->
+            <Ellipse Fill="{DynamicResource BackgroundTertiaryColor}"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"/>
+
+            <!-- Profile image -->
+            <Ellipse x:Name="ProfileImageEllipse"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"
+                     Cursor="Hand">
+              <Ellipse.Fill>
+                <ImageBrush Stretch="UniformToFill"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </Grid>
+        </Border>
+      </StackPanel>
+
+      <!-- Details -->
+      <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="0,10,0,0">
+        <TextBlock x:Name="NameText"
+                   FontWeight="Bold" FontSize="36"
+                   Foreground="{DynamicResource BlackColor}"
+                   Margin="0,0,0,15" TextWrapping="Wrap"/>
+
+        <StackPanel Margin="0,0,0,25">
+          <TextBlock Text="Class" FontSize="14" FontWeight="SemiBold"
+                     Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
+          <TextBlock x:Name="RoleText" FontSize="18" Foreground="{DynamicResource BlackColor}"/>
+        </StackPanel>
+
+        <StackPanel Spacing="20">
+          <StackPanel>
+            <TextBlock Text="Email Address" FontSize="14" FontWeight="SemiBold"
+                       Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
+            <TextBlock x:Name="EmailText" FontSize="18" Foreground="{DynamicResource BlackColor}"/>
+          </StackPanel>
+
+          <StackPanel>
+            <TextBlock Text="Mentor" FontSize="14" FontWeight="SemiBold"
+                       Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
+            <TextBlock x:Name="SecondaryText" FontSize="18" Foreground="{DynamicResource BlackColor}"/>
+          </StackPanel>
+
+          <StackPanel x:Name="EnrollmentSection">
+            <TextBlock Text="Enrollment Date" FontSize="14" FontWeight="SemiBold"
+                       Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
+            <TextBlock x:Name="EnrollmentText" FontSize="18" Foreground="{DynamicResource BlackColor}"/>
+          </StackPanel>
+
+          <StackPanel>
+            <TextBlock Text="Student ID" FontSize="14" FontWeight="SemiBold"
+                       Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
+            <TextBlock x:Name="IdText" FontSize="18" Foreground="{DynamicResource BlackColor}" FontFamily="Consolas"/>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

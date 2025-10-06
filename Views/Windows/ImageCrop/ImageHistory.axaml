@@ -1,0 +1,120 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="260" d:DesignHeight="400"
+             x:Class="SchoolOrganizer.Views.Windows.ImageCrop.ImageHistory">
+
+    <UserControl.Styles>
+        <!-- Delete button style for gallery thumbnails - use a stable template so hover effects keep the border and icon visible -->
+        <Style Selector="Button.DeleteButton">
+            <!-- Small thumbnail delete button: white start background and small size (16x16) like before -->
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Background" Value="{DynamicResource WhiteBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource IconBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource IconBrush}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                        <ContentPresenter
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <!-- Hover and pressed visuals for the delete button - only change background and foreground so border stays visible -->
+        <Style Selector="Button.DeleteButton:pointerover">
+            <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource IconBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Button.DeleteButton:pressed">
+            <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource IconBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <!-- Always-thin scrollbar for the gallery - use a custom template to prevent any hover expansion -->
+        <Style Selector="ScrollBar:vertical">
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="MinWidth" Value="6"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Width="6" Background="Transparent">
+                        <Track Name="PART_Track"
+                               IsDirectionReversed="True"
+                               Minimum="{TemplateBinding Minimum}"
+                               Maximum="{TemplateBinding Maximum}"
+                               Value="{TemplateBinding Value}"
+                               ViewportSize="{TemplateBinding ViewportSize}"
+                               Orientation="{TemplateBinding Orientation}">
+                            <Track.Thumb>
+                                <Thumb>
+                                    <Thumb.Template>
+                                        <ControlTemplate>
+                                            <Border Width="4"
+                                                    Background="{DynamicResource IconBrush}"
+                                                    CornerRadius="2"
+                                                    Opacity="0.5"
+                                                    Margin="1,0"/>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        
+        <!-- Slightly increase thumb opacity on hover but keep same size -->
+        <Style Selector="ScrollBar:vertical:pointerover /template/ Border#PART_Track">
+            <Setter Property="Opacity" Value="0.7"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Padding="4" VerticalAlignment="Stretch">
+        <Border Background="{DynamicResource BackgroundSecondaryBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="8"
+                BoxShadow="{DynamicResource CardBoxShadows}">
+        <Grid RowDefinitions="Auto, *" RowSpacing="10">
+            <!-- Heading removed per request -->
+            
+            <!-- Thin scrollbar positioned to the right of thumbnails -->
+            <ScrollViewer Grid.Row="1" 
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          Padding="0,0,0,0">
+                <Grid Name="ImageGalleryGrid" 
+                      ColumnDefinitions="*,*"
+                      RowSpacing="6"
+                      ColumnSpacing="6"
+                      Margin="0,0,16,0" />
+            </ScrollViewer>
+        </Grid>
+        </Border>
+    </Border>
+</UserControl>

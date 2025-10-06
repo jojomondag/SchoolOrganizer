@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(dotnet add package:*)",
+      "Read(//c/Users/Josef/Desktop/TestAva/TestAva/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

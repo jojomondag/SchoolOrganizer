@@ -1,0 +1,51 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Light Theme Colors (7 core colors) -->
+    <Color x:Key="WhiteColor">#FFFFFF</Color>
+    <Color x:Key="BlackColor">#000000</Color>
+    <Color x:Key="TextPrimaryColor">#000000</Color>
+    <Color x:Key="TextSecondaryColor">#2c3e50</Color>
+    <Color x:Key="BackgroundPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="BackgroundTertiaryColor">#e8f4f8</Color>
+    <Color x:Key="CardBorderColor">#15000000</Color>
+    
+    <!-- Light Theme Brushes -->
+    <SolidColorBrush x:Key="BackgroundPrimaryBrush" Color="{StaticResource BackgroundPrimaryColor}" />
+    <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="{StaticResource BackgroundPrimaryColor}" />
+    <SolidColorBrush x:Key="BackgroundTertiaryBrush" Color="{StaticResource BackgroundTertiaryColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}" />
+    <!-- Profile image border color for light theme -->
+    <SolidColorBrush x:Key="ProfileImageBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="IconBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="CardBorderBrush" Color="{StaticResource CardBorderColor}" />
+    
+    <!-- Card Shadows for Light Theme -->
+    <BoxShadows x:Key="CardBoxShadows">0 2 8 0 #30000000, 0 4 16 0 #20000000</BoxShadows>
+    <BoxShadows x:Key="CardBoxShadowsHover">0 4 12 0 #40000000, 0 8 24 0 #30000000</BoxShadows>
+    <BoxShadows x:Key="ShadowLight">0 2 6 0 #20000000</BoxShadows>
+
+    <!-- ImageCropper Brushes (using only 7 core colors) -->
+    <SolidColorBrush x:Key="ImageCropperBorderBrush" Color="{StaticResource CardBorderColor}" />
+    <SolidColorBrush x:Key="ImageCropperBackgroundBrush" Color="{StaticResource BackgroundPrimaryColor}" />
+    <SolidColorBrush x:Key="ImageCropperOverlayBrush" Color="{StaticResource BlackColor}" Opacity="0.4" />
+    <SolidColorBrush x:Key="ImageCropperHandleBorderBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="ImageCropperSelectionBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ImageCropperPlaceholderTextBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="ImageCropperGalleryBackgroundBrush" Color="{StaticResource BackgroundPrimaryColor}" />
+    <SolidColorBrush x:Key="ImageCropperGalleryBorderBrush" Color="{StaticResource CardBorderColor}" />
+    <SolidColorBrush x:Key="ImageCropperPreviewBackgroundBrush" Color="{StaticResource BackgroundTertiaryColor}" />
+    <SolidColorBrush x:Key="ImageCropperPreviewBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ImageCropperBackButtonBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="ImageCropperBackButtonHoverBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="ImageCropperBackButtonHoverBackgroundBrush" Color="{StaticResource BackgroundTertiaryColor}" />
+    <SolidColorBrush x:Key="ImageCropperThumbnailBorderBrush" Color="{StaticResource BlackColor}" />
+    <SolidColorBrush x:Key="ImageCropperThumbnailBorderHoverBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="ImageCropperThumbnailBackgroundBrush" Color="{StaticResource BackgroundTertiaryColor}" />
+    <SolidColorBrush x:Key="DeleteButtonBackgroundBrush" Color="{StaticResource BackgroundTertiaryColor}" />
+    <SolidColorBrush x:Key="DeleteButtonHoverBackgroundBrush" Color="{StaticResource TextSecondaryColor}" />
+
+</ResourceDictionary>

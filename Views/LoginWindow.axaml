@@ -12,7 +12,7 @@
         <vm:LoginWindowViewModel/>
     </Window.DataContext>
     
-    <Grid>
+    <Grid Background="{DynamicResource BackgroundPrimaryBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="2*" />
             <RowDefinition Height="*" />
@@ -22,23 +22,45 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        
+
         <!-- Logo Image -->
         <Image Source="/Assets/avalonia-logo.ico" Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0" Margin="0,20,0,20"/>
-        
+
         <!-- Welcome Text -->
-        <TextBlock Text="Welcome to School Organizer" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Grid.Row="1" Margin="0,0,0,10"/>
-        
+        <TextBlock Text="Welcome to School Organizer"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   Grid.Row="1"
+                   Margin="0,0,0,10"
+                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+
         <!-- Login Button -->
-        <Button Command="{Binding LoginCommand}" Width="200" Height="50" Grid.Row="2" HorizontalAlignment="Center" Background="#4285F4" CornerRadius="8">
+        <Button Command="{Binding LoginCommand}"
+                Width="200"
+                Height="50"
+                Grid.Row="2"
+                HorizontalAlignment="Center"
+                Background="{DynamicResource BackgroundTertiaryBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
                 <!-- SVG Image -->
                 <Image Source="{SvgImage avares://SchoolOrganizer/Assets/ClassroomIcon.svg}" Width="40" Height="40"/>
-                <TextBlock Text="Login with Google" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock Text="Login with Google"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
             </StackPanel>
         </Button>
-        
+
         <!-- Status Text -->
-        <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap" TextAlignment="Center" Grid.Row="3" Margin="0,20,0,0" Foreground="Gray"/>
+        <TextBlock Text="{Binding StatusText}"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"
+                   Grid.Row="3"
+                   Margin="0,20,0,0"
+                   Foreground="{DynamicResource TextSecondaryBrush}"/>
     </Grid>
 </Window>

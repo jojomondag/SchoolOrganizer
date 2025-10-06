@@ -97,15 +97,7 @@ public partial class AddStudentWindow : Window
     private async void OnChooseImageClick(object? sender, RoutedEventArgs e)
     {
         var parentWindow = this;
-        string? path;
-        if (string.Equals(TitleText.Text, "Edit Student", StringComparison.OrdinalIgnoreCase) && Tag is SchoolOrganizer.Models.Student ctx)
-        {
-            path = await ImageCropWindow.ShowForStudentAsync(parentWindow, ctx.Id);
-        }
-        else
-        {
-            path = await ImageCropWindow.ShowAsync(parentWindow);
-        }
+        string? path = await ImageCropWindow.ShowAsync(parentWindow);
         if (!string.IsNullOrWhiteSpace(path))
         {
             state.SelectedImagePath = path;
