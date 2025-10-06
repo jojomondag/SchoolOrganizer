@@ -141,9 +141,7 @@ public partial class StudentGalleryView : UserControl
         }
         else if (e.PropertyName == "Students")
         {
-            // When Students collection changes, re-wire events after UI updates
-            // Use a longer delay to ensure the UI has fully rendered the new items
-            Dispatcher.UIThread.Post(() => WireUpAllProfileCardEvents(), DispatcherPriority.Loaded);
+            // Students collection changed - layout will automatically update via bindings
         }
         else if (e.PropertyName == "DisplayConfig")
         {
@@ -229,10 +227,6 @@ public partial class StudentGalleryView : UserControl
             {
                 // SearchTextBox not found, keyboard handler not re-initialized
             }
-            
-            // Also re-wire ProfileCard events to ensure double-click works
-            WireUpAllProfileCardEvents();
-            // ProfileCard events re-wired
         }
         else
         {
@@ -287,13 +281,19 @@ public partial class StudentGalleryView : UserControl
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             if (parentWindow == null) return;
 
-            var newPath = await ImageCropWindow.ShowForStudentAsync(parentWindow, student.Id);
-            System.Diagnostics.Debug.WriteLine($"ImageCropWindow returned path: {newPath}");
+            // Pass existing ORIGINAL image and crop settings to the cropper
+            var result = await ImageCropWindow.ShowForStudentAsync(
+                parentWindow,
+                student.Id,
+                student.OriginalImagePath,  // Load the original, not the cropped result
+                student.CropSettings);
 
-            if (!string.IsNullOrEmpty(newPath) && DataContext is StudentGalleryViewModel vm)
+            System.Diagnostics.Debug.WriteLine($"ImageCropWindow returned path: {result.imagePath}, settings: {(result.cropSettings != null ? "present" : "null")}, original: {result.originalImagePath}");
+
+            if (!string.IsNullOrEmpty(result.imagePath) && DataContext is StudentGalleryViewModel vm)
             {
                 System.Diagnostics.Debug.WriteLine("Calling UpdateStudentImage on ViewModel");
-                await vm.UpdateStudentImage(student, newPath);
+                await vm.UpdateStudentImage(student, result.imagePath, result.cropSettings, result.originalImagePath);
                 System.Diagnostics.Debug.WriteLine("UpdateStudentImage completed");
             }
         }
@@ -351,24 +351,13 @@ public partial class StudentGalleryView : UserControl
         }
         
         UpdateCardLayout();
-        
-        // Wire up ProfileCard events for any existing cards
-        WireUpAllProfileCardEvents();
 
         // Subscribe to ViewModel selection changes
         SubscribeToViewModelSelections(ViewModel);
     }
 
-
-
-
-
-
     private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
     {
-        // Wire up ProfileCard ImageClicked event
-        WireUpProfileCardEvents(e.Container);
-        
         // Only apply dynamic styling if current dimensions differ significantly from defaults
         var needsUpdate = Math.Abs(_currentCardWidth - 240) > 5 || 
                          Math.Abs(_currentImageSize - 168) > 5;
@@ -627,83 +616,25 @@ public partial class StudentGalleryView : UserControl
         }
     }
 
-    private void WireUpProfileCardEvents(Control container)
-    {
-        try
-        {
-            // Note: With the new card system, event wiring is handled directly in AXAML
-            // This method is kept for backwards compatibility but does minimal work
-            System.Diagnostics.Debug.WriteLine("WireUpProfileCardEvents called (new card system uses AXAML event handlers)");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error wiring up ProfileCard events: {ex.Message}");
-        }
-    }
-
-    private async void OnProfileCardImageClicked(object? sender, SchoolOrganizer.Models.Student student)
-    {
-        // ProfileCard ImageClicked event fired
-        if (student != null)
-        {
-            await HandleStudentImageChange(student);
-        }
-    }
-
-    private async void OnProfileCardDoubleClicked(object? sender, SchoolOrganizer.Models.Student student)
-    {
-        // ProfileCard CardDoubleClicked event fired
-        if (student != null && ViewModel != null)
-        {
-            // Clear search first, then set it to the student's name to ensure the search triggers
-            ViewModel.SearchText = string.Empty;
-            await Task.Delay(10); // Small delay to ensure the clear takes effect
-            ViewModel.SearchText = student.Name;
-            // Set search text to show big view mode
-        }
-    }
-
-    private async void OnDetailedProfileImageClicked(object? sender, SchoolOrganizer.Models.Student student)
-    {
-        await HandleStudentImageChange(student);
-    }
-
+    // Event handler for when profile image is clicked (opens ImageCropWindow)
     private async void OnProfileImageClicked(object? sender, SchoolOrganizer.Models.Student student)
     {
         await HandleStudentImageChange(student);
     }
 
+    // Event handler for detailed view profile image clicks
+    private async void OnDetailedProfileImageClicked(object? sender, SchoolOrganizer.Models.Student student)
+    {
+        await HandleStudentImageChange(student);
+    }
+
+    // Event handler for when a profile image has been updated via ImageCropWindow
     private async void OnProfileImageUpdated(object? sender, (SchoolOrganizer.Models.Student student, string imagePath) args)
     {
-        // ProfileCard ProfileImageUpdated event fired
         if (args.student != null && !string.IsNullOrEmpty(args.imagePath) && ViewModel != null)
         {
-            System.Diagnostics.Debug.WriteLine($"OnProfileImageUpdated: Updating student {args.student.Id} with new image: {args.imagePath}");
-            await ViewModel.UpdateStudentImage(args.student, args.imagePath);
-        }
-    }
-
-    private void OnBackToGalleryRequested(object? sender, EventArgs e)
-    {
-        if (ViewModel != null)
-        {
-            ViewModel.BackToGalleryCommand.Execute(null);
-            // Re-initialize keyboard handler to ensure keyboard detection works after returning from detailed view
-            ReinitializeKeyboardHandler();
-        }
-    }
-
-    private void WireUpAllProfileCardEvents()
-    {
-        try
-        {
-            // Note: With the new card system, event wiring is handled directly in AXAML
-            // This method is kept for backwards compatibility but does minimal work
-            System.Diagnostics.Debug.WriteLine("WireUpAllProfileCardEvents called (new card system uses AXAML event handlers)");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error wiring up all ProfileCard events: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"OnProfileImageUpdated: Updating student {args.student.Id} with new image: {args.imagePath}, cropSettings: {args.student.CropSettings ?? "NULL"}, original: {args.student.OriginalImagePath ?? "NULL"}");
+            await ViewModel.UpdateStudentImage(args.student, args.imagePath, args.student.CropSettings, args.student.OriginalImagePath);
         }
     }
 

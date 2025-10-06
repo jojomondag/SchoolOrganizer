@@ -19,6 +19,9 @@ public partial class Student : ObservableObject, IPerson
     private string pictureUrl = string.Empty;
 
     [ObservableProperty]
+    private string? originalImagePath;
+
+    [ObservableProperty]
     private string className = string.Empty;
 
     [ObservableProperty]
@@ -29,6 +32,9 @@ public partial class Student : ObservableObject, IPerson
 
     [ObservableProperty]
     private DateTime enrollmentDate;
+
+    [ObservableProperty]
+    private string? cropSettings;
 
     // Backward compatibility property for JSON serialization
     [JsonPropertyName("Mentor")]

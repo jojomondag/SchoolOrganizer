@@ -301,15 +301,6 @@ public partial class StudentGalleryViewModel : ViewModelBase
         // This will be handled by the UI layer
     }
 
-    /// <summary>
-    /// Triggers event re-wiring for ProfileCard instances
-    /// </summary>
-    public void TriggerEventRewiring()
-    {
-        // This will be handled by the UI layer
-        OnPropertyChanged(nameof(Students));
-    }
-
     private void UpdateDisplayLevelBasedOnItemCount()
     {
         // Don't change display level if we're forcing grid view
@@ -382,9 +373,6 @@ public partial class StudentGalleryViewModel : ViewModelBase
             OnPropertyChanged(nameof(ShowMultipleStudents));
             OnPropertyChanged(nameof(ShowEmptyState));
             OnPropertyChanged(nameof(FirstStudent));
-            
-            // Trigger event re-wiring after a short delay to ensure UI is updated
-            Dispatcher.UIThread.Post(() => TriggerEventRewiring(), DispatcherPriority.Loaded);
         }
         catch (Exception ex)
         {
@@ -531,17 +519,17 @@ public partial class StudentGalleryViewModel : ViewModelBase
         }
     }
 
-    public async Task UpdateStudentImage(Student student, string newImagePath)
+    public async Task UpdateStudentImage(Student student, string newImagePath, string? cropSettings = null, string? originalImagePath = null)
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine($"UpdateStudentImage called for student {student.Id} with path: {newImagePath}");
-            
+            System.Diagnostics.Debug.WriteLine($"UpdateStudentImage called for student {student.Id} with path: {newImagePath}, original: {originalImagePath}");
+
             // Ensure the saved image file is readable before we update bindings
             await WaitForReadableFileAsync(newImagePath);
 
-            // Helper method to clear cache and update picture URL
-            void UpdateStudentPictureUrl(Student s, string oldPath, string newPath)
+            // Helper method to clear cache and update picture URL, crop settings, and original image path
+            void UpdateStudentPictureUrl(Student s, string oldPath, string newPath, string? settings, string? origPath)
             {
                 if (!string.IsNullOrWhiteSpace(oldPath))
                 {
@@ -549,25 +537,27 @@ public partial class StudentGalleryViewModel : ViewModelBase
                 }
                 UniversalImageConverter.ClearCache(newPath);
                 s.PictureUrl = newPath;
+                s.CropSettings = settings;
+                s.OriginalImagePath = origPath;
             }
 
             // Update the passed student object
-            UpdateStudentPictureUrl(student, student.PictureUrl, newImagePath);
+            UpdateStudentPictureUrl(student, student.PictureUrl, newImagePath, cropSettings, originalImagePath);
 
             // Update in current filtered collection
             var studentInCollection = Students.OfType<Student>().FirstOrDefault(s => s.Id == student.Id);
             if (studentInCollection != null && studentInCollection != student)
             {
-                UpdateStudentPictureUrl(studentInCollection, studentInCollection.PictureUrl, newImagePath);
+                UpdateStudentPictureUrl(studentInCollection, studentInCollection.PictureUrl, newImagePath, cropSettings, originalImagePath);
             }
 
             // Update in full collection
             var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
             if (inAll != null && inAll != student)
             {
-                UpdateStudentPictureUrl(inAll, inAll.PictureUrl, newImagePath);
+                UpdateStudentPictureUrl(inAll, inAll.PictureUrl, newImagePath, cropSettings, originalImagePath);
             }
-            
+
             await SaveAllStudentsToJson();
             System.Diagnostics.Debug.WriteLine("UpdateStudentImage completed successfully");
         }

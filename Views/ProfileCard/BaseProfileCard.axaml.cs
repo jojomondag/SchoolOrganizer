@@ -278,18 +278,27 @@ namespace SchoolOrganizer.Views.ProfileCard
 
                 System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Opening ImageCropper for student: {student.Name} (ID: {student.Id})");
 
-                // Open the ImageCrop window with student context
-                var result = await ImageCropWindow.ShowForStudentAsync(parentWindow, student.Id);
+                // Open the ImageCrop window with student context, passing existing ORIGINAL image and crop settings
+                var result = await ImageCropWindow.ShowForStudentAsync(
+                    parentWindow,
+                    student.Id,
+                    student.OriginalImagePath,  // Load the original, not the cropped result
+                    student.CropSettings);
 
-                System.Diagnostics.Debug.WriteLine($"BaseProfileCard: ImageCropper returned: {result ?? "NULL"}");
+                System.Diagnostics.Debug.WriteLine($"BaseProfileCard: ImageCropper returned: imagePath={result.imagePath ?? "NULL"}, cropSettings={result.cropSettings ?? "NULL"}, original={result.originalImagePath ?? "NULL"}");
 
-                if (!string.IsNullOrEmpty(result))
+                if (!string.IsNullOrEmpty(result.imagePath))
                 {
-                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Image saved to: {result}");
+                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Image saved to: {result.imagePath}");
                     System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Raising ProfileImageUpdated event for student {student.Id}");
 
+                    // Update student with new image path, crop settings, and original image path before raising event
+                    student.PictureUrl = result.imagePath;
+                    student.CropSettings = result.cropSettings;
+                    student.OriginalImagePath = result.originalImagePath;
+
                     // Raise event to notify that student data changed with the new image path
-                    ProfileImageUpdated?.Invoke(this, (student, result));
+                    ProfileImageUpdated?.Invoke(this, (student, result.imagePath));
 
                     System.Diagnostics.Debug.WriteLine($"BaseProfileCard: ProfileImageUpdated event raised successfully");
                 }

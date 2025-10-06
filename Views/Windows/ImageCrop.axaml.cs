@@ -50,6 +50,7 @@ public partial class ImageCropWindow : Window
     private CropPreview? _cropPreview;
     private ImageHistory? _imageHistory;
     private int? _studentId;
+    private string? _currentOriginalImagePath;
     #endregion
     #region Properties
     public Func<Task<string?>>? SavePathProvider { get; set; }
@@ -57,8 +58,9 @@ public partial class ImageCropWindow : Window
     public Func<string, Task<object?>>? CropSettingsProvider { get; set; }
     public event EventHandler<string>? ImageSaved;
     public event EventHandler<IStorageFile>? OriginalImageSelected;
-    public event EventHandler<(int studentId, string imagePath)>? ImageSavedForStudent;
     public string? SavedImagePath { get; private set; }
+    public string? SavedCropSettings { get; private set; }
+    public string? SavedOriginalImagePath { get; private set; }
     public int? StudentId => _studentId;
     private Grid? BackgroundPattern => _mainImageDisplay?.GetBackgroundPattern();
     private Image? MainImage => _mainImageDisplay?.GetMainImage();
@@ -121,10 +123,6 @@ public partial class ImageCropWindow : Window
         ImageSaved += (s, path) =>
         {
             SavedImagePath = path;
-            if (_studentId.HasValue)
-            {
-                ImageSavedForStudent?.Invoke(this, (_studentId.Value, path));
-            }
             Close();
         };
         OriginalImageSelected += async (s, file) => await LoadGallery();
@@ -140,12 +138,36 @@ public partial class ImageCropWindow : Window
         return dialog.SavedImagePath;
     }
 
-    public static async Task<string?> ShowForStudentAsync(Window parent, int studentId)
+    public static async Task<(string? imagePath, string? cropSettings, string? originalImagePath)> ShowForStudentAsync(
+        Window parent,
+        int studentId,
+        string? existingOriginalImagePath = null,
+        string? cropSettingsJson = null)
     {
         var dialog = new ImageCropWindow();
         dialog._studentId = studentId;
+
+        // Load the ORIGINAL image with crop settings if available
+        if (!string.IsNullOrEmpty(existingOriginalImagePath) && File.Exists(existingOriginalImagePath))
+        {
+            object? settings = null;
+            if (!string.IsNullOrEmpty(cropSettingsJson))
+            {
+                try
+                {
+                    settings = System.Text.Json.JsonSerializer.Deserialize<object>(cropSettingsJson);
+                }
+                catch
+                {
+                    // If deserialization fails, ignore and use no settings
+                }
+            }
+
+            await dialog.LoadImageFromPathWithCropSettingsAsync(existingOriginalImagePath, settings);
+        }
+
         await dialog.ShowDialog(parent);
-        return dialog.SavedImagePath;
+        return (dialog.SavedImagePath, dialog.SavedCropSettings, dialog.SavedOriginalImagePath);
     }
     public async Task LoadImageFromPathAsync(string path)
     {
@@ -154,6 +176,10 @@ public partial class ImageCropWindow : Window
     public async Task LoadImageFromPathWithCropSettingsAsync(string path, object? settings)
     {
         if (!File.Exists(path)) return;
+
+        // Track the original image path
+        _currentOriginalImagePath = path;
+
         await using var fileStream = File.OpenRead(path);
         var bitmap = new Bitmap(fileStream);
         var resized = ResizeImageIfNeeded(bitmap);
@@ -265,7 +291,7 @@ public partial class ImageCropWindow : Window
             memoryStream.Position = 0;
             var bitmap = new Bitmap(memoryStream);
             memoryStream.Position = 0;
-            await SaveToOriginals(bitmap, files[0].Name);
+            _currentOriginalImagePath = await SaveToOriginals(bitmap, files[0].Name);
             var resized = ResizeImageIfNeeded(bitmap);
             if (resized != bitmap)
             {
@@ -274,15 +300,23 @@ public partial class ImageCropWindow : Window
             await LoadBitmap(resized);
         }
     }
-    private async Task SaveToOriginals(Bitmap bitmap, string filename) => await TryExecute(async () =>
+    private async Task<string?> SaveToOriginals(Bitmap bitmap, string filename)
     {
-        var directory = IOPath.Combine(AppDomain.CurrentDomain.BaseDirectory, OriginalsDirectory);
-        Directory.CreateDirectory(directory);
-        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var fullPath = IOPath.Combine(directory, $"{timestamp}_{filename}");
-        await using var stream = File.Create(fullPath);
-        bitmap.Save(stream);
-    });
+        try
+        {
+            var directory = IOPath.Combine(AppDomain.CurrentDomain.BaseDirectory, OriginalsDirectory);
+            Directory.CreateDirectory(directory);
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var fullPath = IOPath.Combine(directory, $"{timestamp}_{filename}");
+            await using var stream = File.Create(fullPath);
+            bitmap.Save(stream);
+            return fullPath;
+        }
+        catch
+        {
+            return null;
+        }
+    }
     private Bitmap ResizeImageIfNeeded(Bitmap original)
     {
         var width = original.PixelSize.Width;
@@ -860,7 +894,7 @@ public partial class ImageCropWindow : Window
     private async Task HandleSaveButtonAsync()
     {
         if (_currentBitmap == null) return;
-        
+
         var savePath = SavePathProvider != null ? await SavePathProvider() : await PromptForSavePath();
         if (string.IsNullOrEmpty(savePath)) return;
 
@@ -868,6 +902,17 @@ public partial class ImageCropWindow : Window
         {
             using var stream = File.Create(savePath);
             CreateCroppedImage()?.Save(stream);
+
+            // Save crop settings as JSON
+            var settings = GetCurrentCropSettings();
+            if (settings != null)
+            {
+                SavedCropSettings = System.Text.Json.JsonSerializer.Serialize(settings);
+            }
+
+            // Save the original image path so we can reload it with crop settings later
+            SavedOriginalImagePath = _currentOriginalImagePath;
+
             ImageSaved?.Invoke(this, savePath);
         });
     }
