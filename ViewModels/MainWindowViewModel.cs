@@ -16,8 +16,21 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly UserProfileService _userProfileService;
     private readonly StudentGalleryViewModel _studentGalleryViewModel;
 
-    [ObservableProperty]
-    private ObservableObject currentViewModel;
+    private ObservableObject _currentViewModel;
+    
+    public ObservableObject CurrentViewModel
+    {
+        get => _currentViewModel;
+        set
+        {
+            if (SetProperty(ref _currentViewModel, value))
+            {
+                OnPropertyChanged(nameof(IsStudentGalleryActive));
+                OnPropertyChanged(nameof(IsHomeActive));
+                OnPropertyChanged(nameof(ActiveContentBrush));
+            }
+        }
+    }
 
     [ObservableProperty]
     private string greeting = "Welcome to School Organizer!";
@@ -36,7 +49,7 @@ public partial class MainWindowViewModel : ObservableObject
         _authService = authService ?? new GoogleAuthService();
         _userProfileService = new UserProfileService(_authService);
         _studentGalleryViewModel = new StudentGalleryViewModel(authService);
-        CurrentViewModel = _studentGalleryViewModel;
+        _currentViewModel = _studentGalleryViewModel;
         
         if (authService != null)
         {

@@ -31,55 +31,67 @@
         
         
         
+        <!-- Base tab style - unchecked state -->
         <Style Selector="ToggleButton.tab">
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="16,8"/>
             <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderColor}"/>
-            <Setter Property="BorderThickness" Value="1,1,0,0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="10,10,0,0"/>
-            <Setter Property="Margin" Value="0,0,0,-1"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
             <Setter Property="FocusAdorner" Value="{x:Null}"/>
+            <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
+        <!-- Unchecked hover state -->
+        <Style Selector="ToggleButton.tab:pointerover">
+            <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+        </Style>
+
+        <!-- Checked state - active tab -->
         <Style Selector="ToggleButton.tab:checked">
-            <Setter Property="Background" Value="{DynamicResource TextSecondaryColor}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
+            <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BackgroundPrimaryColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
         </Style>
 
         <!-- Target the ContentPresenter within the template for checked state -->
-        <Style Selector="ToggleButton.tab:checked /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource TextSecondaryColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
+        <Style Selector="ToggleButton.tab:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
         </Style>
 
         <!-- Target the Border within the template for checked state -->
-        <Style Selector="ToggleButton.tab:checked /template/ Border">
-            <Setter Property="Background" Value="{DynamicResource TextSecondaryColor}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryColor}"/>
+        <Style Selector="ToggleButton.tab:checked /template/ Border#PART_ButtonBorder">
+            <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BackgroundPrimaryColor}"/>
         </Style>
 
-        <Style Selector="ToggleButton.tab:pointerover">
-            <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryColor}"/>
-        </Style>
-
+        <!-- Checked and hover state - keep active appearance -->
         <Style Selector="ToggleButton.tab:checked:pointerover">
-            <Setter Property="Background" Value="{DynamicResource TextSecondaryColor}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
+            <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BackgroundPrimaryColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
         </Style>
 
         <!-- Ensure template elements stay consistent when checked and hovered -->
-        <Style Selector="ToggleButton.tab:checked:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource TextSecondaryColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource WhiteColor}"/>
+        <Style Selector="ToggleButton.tab:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
         </Style>
 
-        <Style Selector="ToggleButton.tab:checked:pointerover /template/ Border">
-            <Setter Property="Background" Value="{DynamicResource TextSecondaryColor}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryColor}"/>
+        <Style Selector="ToggleButton.tab:checked:pointerover /template/ Border#PART_ButtonBorder">
+            <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BackgroundPrimaryColor}"/>
+        </Style>
+
+        <!-- Pressed state for unchecked tabs -->
+        <Style Selector="ToggleButton.tab:pressed">
+            <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryColor}"/>
         </Style>
     </Window.Styles>
 
