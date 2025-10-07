@@ -5,7 +5,7 @@
              xmlns:vm="using:SchoolOrganizer.ViewModels"
              xmlns:models="using:SchoolOrganizer.Models"
              xmlns:views="using:SchoolOrganizer.Views.Converters"
-             xmlns:profileCard="using:SchoolOrganizer.Views.ProfileCard"
+             xmlns:profileCard="using:SchoolOrganizer.Views.ProfileCards"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="SchoolOrganizer.Views.StudentGallery.StudentGalleryView"
@@ -330,17 +330,15 @@
                         
                         <!-- Add Student Card Template -->
                         <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsAddCardConverter}}">
-                          <!-- Small Add Student Card for Small DisplayLevel -->
-                          <profileCard:AddStudentProfileCardSmall Name="AddStudentCardSmall"
-                                                                 IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
+                          <!-- Add Student Card for Small DisplayLevel -->
+                          <profileCard:AddStudentProfileCard Name="AddStudentCardSmall"
+                                                           Width="240" Height="240"
+                                                           IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
 
-                          <!-- Medium Add Student Card for Medium DisplayLevel -->
+                          <!-- Add Student Card for Medium DisplayLevel -->
                           <profileCard:AddStudentProfileCard Name="AddStudentCardMedium"
-                                                            IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
-
-                          <!-- Large Add Student Card for Full DisplayLevel -->
-                          <profileCard:AddStudentProfileCardLarge Name="AddStudentCardLarge"
-                                                                 IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsFull}"/>
+                                                           Width="320" Height="320"
+                                                           IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
                         </Panel>
                       </Grid>
                     </DataTemplate>

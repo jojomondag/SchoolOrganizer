@@ -1,10 +1,14 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:SchoolOrganizer.Views.ProfileCard"
-             xmlns:materialIcons="using:Material.Icons.Avalonia"
-             x:Class="SchoolOrganizer.Views.ProfileCard.AddStudentProfileCardSmall"
-             x:DataType="local:AddStudentProfileCardSmall"
+             xmlns:local="clr-namespace:SchoolOrganizer.Views.ProfileCards"
+             xmlns:views="using:SchoolOrganizer.Views.Converters"
+             x:Class="SchoolOrganizer.Views.ProfileCards.ProfileCardSmall"
+             x:DataType="local:ProfileCardSmall"
              Width="240" Height="240">
+
+  <UserControl.Resources>
+    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
+  </UserControl.Resources>
 
   <Grid Margin="30" ClipToBounds="False">
     <Border x:Name="CardBorder"
@@ -22,9 +26,8 @@
             RenderTransformOrigin="0.5,0.5">
 
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <!-- Plus Icon Circle -->
-        <Border x:Name="AddIconBorder"
-                Background="{DynamicResource BackgroundTertiaryBrush}"
+        <Border x:Name="ProfileImageBorder"
+                Background="{DynamicResource TransparentColor}"
                 CornerRadius="35"
                 BorderThickness="2"
                 BorderBrush="{DynamicResource BlackBrush}"
@@ -33,32 +36,40 @@
                 VerticalAlignment="Center"
                 Width="70"
                 Height="70"
-                Margin="0,0,0,12"
+                Margin="0,0,0,8"
                 Cursor="Hand">
 
-          <Viewbox HorizontalAlignment="Center" 
-                   VerticalAlignment="Center"
-                   Width="30" Height="30">
-            <materialIcons:MaterialIcon Kind="Plus" 
-                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
-          </Viewbox>
+          <Grid>
+            <!-- Background circle -->
+            <Ellipse Fill="{DynamicResource BackgroundTertiaryBrush}"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"/>
+
+            <!-- Profile image -->
+            <Ellipse x:Name="ProfileImageEllipse"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"
+                     Cursor="Hand">
+              <Ellipse.Fill>
+                <ImageBrush Stretch="UniformToFill"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </Grid>
         </Border>
 
-        <!-- Add Student Text -->
-        <TextBlock x:Name="AddStudentText"
-                   Text="Add Student"
-                   FontSize="13"
+        <TextBlock x:Name="NameText"
+                   Text="John Doe"
+                   FontSize="16"
                    FontWeight="Bold"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    TextAlignment="Center"
                    Margin="0,0,0,4"
                    TextTrimming="CharacterEllipsis" />
 
-        <!-- Subtitle Text -->
-        <TextBlock x:Name="SubtitleText"
-                   Text="Click to add"
-                   FontSize="10"
-                   Foreground="{DynamicResource TextSecondaryBrush}"
+        <TextBlock x:Name="RoleText"
+                   Text="Computer Science 101"
+                   FontSize="11"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis" />
       </StackPanel>

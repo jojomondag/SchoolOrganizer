@@ -10,7 +10,7 @@ using SchoolOrganizer.Models;
 using SchoolOrganizer.Views.Windows;
 using SchoolOrganizer.Views.Windows.ImageCrop;
 
-namespace SchoolOrganizer.Views.ProfileCard
+namespace SchoolOrganizer.Views.ProfileCards
 {
     public abstract partial class BaseProfileCard : UserControl
     {

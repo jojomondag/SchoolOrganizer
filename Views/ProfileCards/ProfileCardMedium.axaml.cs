@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace SchoolOrganizer.Views.ProfileCard
+namespace SchoolOrganizer.Views.ProfileCards
 {
     public partial class ProfileCardMedium : BaseProfileCard
     {

@@ -11,7 +11,7 @@ using Avalonia.VisualTree;
 using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
 using Avalonia.Input;
-using SchoolOrganizer.Views.ProfileCard;
+using SchoolOrganizer.Views.ProfileCards;
 using SchoolOrganizer.Views.Windows;
 using SchoolOrganizer.Views.Windows.ImageCrop;
 using SchoolOrganizer.Services;

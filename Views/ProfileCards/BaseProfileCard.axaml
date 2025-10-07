@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:SchoolOrganizer.Views.ProfileCard"
+             xmlns:local="clr-namespace:SchoolOrganizer.Views.ProfileCards"
              x:DataType="local:BaseProfileCard">
 
   <!-- This is a base template that can be overridden by derived classes -->
