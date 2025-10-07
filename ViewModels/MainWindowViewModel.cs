@@ -10,14 +10,14 @@ using Serilog;
 
 namespace SchoolOrganizer.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ObservableObject
 {
     private readonly GoogleAuthService _authService;
     private readonly UserProfileService _userProfileService;
     private readonly StudentGalleryViewModel _studentGalleryViewModel;
 
     [ObservableProperty]
-    private ViewModelBase currentViewModel;
+    private ObservableObject currentViewModel;
 
     [ObservableProperty]
     private string greeting = "Welcome to School Organizer!";
@@ -38,25 +38,18 @@ public partial class MainWindowViewModel : ViewModelBase
         _studentGalleryViewModel = new StudentGalleryViewModel(authService);
         CurrentViewModel = _studentGalleryViewModel;
         
-        // If we have an authService, we're already authenticated
         if (authService != null)
         {
-            IsAuthenticated = true;
-            TeacherName = _authService.TeacherName;
-            Task.Run(LoadProfileImageAsync);
-            Greeting = $"Welcome, {TeacherName}!";
+            SetAuthenticatedState();
         }
         else
         {
-            // Initialize authentication (will fail gracefully if credentials are missing)
             Task.Run(InitializeAuthenticationAsync);
         }
     }
 
     public bool IsStudentGalleryActive => CurrentViewModel is StudentGalleryViewModel;
-
     public bool IsHomeActive => CurrentViewModel is HomeViewModel;
-
     public IBrush ActiveContentBrush => CurrentViewModel switch
     {
         StudentGalleryViewModel => Brushes.White,
@@ -64,40 +57,55 @@ public partial class MainWindowViewModel : ViewModelBase
         _ => Brushes.White
     };
 
-    partial void OnCurrentViewModelChanged(ViewModelBase value)
-    {
-        OnPropertyChanged(nameof(IsStudentGalleryActive));
-        OnPropertyChanged(nameof(IsHomeActive));
-        OnPropertyChanged(nameof(ActiveContentBrush));
-    }
+    [RelayCommand]
+    private void NavigateToStudentGallery() => CurrentViewModel = _studentGalleryViewModel;
 
     [RelayCommand]
-    private void NavigateToStudentGallery()
-    {
-        CurrentViewModel = _studentGalleryViewModel;
-    }
+    private void NavigateToHome() => CurrentViewModel = new HomeViewModel();
 
     [RelayCommand]
-    private void NavigateToHome()
-    {
-        CurrentViewModel = new HomeViewModel();
-    }
+    private async Task Login() => await AuthenticateAsync("Authenticating with Google...", false);
 
     [RelayCommand]
-    private async Task Login()
+    private void Logout()
     {
         try
         {
-            Greeting = "Authenticating with Google...";
-            IsAuthenticated = await _authService.AuthenticateAsync();
+            _authService.ClearCredentials();
+            ResetToUnauthenticatedState();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error during logout");
+        }
+    }
+
+    private async Task InitializeAuthenticationAsync()
+    {
+        try
+        {
+            IsAuthenticated = await _authService.CheckAndAuthenticateAsync();
             if (IsAuthenticated)
             {
-                TeacherName = _authService.TeacherName;
-                await LoadProfileImageAsync();
-                Greeting = $"Welcome, {TeacherName}!";
-                
-                // Update StudentGalleryViewModel with authentication state
-                _studentGalleryViewModel.UpdateAuthenticationState(_authService);
+                SetAuthenticatedState("Welcome back");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error during authentication initialization");
+        }
+    }
+
+    private async Task AuthenticateAsync(string loadingMessage, bool isInitialLoad)
+    {
+        try
+        {
+            Greeting = loadingMessage;
+            IsAuthenticated = await _authService.AuthenticateAsync();
+            
+            if (IsAuthenticated)
+            {
+                SetAuthenticatedState(isInitialLoad ? "Welcome" : "Welcome");
             }
             else
             {
@@ -111,56 +119,30 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
-    private void Logout()
+    private void SetAuthenticatedState(string welcomePrefix = "Welcome")
     {
-        try
-        {
-            _authService.ClearCredentials();
-            IsAuthenticated = false;
-            TeacherName = "Unknown Teacher";
-            ProfileImage = null;
-            Greeting = "Welcome to School Organizer!";
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error during logout");
-        }
+        IsAuthenticated = true;
+        TeacherName = _authService.TeacherName;
+        Greeting = $"{welcomePrefix}, {TeacherName}!";
+        Task.Run(LoadProfileImageAsync);
+        _studentGalleryViewModel.UpdateAuthenticationState(_authService);
     }
 
-    private async Task InitializeAuthenticationAsync()
+    private void ResetToUnauthenticatedState()
     {
-        try
-        {
-            // Try to authenticate with existing credentials
-            IsAuthenticated = await _authService.CheckAndAuthenticateAsync();
-            if (IsAuthenticated)
-            {
-                TeacherName = _authService.TeacherName;
-                await LoadProfileImageAsync();
-                Greeting = $"Welcome back, {TeacherName}!";
-                
-                // Update StudentGalleryViewModel with authentication state
-                _studentGalleryViewModel.UpdateAuthenticationState(_authService);
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error during authentication initialization");
-        }
+        IsAuthenticated = false;
+        TeacherName = "Unknown Teacher";
+        ProfileImage = null;
+        Greeting = "Welcome to School Organizer!";
     }
 
     private async Task LoadProfileImageAsync()
     {
         try
         {
-            var (profileImage, statusMessage) = await _userProfileService.LoadProfileImageAsync();
+            var (profileImage, _) = await _userProfileService.LoadProfileImageAsync();
             ProfileImage = profileImage;
-            
-            // Also set the profile image in StudentGalleryViewModel
             _studentGalleryViewModel.SetProfileImage(profileImage);
-            
-            // Logging is handled by UserProfileService
         }
         catch (Exception ex)
         {
@@ -169,8 +151,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 }
 
-// Placeholder for future home view
-public class HomeViewModel : ViewModelBase
+public class HomeViewModel : ObservableObject
 {
     public string Title { get; } = "Home";
     public string Message { get; } = "Welcome to the School Organizer application!";

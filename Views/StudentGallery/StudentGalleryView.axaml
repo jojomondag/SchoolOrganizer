@@ -56,7 +56,7 @@
         <!-- Profile Picture/Login Button (Far Left Side) -->
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Left">
             <!-- Profile Picture Button (Logout when authenticated) -->
-            <Button Command="{Binding LogoutCommand}"
+            <Button Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LogoutCommand}"
                     Width="48" Height="48"
                     Padding="0" BorderThickness="0" Background="Transparent"
                     IsVisible="{Binding IsAuthenticated}">
@@ -71,7 +71,7 @@
             </Button>
 
             <!-- Login Button (when not authenticated) -->
-            <Button Command="{Binding LoginCommand}"
+            <Button Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LoginCommand}"
                     Width="48" Height="48"
                     Padding="0" BorderThickness="0" Background="Transparent"
                     IsVisible="{Binding !IsAuthenticated}">
