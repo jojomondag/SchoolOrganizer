@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SchoolOrganizer.Models;
 using SchoolOrganizer.Views.Windows;
+using SchoolOrganizer.Views.Windows.ImageCrop;
 
 namespace SchoolOrganizer.Views.ProfileCard
 {

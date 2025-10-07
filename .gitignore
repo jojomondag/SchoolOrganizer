@@ -44,6 +44,12 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
+# .NET 9 specific
+*.runtimeconfig.dev.json
+*.runtimeconfig.json
+*.deps.json
+*.deps.json.bak
+
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
@@ -72,6 +78,8 @@ StyleCopReport.xml
 *.tmp_proj
 *_wpftmp.csproj
 *.log
+logs/
+*.log.*
 *.vspscc
 *.vssscc
 .builds
@@ -437,6 +445,10 @@ $RECYCLE.BIN/
 # Avalonia resource cache
 *.resources
 Resources.Inputs.cache
+*.assets.cache
+*.genruntimeconfig.cache
+*.CoreCompileInputs.cache
+*.AssemblyReference.cache
 
 # Custom Avalonia project specific
 *.exe
@@ -449,3 +461,29 @@ Resources.Inputs.cache
 Resources/credentials.json
 credentials.json
 **/credentials.json
+
+# Additional temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# IDE and editor files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

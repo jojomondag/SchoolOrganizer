@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -13,7 +13,9 @@ using System.Linq;
 using IOPath = System.IO.Path;
 using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 using SchoolOrganizer.Views.Windows.ImageCrop;
-namespace SchoolOrganizer.Views.Windows;
+
+namespace SchoolOrganizer.Views.Windows.ImageCrop;
+
 public partial class ImageCropWindow : Window
 {
     #region Constants

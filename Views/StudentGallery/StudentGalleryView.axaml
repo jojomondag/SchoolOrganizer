@@ -14,7 +14,6 @@
 
   <UserControl.Resources>
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
-    <views:StringIsNullOrWhiteSpaceConverter x:Key="IsNullOrWhiteSpace"/>
     <views:StudentSelectionBrushConverter x:Key="StudentSelectionBrushConverter"/>
     <views:DisplayConfigConverter x:Key="DisplayConfigConverter"/>
     <views:IdToIsAddCardConverter x:Key="IdToIsAddCardConverter"/>

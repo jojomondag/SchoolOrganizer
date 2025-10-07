@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using Avalonia.Input;
+using SchoolOrganizer.Views.Windows.ImageCrop;
 
 namespace SchoolOrganizer.Views.Windows;
 
