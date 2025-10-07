@@ -301,7 +301,7 @@
                   </Style>
                 </Button.Styles>
 
-                <!-- Card Content - Switch between Student and AddStudentCard -->
+                <!-- Card Content - Switch between Student and AddStudentProfileCard -->
                 <ContentControl Content="{Binding}">
                   <ContentControl.ContentTemplate>
                     <DataTemplate x:DataType="models:IPerson">
@@ -329,55 +329,19 @@
                         </Panel>
                         
                         <!-- Add Student Card Template -->
-                        <Border Name="AddStudentCard"
-                                Background="{DynamicResource BackgroundPrimaryBrush}"
-                                BorderBrush="{DynamicResource CardBorderBrush}"
-                                BorderThickness="1"
-                                CornerRadius="12"
-                                Width="240"
-                                Height="200"
-                                BoxShadow="{DynamicResource CardBoxShadows}"
-                                Cursor="Hand"
-                                IsVisible="{Binding Id, Converter={StaticResource IdToIsAddCardConverter}}">
-                          <Border.Styles>
-                            <Style Selector="Border:pointerover">
-                              <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
-                              <Setter Property="BoxShadow" Value="{DynamicResource CardBoxShadowsHover}"/>
-                            </Style>
-                          </Border.Styles>
-                          <Grid>
-                            <Grid.RowDefinitions>
-                              <RowDefinition Height="*"/>
-                              <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            
-                            <!-- Plus Icon -->
-                            <Viewbox Grid.Row="0" 
-                                     HorizontalAlignment="Center" 
-                                     VerticalAlignment="Center"
-                                     Width="60" Height="60">
-                              <materialIcons:MaterialIcon Kind="Plus" 
-                                                          Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            </Viewbox>
-                            
-                            <!-- Text -->
-                            <StackPanel Grid.Row="1" 
-                                        HorizontalAlignment="Center" 
-                                        VerticalAlignment="Bottom"
-                                        Margin="0,0,0,20"
-                                        Spacing="4">
-                              <TextBlock Text="Add Student" 
-                                         FontSize="16" 
-                                         FontWeight="SemiBold"
-                                         HorizontalAlignment="Center"
-                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
-                              <TextBlock Text="Click to add a new student" 
-                                         FontSize="12"
-                                         HorizontalAlignment="Center"
-                                         Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            </StackPanel>
-                          </Grid>
-                        </Border>
+                        <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsAddCardConverter}}">
+                          <!-- Small Add Student Card for Small DisplayLevel -->
+                          <profileCard:AddStudentProfileCardSmall Name="AddStudentCardSmall"
+                                                                 IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
+
+                          <!-- Medium Add Student Card for Medium DisplayLevel -->
+                          <profileCard:AddStudentProfileCard Name="AddStudentCardMedium"
+                                                            IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
+
+                          <!-- Large Add Student Card for Full DisplayLevel -->
+                          <profileCard:AddStudentProfileCardLarge Name="AddStudentCardLarge"
+                                                                 IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsFull}"/>
+                        </Panel>
                       </Grid>
                     </DataTemplate>
                   </ContentControl.ContentTemplate>
