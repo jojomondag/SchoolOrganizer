@@ -12,17 +12,12 @@ public class StudentSelectionBrushConverter : IMultiValueConverter
 {
     public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (values.Count != 2) return new SolidColorBrush(Colors.Transparent);
+        if (values.Count != 2 || values[0] is not Student selectedStudent || values[1] is not Student currentStudent)
+            return new SolidColorBrush(Colors.Transparent);
         
-        var selectedStudent = values[0] as Student;
-        var currentStudent = values[1] as Student;
-        
-        if (selectedStudent != null && currentStudent != null && selectedStudent.Id == currentStudent.Id)
-        {
-            return new SolidColorBrush((Color)Application.Current!.Resources["SuccessColor"]!);
-        }
-        
-        return new SolidColorBrush(Colors.Transparent);
+        return selectedStudent.Id == currentStudent.Id 
+            ? new SolidColorBrush((Color)Application.Current!.Resources["SuccessColor"]!)
+            : new SolidColorBrush(Colors.Transparent);
     }
 
     public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)

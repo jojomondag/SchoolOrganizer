@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Classroom.v1;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
@@ -35,7 +34,6 @@ public class GoogleAuthService
     private UserCredential? _credential;
     public ClassroomService? ClassroomService { get; private set; }
     public DriveService? DriveService { get; private set; }
-    public string UserEmail { get; private set; } = string.Empty;
     public string TeacherName { get; private set; } = string.Empty;
 
     public async Task<bool> AuthenticateAsync() => await AuthenticateInternalAsync();
@@ -45,21 +43,13 @@ public class GoogleAuthService
     {
         try
         {
-            Log.Debug($"Starting authentication process...");
-            Log.Debug($"Checking credentials file at: {CredentialsPath}");
-            
             if (!File.Exists(CredentialsPath))
             {
                 Log.Warning($"Client secrets file not found at '{CredentialsPath}'. Authentication will be skipped.");
                 return false;
             }
 
-            Log.Debug("Credentials file found, attempting to read...");
             var secrets = GoogleClientSecrets.FromFile(CredentialsPath);
-            
-            Log.Debug("Starting Google authorization...");
-            
-            // Use LocalServerCodeReceiver for desktop applications
             var codeReceiver = new LocalServerCodeReceiver();
             _credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 secrets.Secrets,
@@ -78,7 +68,6 @@ public class GoogleAuthService
 
             if (_credential.Token.IsStale)
             {
-                Log.Debug("Token is stale, attempting refresh...");
                 if (!await RefreshTokenAsync())
                 {
                     return false;
@@ -100,21 +89,17 @@ public class GoogleAuthService
     {
         try
         {
-            // Use a retry mechanism with file locking
             for (int attempt = 0; attempt < 3; attempt++)
             {
                 try
                 {
-                    bool refreshed = await _credential!.RefreshTokenAsync(CancellationToken.None);
-                    Log.Debug(refreshed ? "Token refreshed successfully." : "Token refresh failed.");
-                    return refreshed;
+                    return await _credential!.RefreshTokenAsync(CancellationToken.None);
                 }
                 catch (IOException ex) when (ex.Message.Contains("being used by another process"))
                 {
-                    Log.Warning($"Token refresh attempt {attempt + 1} failed due to file lock, retrying...");
                     if (attempt < 2)
                     {
-                        await Task.Delay(100 * (attempt + 1)); // Exponential backoff
+                        await Task.Delay(100 * (attempt + 1));
                         continue;
                     }
                     throw;
@@ -142,23 +127,16 @@ public class GoogleAuthService
             HttpClientInitializer = _credential,
             ApplicationName = ApplicationName
         });
-
-        Log.Debug("Google services initialized successfully.");
     }
 
     private async Task FetchTeacherNameAsync()
     {
-        if (ClassroomService == null)
-        {
-            Log.Warning("ClassroomService is not initialized.");
-            return;
-        }
+        if (ClassroomService == null) return;
 
         try
         {
             var userProfile = await ClassroomService.UserProfiles.Get("me").ExecuteAsync();
             TeacherName = userProfile.Name?.FullName ?? "Unknown Teacher";
-            Log.Information($"Authenticated as {TeacherName}.");
         }
         catch (Exception ex)
         {
@@ -195,10 +173,7 @@ public class GoogleAuthService
             _credential = null;
             ClassroomService = null;
             DriveService = null;
-            UserEmail = string.Empty;
             TeacherName = string.Empty;
-
-            Log.Information("User credentials cleared successfully.");
         }
         catch (Exception ex)
         {

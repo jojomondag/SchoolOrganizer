@@ -9,15 +9,16 @@ public enum AppTheme { Light, Dark }
 
 public static class ThemeManager
 {
-    public static AppTheme CurrentTheme { get; private set; } = AppTheme.Light;
-    public static event EventHandler<AppTheme>? ThemeChanged;
+    private static AppTheme _currentTheme = AppTheme.Light;
 
     public static void ApplyTheme(AppTheme theme)
     {
         var app = Application.Current;
         if (app is null) return;
-        CurrentTheme = theme;
+        
+        _currentTheme = theme;
         app.RequestedThemeVariant = theme == AppTheme.Dark ? ThemeVariant.Dark : ThemeVariant.Light;
+        
         var merged = app.Resources.MergedDictionaries;
         for (int i = merged.Count - 1; i >= 0; i--)
         {
@@ -31,11 +32,11 @@ public static class ThemeManager
                 }
             }
         }
+        
         var name = theme == AppTheme.Dark ? "Dark" : "Light";
         var uri = new Uri($"avares://SchoolOrganizer/Views/Styles/{name}Theme.axaml");
         merged.Add(new ResourceInclude(uri) { Source = uri });
-        ThemeChanged?.Invoke(null, theme);
     }
-    public static void ToggleTheme() => ApplyTheme(CurrentTheme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light);
-    public static void Initialize() => ApplyTheme(CurrentTheme);
+    
+    public static void Initialize() => ApplyTheme(_currentTheme);
 }

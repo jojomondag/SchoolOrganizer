@@ -44,39 +44,52 @@ public class StudentSearchService
         {
             int tokenScore = 0;
 
-            // Name
+            // Name scoring (highest priority)
             var name = student.Name ?? string.Empty;
-            if (name.StartsWith(token, StringComparison.OrdinalIgnoreCase)) tokenScore = Math.Max(tokenScore, 6);
-            else if (name.Contains(token, StringComparison.OrdinalIgnoreCase)) tokenScore = Math.Max(tokenScore, 4);
+            if (name.StartsWith(token, StringComparison.OrdinalIgnoreCase))
+                tokenScore = 6;
+            else if (name.Contains(token, StringComparison.OrdinalIgnoreCase))
+                tokenScore = 4;
 
-            // Class
-            var cls = student.ClassName ?? string.Empty;
-            if (cls.StartsWith(token, StringComparison.OrdinalIgnoreCase)) tokenScore = Math.Max(tokenScore, 3);
-            else if (cls.Contains(token, StringComparison.OrdinalIgnoreCase)) tokenScore = Math.Max(tokenScore, 2);
-
-            // Mentors
-            foreach (var mentor in student.Mentors ?? new())
+            // Class scoring
+            if (tokenScore < 3)
             {
-                if (mentor.Contains(token, StringComparison.OrdinalIgnoreCase)) 
+                var cls = student.ClassName ?? string.Empty;
+                if (cls.StartsWith(token, StringComparison.OrdinalIgnoreCase))
+                    tokenScore = 3;
+                else if (cls.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    tokenScore = 2;
+            }
+
+            // Mentors scoring
+            if (tokenScore < 2)
+            {
+                foreach (var mentor in student.Mentors ?? new())
                 {
-                    tokenScore = Math.Max(tokenScore, 2);
-                    break; // Found in at least one mentor, no need to check others for this token
+                    if (mentor.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    {
+                        tokenScore = 2;
+                        break;
+                    }
                 }
             }
 
-            // Email
-            var email = student.Email ?? string.Empty;
-            if (email.Contains(token, StringComparison.OrdinalIgnoreCase)) tokenScore = Math.Max(tokenScore, 1);
-
-            // Enrollment date (yyyy-mm-dd)
-            var dateStr = student.EnrollmentDate.ToString("yyyy-MM-dd");
-            if (dateStr.Contains(token, StringComparison.OrdinalIgnoreCase)) tokenScore = Math.Max(tokenScore, 1);
+            // Email and date scoring (lowest priority)
+            if (tokenScore < 1)
+            {
+                var email = student.Email ?? string.Empty;
+                if (email.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    tokenScore = 1;
+                else
+                {
+                    var dateStr = student.EnrollmentDate.ToString("yyyy-MM-dd");
+                    if (dateStr.Contains(token, StringComparison.OrdinalIgnoreCase))
+                        tokenScore = 1;
+                }
+            }
 
             if (tokenScore == 0)
-            {
-                // If any token doesn't match, the student shouldn't be included
                 return 0;
-            }
 
             totalScore += tokenScore;
         }
@@ -84,5 +97,3 @@ public class StudentSearchService
         return totalScore;
     }
 }
-
-

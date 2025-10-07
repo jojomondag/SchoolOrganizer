@@ -6,28 +6,22 @@ using SchoolOrganizer.Models;
 namespace SchoolOrganizer.Views.Converters;
 
 /// <summary>
-/// Converts ProfileCardDisplayConfig to specific display properties
-/// This replaces multiple separate converters with a single unified approach
+/// Converts ProfileCardDisplayLevel to boolean visibility values
+/// Used to show/hide different card sizes based on current display level
 /// </summary>
 public class DisplayConfigConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is not ProfileCardDisplayConfig config)
-            return GetDefaultValue(parameter?.ToString());
+        if (value is not ProfileCardDisplayLevel displayLevel)
+            return false;
 
         return parameter?.ToString() switch
         {
-            "CardWidth" => config.CardWidth,
-            "CardHeight" => config.CardHeight,
-            "ImageSize" => config.ImageSize,
-            "NameFontSize" => config.NameFontSize,
-            "RoleFontSize" => config.RoleFontSize,
-            "SecondaryFontSize" => config.SecondaryFontSize,
-            "ShowEmail" => config.ShowEmail,
-            "ShowEnrollmentDate" => config.ShowEnrollmentDate,
-            "ShowSecondaryInfo" => config.ShowSecondaryInfo,
-            _ => GetDefaultValue(parameter?.ToString())
+            "IsSmall" => displayLevel == ProfileCardDisplayLevel.Small,
+            "IsMedium" => displayLevel == ProfileCardDisplayLevel.Medium,
+            "IsFull" => displayLevel == ProfileCardDisplayLevel.Full,
+            _ => false
         };
     }
 
@@ -35,18 +29,4 @@ public class DisplayConfigConverter : IValueConverter
     {
         throw new NotImplementedException();
     }
-
-    private static object GetDefaultValue(string? parameter) => parameter switch
-    {
-        "CardWidth" => 240.0,
-        "CardHeight" => 320.0,
-        "ImageSize" => 90.0,
-        "NameFontSize" => 16.0,
-        "RoleFontSize" => 12.0,
-        "SecondaryFontSize" => 10.0,
-        "ShowEmail" => false,
-        "ShowEnrollmentDate" => false,
-        "ShowSecondaryInfo" => true,
-        _ => 16.0
-    };
 }

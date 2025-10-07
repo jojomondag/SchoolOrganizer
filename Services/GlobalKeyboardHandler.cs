@@ -32,16 +32,10 @@ public class GlobalKeyboardHandler
     /// </summary>
     private void Initialize()
     {
-        // Initializing keyboard handling
-        
-        // Make the host control focusable and set up keyboard event handling
         _hostControl.Focusable = true;
         _hostControl.KeyDown += OnKeyDown;
-        
-        // Also handle at higher level to catch all keyboard events
         _hostControl.AddHandler(Control.KeyDownEvent, OnKeyDown, handledEventsToo: true);
         
-        // Set up focus when the control is loaded
         if (_hostControl.IsLoaded)
         {
             SetupFocus();
@@ -50,8 +44,6 @@ public class GlobalKeyboardHandler
         {
             _hostControl.Loaded += OnHostControlLoaded;
         }
-        
-        // Keyboard handler initialization complete
     }
 
     /// <summary>
@@ -60,7 +52,7 @@ public class GlobalKeyboardHandler
     private void OnHostControlLoaded(object? sender, RoutedEventArgs e)
     {
         SetupFocus();
-        _hostControl.Loaded -= OnHostControlLoaded; // Unsubscribe after first load
+        _hostControl.Loaded -= OnHostControlLoaded;
     }
 
     /// <summary>
@@ -72,8 +64,7 @@ public class GlobalKeyboardHandler
         {
             if (_hostControl.Focusable)
             {
-                var focused = _hostControl.Focus();
-                // Focus attempt completed
+                _hostControl.Focus();
             }
         }, DispatcherPriority.Background);
     }
@@ -83,8 +74,7 @@ public class GlobalKeyboardHandler
     /// </summary>
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        bool handled = HandleKeyDown(e);
-        if (handled)
+        if (HandleKeyDown(e))
         {
             e.Handled = true;
         }
@@ -171,52 +161,35 @@ public class GlobalKeyboardHandler
                 FocusSearchBoxAndStartTyping(e);
                 return true;
 
-            // Backspace - handle different cases for Mac compatibility
             case Key.Back:
-                // Check for modifier keys first
-                if ((e.KeyModifiers & KeyModifiers.Meta) != 0)
+                if ((e.KeyModifiers & (KeyModifiers.Meta | KeyModifiers.Alt)) != 0)
                 {
-                    // Cmd+Backspace on Mac - delete selected student if one is selected
                     if (_viewModel.SelectedStudent != null)
                     {
                         _viewModel.DeleteStudentCommand.Execute(_viewModel.SelectedStudent);
-                        return true;
                     }
                     else
                     {
                         FocusSearchBoxAndDelete();
-                        return true;
-                    }
-                }
-                else if ((e.KeyModifiers & KeyModifiers.Alt) != 0)
-                {
-                    // Alt+Backspace on Mac - delete selected student
-                    if (_viewModel.SelectedStudent != null)
-                    {
-                        _viewModel.DeleteStudentCommand.Execute(_viewModel.SelectedStudent);
-                        return true;
                     }
                     return true;
                 }
                 else
                 {
-                    // Regular backspace - focus search box and delete from end
                     FocusSearchBoxAndBackspace();
                     return true;
                 }
 
-            // Delete - delete selected student if one is selected, otherwise focus search box
             case Key.Delete:
                 if (_viewModel.SelectedStudent != null)
                 {
                     _viewModel.DeleteStudentCommand.Execute(_viewModel.SelectedStudent);
-                    return true;
                 }
                 else
                 {
                     FocusSearchBoxAndDelete();
-                    return true;
                 }
+                return true;
 
             // Arrow keys for navigation
             case Key.Left:
@@ -366,11 +339,7 @@ public class GlobalKeyboardHandler
         if (keyChar != null)
         {
             _viewModel.SearchText = keyChar;
-            // Position cursor at the end
-            Dispatcher.UIThread.Post(() =>
-            {
-                _searchTextBox.CaretIndex = _searchTextBox.Text?.Length ?? 0;
-            }, DispatcherPriority.Background);
+            _searchTextBox.CaretIndex = _searchTextBox.Text?.Length ?? 0;
         }
     }
 
@@ -384,10 +353,7 @@ public class GlobalKeyboardHandler
         if (!string.IsNullOrEmpty(_viewModel.SearchText))
         {
             _viewModel.SearchText = _viewModel.SearchText[..^1];
-            Dispatcher.UIThread.Post(() =>
-            {
-                _searchTextBox.CaretIndex = _searchTextBox.Text?.Length ?? 0;
-            }, DispatcherPriority.Background);
+            _searchTextBox.CaretIndex = _searchTextBox.Text?.Length ?? 0;
         }
     }
 
@@ -397,13 +363,8 @@ public class GlobalKeyboardHandler
     private void FocusSearchBoxAndDelete()
     {
         _searchTextBox.Focus();
-        
-        // For global delete, we'll just clear the entire search text
         _viewModel.SearchText = string.Empty;
-        Dispatcher.UIThread.Post(() =>
-        {
-            _searchTextBox.CaretIndex = 0;
-        }, DispatcherPriority.Background);
+        _searchTextBox.CaretIndex = 0;
     }
 
     /// <summary>
@@ -413,12 +374,9 @@ public class GlobalKeyboardHandler
     {
         _searchTextBox.Focus();
         
-        Dispatcher.UIThread.Post(() =>
-        {
-            var currentIndex = _searchTextBox.CaretIndex;
-            var newIndex = Math.Max(0, Math.Min((_searchTextBox.Text?.Length ?? 0), currentIndex + offset));
-            _searchTextBox.CaretIndex = newIndex;
-        }, DispatcherPriority.Background);
+        var currentIndex = _searchTextBox.CaretIndex;
+        var newIndex = Math.Max(0, Math.Min((_searchTextBox.Text?.Length ?? 0), currentIndex + offset));
+        _searchTextBox.CaretIndex = newIndex;
     }
 
     /// <summary>
@@ -427,11 +385,7 @@ public class GlobalKeyboardHandler
     private void MoveCursorToStart()
     {
         _searchTextBox.Focus();
-        
-        Dispatcher.UIThread.Post(() =>
-        {
-            _searchTextBox.CaretIndex = 0;
-        }, DispatcherPriority.Background);
+        _searchTextBox.CaretIndex = 0;
     }
 
     /// <summary>
@@ -440,11 +394,7 @@ public class GlobalKeyboardHandler
     private void MoveCursorToEnd()
     {
         _searchTextBox.Focus();
-        
-        Dispatcher.UIThread.Post(() =>
-        {
-            _searchTextBox.CaretIndex = _searchTextBox.Text?.Length ?? 0;
-        }, DispatcherPriority.Background);
+        _searchTextBox.CaretIndex = _searchTextBox.Text?.Length ?? 0;
     }
 
     /// <summary>
@@ -453,11 +403,7 @@ public class GlobalKeyboardHandler
     private void FocusSearchBoxAndSelectAll()
     {
         _searchTextBox.Focus();
-        
-        Dispatcher.UIThread.Post(() =>
-        {
-            _searchTextBox.SelectAll();
-        }, DispatcherPriority.Background);
+        _searchTextBox.SelectAll();
     }
 
     /// <summary>
