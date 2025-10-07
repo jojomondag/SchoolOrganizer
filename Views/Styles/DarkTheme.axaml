@@ -39,6 +39,7 @@
     <SolidColorBrush x:Key="ImageCropperThumbnailBorderBrush" Color="{StaticResource CardBorderColor}" />
     <SolidColorBrush x:Key="ImageCropperThumbnailBorderHoverBrush" Color="{StaticResource TextSecondaryColor}" />
     <SolidColorBrush x:Key="ImageCropperThumbnailBackgroundBrush" Color="{StaticResource BackgroundTertiaryColor}" />
+    <SolidColorBrush x:Key="ProfileImageBorderBrush" Color="{StaticResource WhiteColor}" />
     
     <!-- Action button brushes using only 7 core colors -->
     <SolidColorBrush x:Key="ActionBlueBrush" Color="{StaticResource TextSecondaryColor}" />
