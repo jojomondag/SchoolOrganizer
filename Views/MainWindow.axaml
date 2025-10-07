@@ -3,6 +3,7 @@
         xmlns:vm="using:SchoolOrganizer.ViewModels"
         xmlns:views="using:SchoolOrganizer.Views"
         xmlns:studentGallery="using:SchoolOrganizer.Views.StudentGallery"
+        xmlns:classroomDownload="using:SchoolOrganizer.Views.ClassroomDownload"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -120,6 +121,11 @@
                                   IsChecked="{Binding IsStudentGalleryActive}"
                                   Command="{Binding NavigateToStudentGalleryCommand}"
                                   Content="Student Gallery"/>
+
+                    <ToggleButton Classes="tab"
+                                  IsChecked="{Binding IsClassroomDownloadActive}"
+                                  Command="{Binding NavigateToClassroomDownloadCommand}"
+                                  Content="Classroom Downloads"/>
                 </StackPanel>
 
                 <!-- Status/Teacher Name Display -->
@@ -144,19 +150,24 @@
                     <DataTemplate DataType="vm:StudentGalleryViewModel">
                         <studentGallery:StudentGalleryView/>
                     </DataTemplate>
-                
+
+                <!-- Template for ClassroomDownloadViewModel -->
+                    <DataTemplate DataType="vm:ClassroomDownloadViewModel">
+                        <classroomDownload:ClassroomDownloadView/>
+                    </DataTemplate>
+
                 <!-- Template for HomeViewModel -->
                     <DataTemplate DataType="vm:HomeViewModel">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
-                            <TextBlock Text="{Binding Title}" 
-                                       FontSize="32" 
-                                       FontWeight="Bold" 
+                            <TextBlock Text="{Binding Title}"
+                                       FontSize="32"
+                                       FontWeight="Bold"
                                        HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding Message}" 
-                                       FontSize="16" 
+                            <TextBlock Text="{Binding Message}"
+                                       FontSize="16"
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"/>
-                            <Button Content="Go to Student Gallery" 
+                            <Button Content="Go to Student Gallery"
                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigateToStudentGalleryCommand}"
                                     Padding="20,10"
                                     FontSize="14"/>

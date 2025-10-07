@@ -1,0 +1,164 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SchoolOrganizer.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="SchoolOrganizer.Views.ContentView.ContentView"
+        x:DataType="vm:ContentViewModel"
+        Title="{Binding CourseName}"
+        Width="1200" Height="800">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="300" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource BackgroundSecondaryColor}"
+                Padding="20">
+            <StackPanel Spacing="10">
+                <TextBlock Text="{Binding CourseName}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryColor}"/>
+                <StackPanel Orientation="Horizontal" Spacing="15">
+                    <Button Content="← Back"
+                            Command="{Binding CloseCommand}"
+                            Padding="15,8"/>
+                    <Button Content="Run Plagiarism Detection"
+                            Command="{Binding RunPlagiarismDetectionCommand}"
+                            Padding="15,8"
+                            Background="{DynamicResource AccentButtonBackground}"
+                            Foreground="White"/>
+                    <TextBlock Text="{Binding StatusText}"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryColor}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Students List -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource BackgroundPrimaryColor}"
+                Margin="10">
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding Students}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource BackgroundSecondaryColor}"
+                                    Margin="5"
+                                    Padding="15"
+                                    CornerRadius="4"
+                                    BorderThickness="1"
+                                    BorderBrush="{DynamicResource BorderColor}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" Spacing="5">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource TextPrimaryColor}"/>
+                                        <TextBlock Text="{Binding AssignmentCount, StringFormat='Assignments: {0}'}"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource TextSecondaryColor}"/>
+                                        <TextBlock Text="{Binding FileCount, StringFormat='Files: {0}'}"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource TextSecondaryColor}"/>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1"
+                                            Content="View Details"
+                                            Command="{Binding $parent[ItemsControl].((vm:ContentViewModel)DataContext).ViewStudentDetailCommand}"
+                                            CommandParameter="{Binding}"
+                                            Margin="10,0"
+                                            Padding="12,6"/>
+
+                                    <Button Grid.Column="2"
+                                            Content="Open Folder"
+                                            Command="{Binding $parent[ItemsControl].((vm:ContentViewModel)DataContext).OpenStudentFolderCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="12,6"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Splitter -->
+        <GridSplitter Grid.Row="2"
+                      Height="4"
+                      Background="{DynamicResource BorderColor}"
+                      HorizontalAlignment="Stretch"/>
+
+        <!-- Plagiarism Results -->
+        <Border Grid.Row="3"
+                Background="{DynamicResource BackgroundSecondaryColor}"
+                Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="Plagiarism Detection Results"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Margin="0,0,0,10"
+                           Foreground="{DynamicResource TextPrimaryColor}"/>
+
+                <ScrollViewer Grid.Row="1">
+                    <ItemsControl ItemsSource="{Binding PlagiarismResults}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource BackgroundTertiaryColor}"
+                                        Margin="2"
+                                        Padding="10"
+                                        CornerRadius="2"
+                                        BorderThickness="1"
+                                        BorderBrush="{DynamicResource BorderColor}">
+                                    <StackPanel Spacing="5">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="{Binding StudentName}"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource TextPrimaryColor}"/>
+                                            <TextBlock Text="{Binding FileName}"
+                                                       Foreground="{DynamicResource TextSecondaryColor}"/>
+                                            <TextBlock Text="{Binding OverallSimilarityScore, StringFormat='Similarity: {0:P0}'}"
+                                                       Foreground="Orange"
+                                                       FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding SeverityLevel}"
+                                                       Foreground="Red"/>
+                                        </StackPanel>
+                                        <ItemsControl ItemsSource="{Binding Matches}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding ComparedToStudentName, StringFormat='  → Match with: {0}'}"
+                                                               FontSize="11"
+                                                               Foreground="{DynamicResource TextSecondaryColor}"
+                                                               Margin="15,0,0,0"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

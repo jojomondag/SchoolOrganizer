@@ -15,9 +15,10 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly GoogleAuthService _authService;
     private readonly UserProfileService _userProfileService;
     private readonly StudentGalleryViewModel _studentGalleryViewModel;
+    private ClassroomDownloadViewModel? _classroomDownloadViewModel;
 
     private ObservableObject _currentViewModel;
-    
+
     public ObservableObject CurrentViewModel
     {
         get => _currentViewModel;
@@ -27,6 +28,7 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(IsStudentGalleryActive));
                 OnPropertyChanged(nameof(IsHomeActive));
+                OnPropertyChanged(nameof(IsClassroomDownloadActive));
                 OnPropertyChanged(nameof(ActiveContentBrush));
             }
         }
@@ -57,16 +59,19 @@ public partial class MainWindowViewModel : ObservableObject
         }
         else
         {
-            Task.Run(InitializeAuthenticationAsync);
+            // Don't use Task.Run here to avoid threading issues
+            _ = InitializeAuthenticationAsync();
         }
     }
 
     public bool IsStudentGalleryActive => CurrentViewModel is StudentGalleryViewModel;
     public bool IsHomeActive => CurrentViewModel is HomeViewModel;
+    public bool IsClassroomDownloadActive => CurrentViewModel is ClassroomDownloadViewModel;
     public IBrush ActiveContentBrush => CurrentViewModel switch
     {
         StudentGalleryViewModel => Brushes.White,
         HomeViewModel => new SolidColorBrush((Color)Application.Current!.Resources["LightBlueColor"]!),
+        ClassroomDownloadViewModel => Brushes.White,
         _ => Brushes.White
     };
 
@@ -75,6 +80,16 @@ public partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private void NavigateToHome() => CurrentViewModel = new HomeViewModel();
+
+    [RelayCommand]
+    private void NavigateToClassroomDownload()
+    {
+        if (_classroomDownloadViewModel == null)
+        {
+            _classroomDownloadViewModel = new ClassroomDownloadViewModel(_authService);
+        }
+        CurrentViewModel = _classroomDownloadViewModel;
+    }
 
     [RelayCommand]
     private async Task Login() => await AuthenticateAsync("Authenticating with Google...", false);

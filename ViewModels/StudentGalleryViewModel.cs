@@ -87,7 +87,8 @@ public partial class StudentGalleryViewModel : ObservableObject
             userProfileService = new UserProfileService(authService);
             IsAuthenticated = true;
             TeacherName = authService.TeacherName;
-            Task.Run(LoadProfileImageAsync);
+            // Don't use Task.Run here to avoid threading issues
+            _ = LoadProfileImageAsync();
         }
         else
         {
@@ -196,6 +197,7 @@ public partial class StudentGalleryViewModel : ObservableObject
         if (SelectedStudent != null && !Students.Contains(SelectedStudent))
             SelectedStudent = null;
         UpdateViewProperties();
+        UpdateDisplayLevelBasedOnItemCount();
     }
 
     partial void OnForceGridViewChanged(bool value) => UpdateViewProperties();

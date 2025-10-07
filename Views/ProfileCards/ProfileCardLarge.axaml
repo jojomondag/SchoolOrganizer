@@ -61,7 +61,7 @@
       <!-- Details -->
       <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="0,10,0,0">
         <TextBlock x:Name="NameText"
-                   FontWeight="Bold" FontSize="36"
+                   FontSize="36"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    Margin="0,0,0,15" TextWrapping="Wrap"/>
 

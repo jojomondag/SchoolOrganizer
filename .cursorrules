@@ -1,0 +1,6 @@
+# Cursor Rules for SchoolOrganizer
+
+## Reference Working Code
+Always reference the working code in `C:\Users\Josef\Documents\Github\TeachersLittleHelper` when implementing similar functionality or patterns. This directory contains proven, working implementations that should be used as a reference for best practices and correct implementation patterns.
+
+When working on similar features or patterns, check the TeachersLittleHelper codebase first to understand the correct approach and implementation details.

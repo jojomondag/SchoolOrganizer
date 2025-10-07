@@ -45,7 +45,6 @@
 
   <!-- Application icons -->
   <ItemGroup>
-    <AvaloniaResource Include="Assets\icon.ico" />
     <AvaloniaResource Include="Assets\icon.icns" />
     <AvaloniaResource Include="Assets\Logo.png" />
   </ItemGroup>
@@ -66,6 +65,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="11.3.6" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.6" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.6" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.6" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Include="Avalonia.Diagnostics" Version="11.3.6">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
@@ -76,9 +76,18 @@
     <PackageReference Include="Google.Apis.Classroom.v1" Version="1.70.0.3891" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.71.0.3905" />
     <PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
+    <PackageReference Include="ReactiveUI" Version="20.1.63" />
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="SharpCompress" Version="0.33.0" />
+    <PackageReference Include="DiffPlex" Version="1.7.2" />
+    <PackageReference Include="FuzzySharp" Version="2.0.2" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.2.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
+    <PackageReference Include="MetadataExtractor" Version="2.8.1" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.6" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Avalonia.Svg.Skia" Version="11.3.0">
       <IncludeAssets Condition="'$(Configuration)' == 'Debug'">All</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' == 'Debug'">None</PrivateAssets>

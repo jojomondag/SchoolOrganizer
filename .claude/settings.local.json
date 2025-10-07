@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Josef/Documents/Github/TeachersLittleHelper/**)",
+      "Bash(dotnet build)",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet build:*)",
+      "Bash(taskkill:*)",
+      "Bash(Get-Process SchoolOrganizer -ErrorAction SilentlyContinue)",
+      "Bash(Stop-Process -Force)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

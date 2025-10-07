@@ -60,7 +60,6 @@
         <TextBlock x:Name="NameText"
                    Text="John Doe"
                    FontSize="16"
-                   FontWeight="Bold"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    TextAlignment="Center"
                    Margin="0,0,0,4"

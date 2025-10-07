@@ -1,0 +1,132 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SchoolOrganizer.ViewModels"
+        xmlns:controls="using:SchoolOrganizer.Controls"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        x:Class="SchoolOrganizer.Views.ContentView.StudentDetailView"
+        x:DataType="vm:StudentDetailViewModel"
+        Title="{Binding StudentName}"
+        Width="1000" Height="700">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Panel - File List -->
+        <Border Grid.Column="0"
+                Background="{DynamicResource BackgroundSecondaryColor}"
+                BorderThickness="0,0,1,0"
+                BorderBrush="{DynamicResource BorderColor}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Background="{DynamicResource BackgroundTertiaryColor}"
+                        Padding="15"
+                        BorderThickness="0,0,0,1"
+                        BorderBrush="{DynamicResource BorderColor}">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{Binding StudentName}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryColor}"/>
+                        <TextBlock Text="{Binding StatusText}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryColor}"/>
+                    </StackPanel>
+                </Border>
+
+                <ScrollViewer Grid.Row="1">
+                    <ItemsControl ItemsSource="{Binding Assignments}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Expander Header="{Binding Name}"
+                                          Margin="5">
+                                    <ItemsControl ItemsSource="{Binding Files}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="Transparent"
+                                                        Padding="10,5"
+                                                        Cursor="Hand">
+                                                    <Border.Styles>
+                                                        <Style Selector="Border:pointerover">
+                                                            <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
+                                                        </Style>
+                                                    </Border.Styles>
+                                                    <StackPanel Spacing="3"
+                                                                Tapped="OnFileTapped">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontSize="13"
+                                                                   Foreground="{DynamicResource TextPrimaryColor}"/>
+                                                        <TextBlock Text="{Binding Size, StringFormat='{}{0:N0} bytes'}"
+                                                                   FontSize="10"
+                                                                   Foreground="{DynamicResource TextSecondaryColor}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Expander>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Right Panel - File Viewer -->
+        <Grid Grid.Column="1"
+              Background="{DynamicResource BackgroundPrimaryColor}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- File Info Header -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource BackgroundSecondaryColor}"
+                    Padding="15"
+                    BorderThickness="0,0,0,1"
+                    BorderBrush="{DynamicResource BorderColor}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding SelectedFile.Name, FallbackValue='Select a file to view'}"
+                               FontSize="14"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryColor}"/>
+
+                    <Button Grid.Column="1"
+                            Content="Open in Explorer"
+                            Command="{Binding OpenInExplorerCommand}"
+                            CommandParameter="{Binding SelectedFile}"
+                            Padding="12,6"
+                            IsEnabled="{Binding SelectedFile, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                </Grid>
+            </Border>
+
+            <!-- File Content -->
+            <Border Grid.Row="1"
+                    Padding="10">
+                <ScrollViewer>
+                    <controls:SyntaxHighlightedCodeViewer
+                        CodeContent="{Binding FileContent}"
+                        FileExtension="{Binding FileExtension}"
+                        IsVisible="{Binding FileContent, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

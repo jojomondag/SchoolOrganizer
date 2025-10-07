@@ -392,16 +392,10 @@ public partial class StudentGalleryView : UserControl
             var availableWidth = Bounds.Width;
             if (availableWidth <= 0) return;
 
-            // Get the DisplayConfig card width instead of calculating it
-            var viewModel = DataContext as StudentGalleryViewModel;
-            var displayConfig = viewModel?.DisplayConfig ?? ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium);
-            var cardWidth = displayConfig.CardWidth;
+            // Disable dynamic sizing to maintain consistency
+            // Let XAML templates handle sizing with their hardcoded dimensions
+            // This ensures cards look the same whether loaded initially or after search
             
-            // Updating card layout
-            
-            // Apply the DisplayConfig sizing to all cards
-            ApplyCardSizing(cardWidth);
-
             // Layout updated successfully
         }
         catch (Exception ex)
@@ -442,167 +436,18 @@ public partial class StudentGalleryView : UserControl
 
     private void ApplyCardSizing(double cardWidth)
     {
-        var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
-        if (studentsContainer == null) return;
-
-        // Use DisplayConfig dimensions instead of calculated ones to maintain proper proportions
-        var viewModel = DataContext as StudentGalleryViewModel;
-        var displayConfig = viewModel?.DisplayConfig ?? ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium);
-        
-        var imageSize = displayConfig.ImageSize;
-        var imageRadius = imageSize / 2;
-        var nameFontSize = displayConfig.NameFontSize;
-        var classFontSize = displayConfig.RoleFontSize;
-        var mentorFontSize = displayConfig.SecondaryFontSize;
-        var placeholderFontSize = imageSize * 0.4;
-        var cardPadding = 15; // Use standard padding
-
-        // Applying card sizing
-        // Updating card containers
-
-        // Update all existing card containers
-        int updatedContainers = 0;
-        for (int i = 0; i < studentsContainer.ItemCount; i++)
-        {
-            var container = studentsContainer.ContainerFromIndex(i);
-            if (container != null)
-            {
-                UpdateCardElements(container, cardWidth, imageSize, imageRadius, nameFontSize, 
-                                 classFontSize, mentorFontSize, placeholderFontSize, cardPadding);
-                updatedContainers++;
-            }
-        }
-
-        // Store values for newly created containers
-        _currentCardWidth = cardWidth;
-        _currentImageSize = imageSize;
-        _currentImageRadius = imageRadius;
-        _currentNameFontSize = nameFontSize;
-        _currentClassFontSize = classFontSize;
-        _currentMentorFontSize = mentorFontSize;
-        _currentPlaceholderFontSize = placeholderFontSize;
-        _currentCardPadding = cardPadding;
-
-        // Card sizing completed
+        // Disabled dynamic card sizing to maintain consistency
+        // Cards will use their XAML template dimensions
+        // This ensures consistent appearance between initial load and search results
     }
 
     private void UpdateCardElements(Control container, double cardWidth, double imageSize, double imageRadius,
                                   double nameFontSize, double classFontSize, double mentorFontSize, 
                                   double placeholderFontSize, double cardPadding)
     {
-        try
-        {
-            // Only update elements that need to change from their default values
-            var textMaxWidth = cardWidth - (cardPadding * 2);
-            
-            // Update card border width only if different from default
-            if (Math.Abs(cardWidth - 240) > 1)
-            {
-                var cardBorder = FindNamedChild<Border>(container, "StudentCard");
-                if (cardBorder != null)
-                {
-                    cardBorder.Width = cardWidth;
-                }
-            }
-
-            // Update button padding only if different from default
-            if (Math.Abs(cardPadding - 15) > 1)
-            {
-                var cardButton = FindNamedChild<Button>(container, "CardButton");
-                if (cardButton != null)
-                {
-                    cardButton.Padding = new Thickness(cardPadding, cardPadding * 0.75);
-                }
-            }
-
-            // Update image elements only if size changed significantly
-            if (Math.Abs(imageSize - 90) > 1)
-            {
-                var imageContainer = FindNamedChild<Grid>(container, "ImageContainer");
-                if (imageContainer != null)
-                {
-                    imageContainer.Width = imageSize;
-                    imageContainer.Height = imageSize;
-                }
-
-                var imageBorder = FindNamedChild<Border>(container, "ImageBorder");
-                if (imageBorder != null)
-                {
-                    imageBorder.Width = imageSize;
-                    imageBorder.Height = imageSize;
-                    imageBorder.CornerRadius = new CornerRadius(imageRadius);
-                }
-
-                var imageButton = FindNamedChild<Button>(container, "ImageButton");
-                if (imageButton != null)
-                {
-                    imageButton.Width = imageSize;
-                    imageButton.Height = imageSize;
-                    imageButton.CornerRadius = new CornerRadius(imageRadius);
-                }
-
-                var profileEllipse = FindNamedChild<Ellipse>(container, "ProfileEllipse");
-                if (profileEllipse != null)
-                {
-                    profileEllipse.Width = imageSize;
-                    profileEllipse.Height = imageSize;
-                }
-            }
-
-            // Update text elements only if font sizes changed
-            if (Math.Abs(nameFontSize - 16) > 0.5)
-            {
-                var nameText = FindNamedChild<TextBlock>(container, "NameText");
-                if (nameText != null)
-                {
-                    nameText.FontSize = nameFontSize;
-                    nameText.MaxWidth = textMaxWidth;
-                }
-            }
-
-            if (Math.Abs(classFontSize - 12) > 0.5)
-            {
-                var classText = FindNamedChild<TextBlock>(container, "ClassText");
-                if (classText != null)
-                {
-                    classText.FontSize = classFontSize;
-                    classText.MaxWidth = textMaxWidth;
-                }
-            }
-
-            if (Math.Abs(mentorFontSize - 10) > 0.5)
-            {
-                var mentorText = FindNamedChild<TextBlock>(container, "MentorText");
-                if (mentorText != null)
-                {
-                    mentorText.FontSize = mentorFontSize;
-                    mentorText.MaxWidth = textMaxWidth;
-                }
-            }
-
-            if (Math.Abs(placeholderFontSize - 36) > 1)
-            {
-                var placeholderText = FindNamedChild<TextBlock>(container, "PlaceholderText");
-                if (placeholderText != null)
-                {
-                    placeholderText.FontSize = placeholderFontSize;
-                }
-            }
-
-            // Update info container max width if needed
-            if (Math.Abs(textMaxWidth - 210) > 1)
-            {
-                var infoContainer = FindNamedChild<StackPanel>(container, "InfoContainer");
-                if (infoContainer != null)
-                {
-                    infoContainer.MaxWidth = textMaxWidth;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error updating card elements: {ex.Message}");
-        }
+        // Disabled dynamic element updates to maintain consistency
+        // Cards will use their XAML template styling
+        // This ensures consistent appearance between initial load and search results
     }
 
     private T? FindNamedChild<T>(Control parent, string name) where T : Control
