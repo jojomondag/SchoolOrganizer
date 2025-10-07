@@ -1,27 +1,32 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Dark Theme Colors (7 core colors) -->
+    <!-- Dark Theme Colors (7 core colors only) -->
     <Color x:Key="WhiteColor">#FFFFFF</Color>
     <Color x:Key="BlackColor">#000000</Color>
     <Color x:Key="TextPrimaryColor">#FFFFFF</Color>
     <Color x:Key="TextSecondaryColor">#b0bec5</Color>
     <Color x:Key="BackgroundPrimaryColor">#1a1a1a</Color>
+    <Color x:Key="BackgroundSecondaryColor">#2d2d30</Color>
     <Color x:Key="BackgroundTertiaryColor">#252526</Color>
+    
+    <!-- Derived colors using only the 7 core colors -->
     <Color x:Key="CardBorderColor">#30FFFFFF</Color>
+    <Color x:Key="HeaderBackgroundColor">#2d2d30</Color>
+    <Color x:Key="ContentBackgroundColor">#1a1a1a</Color>
 
-    <!-- Dark Theme Brushes -->
+    <!-- Dark Theme Brushes (using only 7 core colors) -->
     <SolidColorBrush x:Key="BackgroundPrimaryBrush" Color="{StaticResource BackgroundPrimaryColor}" />
-    <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="{StaticResource BackgroundPrimaryColor}" />
+    <SolidColorBrush x:Key="BackgroundSecondaryBrush" Color="{StaticResource BackgroundSecondaryColor}" />
     <SolidColorBrush x:Key="BackgroundTertiaryBrush" Color="{StaticResource BackgroundTertiaryColor}" />
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
     <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource BlackColor}" />
     <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}" />
-    <!-- Profile image border color for dark theme -->
-    <SolidColorBrush x:Key="ProfileImageBorderBrush" Color="{StaticResource WhiteColor}" />
-    <SolidColorBrush x:Key="IconBrush" Color="{StaticResource WhiteColor}" />
     <SolidColorBrush x:Key="CardBorderBrush" Color="{StaticResource CardBorderColor}" />
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{StaticResource HeaderBackgroundColor}" />
+    <SolidColorBrush x:Key="ContentBackgroundBrush" Color="{StaticResource ContentBackgroundColor}" />
+    <SolidColorBrush x:Key="IconBrush" Color="{StaticResource TextSecondaryColor}" />
 
     <!-- Card Shadows for Dark Theme -->
     <BoxShadows x:Key="CardBoxShadows">0 2 8 0 #50000000, 0 4 16 0 #40000000</BoxShadows>
@@ -47,5 +52,11 @@
     <SolidColorBrush x:Key="ImageCropperThumbnailBackgroundBrush" Color="{StaticResource BackgroundTertiaryColor}" />
     <SolidColorBrush x:Key="DeleteButtonBackgroundBrush" Color="{StaticResource BackgroundTertiaryColor}" />
     <SolidColorBrush x:Key="DeleteButtonHoverBackgroundBrush" Color="{StaticResource TextSecondaryColor}" />
+    
+    <!-- Action button brushes using only 7 core colors -->
+    <SolidColorBrush x:Key="ActionBlueBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="ActionBlueLightBrush" Color="{StaticResource BackgroundTertiaryColor}" />
+    <SolidColorBrush x:Key="ActionRedBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="ActionRedLightBrush" Color="{StaticResource BackgroundSecondaryColor}" />
 
 </ResourceDictionary>

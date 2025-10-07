@@ -86,7 +86,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="External/ImageSelector/ImageSelector.csproj" />
-  </ItemGroup>
 </Project>

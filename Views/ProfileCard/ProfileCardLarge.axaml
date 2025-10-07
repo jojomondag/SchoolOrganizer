@@ -11,11 +11,11 @@
   </UserControl.Resources>
 
   <Border x:Name="CardBorder"
-          Background="{DynamicResource WhiteColor}"
+          Background="{DynamicResource BackgroundPrimaryBrush}"
           CornerRadius="16"
           BoxShadow="{DynamicResource ShadowLight}"
           Margin="40,20"
-          BorderBrush="{DynamicResource BlackColor}"
+          BorderBrush="{DynamicResource BlackBrush}"
           BorderThickness="1">
 
     <Grid Margin="40">
@@ -30,7 +30,7 @@
                 Background="{DynamicResource TransparentColor}"
                 CornerRadius="120"
                 BorderThickness="3"
-                BorderBrush="{DynamicResource BlackColor}"
+                BorderBrush="{DynamicResource BlackBrush}"
                 Padding="0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
@@ -41,7 +41,7 @@
 
           <Grid>
             <!-- Background circle -->
-            <Ellipse Fill="{DynamicResource BackgroundTertiaryColor}"
+            <Ellipse Fill="{DynamicResource BackgroundTertiaryBrush}"
                      HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"/>
 
@@ -62,38 +62,38 @@
       <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="0,10,0,0">
         <TextBlock x:Name="NameText"
                    FontWeight="Bold" FontSize="36"
-                   Foreground="{DynamicResource BlackColor}"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
                    Margin="0,0,0,15" TextWrapping="Wrap"/>
 
         <StackPanel Margin="0,0,0,25">
           <TextBlock Text="Class" FontSize="14" FontWeight="SemiBold"
-                     Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
-          <TextBlock x:Name="RoleText" FontSize="18" Foreground="{DynamicResource BlackColor}"/>
+                     Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+          <TextBlock x:Name="RoleText" FontSize="18" Foreground="{DynamicResource TextPrimaryBrush}"/>
         </StackPanel>
 
         <StackPanel Spacing="20">
           <StackPanel>
             <TextBlock Text="Email Address" FontSize="14" FontWeight="SemiBold"
-                       Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
-            <TextBlock x:Name="EmailText" FontSize="18" Foreground="{DynamicResource BlackColor}"/>
+                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+            <TextBlock x:Name="EmailText" FontSize="18" Foreground="{DynamicResource TextPrimaryBrush}"/>
           </StackPanel>
 
           <StackPanel>
             <TextBlock Text="Mentor" FontSize="14" FontWeight="SemiBold"
-                       Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
-            <TextBlock x:Name="SecondaryText" FontSize="18" Foreground="{DynamicResource BlackColor}"/>
+                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+            <TextBlock x:Name="SecondaryText" FontSize="18" Foreground="{DynamicResource TextPrimaryBrush}"/>
           </StackPanel>
 
           <StackPanel x:Name="EnrollmentSection">
             <TextBlock Text="Enrollment Date" FontSize="14" FontWeight="SemiBold"
-                       Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
-            <TextBlock x:Name="EnrollmentText" FontSize="18" Foreground="{DynamicResource BlackColor}"/>
+                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+            <TextBlock x:Name="EnrollmentText" FontSize="18" Foreground="{DynamicResource TextPrimaryBrush}"/>
           </StackPanel>
 
           <StackPanel>
             <TextBlock Text="Student ID" FontSize="14" FontWeight="SemiBold"
-                       Foreground="{DynamicResource BlackColor}" Margin="0,0,0,5"/>
-            <TextBlock x:Name="IdText" FontSize="18" Foreground="{DynamicResource BlackColor}" FontFamily="Consolas"/>
+                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
+            <TextBlock x:Name="IdText" FontSize="18" Foreground="{DynamicResource TextPrimaryBrush}" FontFamily="Consolas"/>
           </StackPanel>
         </StackPanel>
       </StackPanel>

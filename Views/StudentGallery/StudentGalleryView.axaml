@@ -30,7 +30,6 @@
                           ContentTemplate="{TemplateBinding ContentTemplate}"/>
       </Border>
     </ControlTemplate>
-    
 
   </UserControl.Resources>
   <Design.DataContext>
@@ -303,30 +302,84 @@
                   </Style>
                 </Button.Styles>
 
-                <!-- Card Content - Switch between Small/Medium based on DisplayLevel -->
+                <!-- Card Content - Switch between Student and AddStudentCard -->
                 <ContentControl Content="{Binding}">
                   <ContentControl.ContentTemplate>
-                    <DataTemplate x:DataType="models:Student">
-                      <Panel>
-                        <!-- Small Card for Small DisplayLevel -->
-                        <profileCard:ProfileCardSmall Name="{Binding Name}"
-                                                     RoleInfo="{Binding RoleInfo}"
-                                                     PictureUrl="{Binding PictureUrl}"
-                                                     DataContext="{Binding}"
-                                                     ProfileImageClicked="OnProfileImageClicked"
-                                                     ProfileImageUpdated="OnProfileImageUpdated"
-                                                     IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
-
-                        <!-- Medium Card for Medium DisplayLevel -->
-                        <profileCard:ProfileCardMedium Name="{Binding Name}"
-                                                       Class="{Binding RoleInfo}"
-                                                       Mentor="{Binding SecondaryInfo}"
+                    <DataTemplate x:DataType="models:IPerson">
+                      <Grid>
+                        <!-- Student Card Template -->
+                        <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsStudentCardConverter}}">
+                          <!-- Small Card for Small DisplayLevel -->
+                          <profileCard:ProfileCardSmall Name="{Binding Name}"
+                                                       RoleInfo="{Binding RoleInfo}"
                                                        PictureUrl="{Binding PictureUrl}"
                                                        DataContext="{Binding}"
                                                        ProfileImageClicked="OnProfileImageClicked"
                                                        ProfileImageUpdated="OnProfileImageUpdated"
-                                                       IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
-                      </Panel>
+                                                       IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
+
+                          <!-- Medium Card for Medium DisplayLevel -->
+                          <profileCard:ProfileCardMedium Name="{Binding Name}"
+                                                         Class="{Binding RoleInfo}"
+                                                         Mentor="{Binding SecondaryInfo}"
+                                                         PictureUrl="{Binding PictureUrl}"
+                                                         DataContext="{Binding}"
+                                                         ProfileImageClicked="OnProfileImageClicked"
+                                                         ProfileImageUpdated="OnProfileImageUpdated"
+                                                         IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
+                        </Panel>
+                        
+                        <!-- Add Student Card Template -->
+                        <Border Name="AddStudentCard"
+                                Background="{DynamicResource BackgroundPrimaryBrush}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Width="240"
+                                Height="200"
+                                BoxShadow="{DynamicResource CardBoxShadows}"
+                                Cursor="Hand"
+                                IsVisible="{Binding Id, Converter={StaticResource IdToIsAddCardConverter}}">
+                          <Border.Styles>
+                            <Style Selector="Border:pointerover">
+                              <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
+                              <Setter Property="BoxShadow" Value="{DynamicResource CardBoxShadowsHover}"/>
+                            </Style>
+                          </Border.Styles>
+                          <Grid>
+                            <Grid.RowDefinitions>
+                              <RowDefinition Height="*"/>
+                              <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Plus Icon -->
+                            <Viewbox Grid.Row="0" 
+                                     HorizontalAlignment="Center" 
+                                     VerticalAlignment="Center"
+                                     Width="60" Height="60">
+                              <materialIcons:MaterialIcon Kind="Plus" 
+                                                          Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </Viewbox>
+                            
+                            <!-- Text -->
+                            <StackPanel Grid.Row="1" 
+                                        HorizontalAlignment="Center" 
+                                        VerticalAlignment="Bottom"
+                                        Margin="0,0,0,20"
+                                        Spacing="4">
+                              <TextBlock Text="Add Student" 
+                                         FontSize="16" 
+                                         FontWeight="SemiBold"
+                                         HorizontalAlignment="Center"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
+                              <TextBlock Text="Click to add a new student" 
+                                         FontSize="12"
+                                         HorizontalAlignment="Center"
+                                         Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                          </Grid>
+                        </Border>
+                      </Grid>
                     </DataTemplate>
                   </ContentControl.ContentTemplate>
                 </ContentControl>
@@ -388,7 +441,9 @@
             Background="{DynamicResource TransparentColor}" 
             Padding="20"
             IsVisible="{Binding SelectedStudent, Converter={x:Static ObjectConverters.IsNotNull}}">
-      <Border Background="{DynamicResource WhiteColor}"
+      <Border Background="{DynamicResource BackgroundPrimaryBrush}"
+              BorderBrush="{DynamicResource CardBorderBrush}"
+              BorderThickness="1"
               CornerRadius="8"
               Padding="16"
               BoxShadow="{DynamicResource ShadowMedium}">
@@ -396,20 +451,38 @@
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Spacing="8">
             <Button Content="✎"
                     Width="24" Height="24"
-                    Background="{DynamicResource LightBlueColor}" BorderBrush="{DynamicResource BlackColor}"
+                    Background="{DynamicResource ActionBlueLightBrush}" 
+                    BorderBrush="{DynamicResource ActionBlueBrush}"
+                    BorderThickness="1"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     Padding="0"
                     Command="{Binding EditStudentCommand}"
                     CommandParameter="{Binding SelectedStudent}"
-                    Template="{StaticResource FlatButtonTemplate}"/>
+                    Template="{StaticResource FlatButtonTemplate}">
+              <Button.Styles>
+                <Style Selector="Button:pointerover">
+                  <Setter Property="Background" Value="{DynamicResource ActionBlueBrush}"/>
+                  <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+                </Style>
+              </Button.Styles>
+            </Button>
             <Button Content="🗑"
                     Width="24" Height="24"
-                    Background="{DynamicResource LightRedColor}" BorderBrush="{DynamicResource BlackColor}"
+                    Background="{DynamicResource ActionRedLightBrush}" 
+                    BorderBrush="{DynamicResource ActionRedBrush}"
+                    BorderThickness="1"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     Padding="0"
                     Command="{Binding DeleteStudentCommand}"
                     CommandParameter="{Binding SelectedStudent}"
-                    Template="{StaticResource FlatButtonTemplate}"/>
+                    Template="{StaticResource FlatButtonTemplate}">
+              <Button.Styles>
+                <Style Selector="Button:pointerover">
+                  <Setter Property="Background" Value="{DynamicResource ActionRedBrush}"/>
+                  <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+                </Style>
+              </Button.Styles>
+            </Button>
           </StackPanel>
           <StackPanel Margin="0,32,0,0">
             <TextBlock Text="Selected Student Details" FontSize="18" FontWeight="Bold"/>

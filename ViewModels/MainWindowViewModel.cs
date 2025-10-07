@@ -48,7 +48,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            // Initialize authentication
+            // Initialize authentication (will fail gracefully if credentials are missing)
             Task.Run(InitializeAuthenticationAsync);
         }
     }

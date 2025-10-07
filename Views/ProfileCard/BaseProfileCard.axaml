@@ -5,10 +5,10 @@
 
   <!-- This is a base template that can be overridden by derived classes -->
   <Border
-          Background="{DynamicResource WhiteColor}"
+          Background="{DynamicResource BackgroundPrimaryBrush}"
           CornerRadius="16"
           BoxShadow="{DynamicResource ShadowLight}"
-          BorderBrush="{DynamicResource BlackColor}"
+          BorderBrush="{DynamicResource BlackBrush}"
           BorderThickness="1"
           Cursor="Hand"
           RenderTransformOrigin="0.5,0.5">
@@ -17,8 +17,8 @@
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
       <Ellipse
            Width="90" Height="90"
-           Fill="{DynamicResource BackgroundTertiaryColor}"
-           Stroke="{DynamicResource BlackColor}"
+           Fill="{DynamicResource BackgroundTertiaryBrush}"
+           Stroke="{DynamicResource BlackBrush}"
            StrokeThickness="2"
            Margin="0,0,0,12" />
 
@@ -26,7 +26,7 @@
                  Text="{Binding Name, FallbackValue='John Doe'}"
                  FontSize="20"
                  FontWeight="Bold"
-                 Foreground="{DynamicResource BlackColor}"
+                 Foreground="{DynamicResource TextPrimaryBrush}"
                  TextAlignment="Center"
                  Margin="0,0,0,8"
                  TextTrimming="CharacterEllipsis" />

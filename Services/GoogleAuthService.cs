@@ -50,7 +50,7 @@ public class GoogleAuthService
             
             if (!File.Exists(CredentialsPath))
             {
-                Log.Error($"Client secrets file not found at '{CredentialsPath}'");
+                Log.Warning($"Client secrets file not found at '{CredentialsPath}'. Authentication will be skipped.");
                 return false;
             }
 
