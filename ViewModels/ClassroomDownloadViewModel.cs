@@ -33,13 +33,19 @@ public partial class ClassroomDownloadViewModel : ObservableObject
     private string _statusText = "Select a download folder to get started";
 
     [ObservableProperty]
-    private string _selectedFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+    private string _selectedFolderPath = SettingsService.Instance.LoadDownloadFolderPath();
 
     public string TeacherName => _authService.TeacherName;
 
     public ClassroomDownloadViewModel(GoogleAuthService authService)
     {
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+
+        // Update status to show loaded folder path
+        if (!string.IsNullOrEmpty(SelectedFolderPath) && SelectedFolderPath != Environment.GetFolderPath(Environment.SpecialFolder.Desktop))
+        {
+            StatusText = $"Using saved download folder: {SelectedFolderPath}";
+        }
 
         if (_authService.ClassroomService != null)
         {
@@ -89,6 +95,9 @@ public partial class ClassroomDownloadViewModel : ObservableObject
         {
             SelectedFolderPath = folderPath;
             StatusText = $"Download folder set to: {folderPath}";
+
+            // Save the selected folder path for future use
+            SettingsService.Instance.SaveDownloadFolderPath(folderPath);
 
             // Reinitialize download manager with new folder path
             InitializeDownloadManager();
@@ -331,6 +340,11 @@ public partial class CourseWrapper : ObservableObject
     public void UpdateFolderStatus()
     {
         HasFolder = Directory.Exists(_courseFolderPath);
+        // If folder exists, assume it was downloaded (set IsDownloaded to true)
+        if (HasFolder)
+        {
+            IsDownloaded = true;
+        }
         OnPropertyChanged(nameof(HasFolder));
         OnPropertyChanged(nameof(IsDownloaded));
     }

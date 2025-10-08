@@ -97,13 +97,13 @@
 
                                     <!-- Status Indicator -->
                                     <Border Grid.Column="1"
-                                            Background="{Binding HasFolder, Converter={StaticResource BoolToColorConverter}}"
+                                            Background="{Binding IsDownloaded, Converter={StaticResource BoolToColorConverter}}"
                                             Width="12"
                                             Height="12"
                                             CornerRadius="6"
                                             Margin="10,0"
                                             VerticalAlignment="Center"
-                                            ToolTip.Tip="{Binding HasFolder, Converter={StaticResource BoolToStatusTextConverter}}"/>
+                                            ToolTip.Tip="{Binding IsDownloaded, Converter={StaticResource BoolToStatusTextConverter}}"/>
 
                                     <!-- Button Stack -->
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
@@ -119,23 +119,6 @@
                                             <Button.Styles>
                                                 <Style Selector="Button:pointerover">
                                                     <Setter Property="Background" Value="#1976D2"/>
-                                                </Style>
-                                            </Button.Styles>
-                                        </Button>
-
-                                        <!-- View Files Button (only visible if folder exists) -->
-                                        <Button Command="{Binding OpenCourseDataCommand}"
-                                                IsVisible="{Binding HasFolder}"
-                                                Padding="12,6"
-                                                Content="View Files"
-                                                Background="{DynamicResource BackgroundSecondaryColor}"
-                                                Foreground="{DynamicResource TextPrimaryColor}"
-                                                BorderThickness="1"
-                                                BorderBrush="{DynamicResource BorderColor}"
-                                                CornerRadius="4">
-                                            <Button.Styles>
-                                                <Style Selector="Button:pointerover">
-                                                    <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
                                                 </Style>
                                             </Button.Styles>
                                         </Button>

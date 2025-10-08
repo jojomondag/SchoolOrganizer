@@ -28,9 +28,9 @@ public class BoolToStatusTextConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is bool hasFolder)
+        if (value is bool isDownloaded)
         {
-            return hasFolder ? "Downloaded" : "Not downloaded";
+            return isDownloaded ? "Download completed" : "Not downloaded";
         }
         return "Unknown";
     }
