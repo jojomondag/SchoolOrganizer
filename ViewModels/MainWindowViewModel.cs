@@ -88,6 +88,11 @@ public partial class MainWindowViewModel : ObservableObject
         {
             _classroomDownloadViewModel = new ClassroomDownloadViewModel(_authService);
         }
+        else
+        {
+            // Reset to classroom list view when tab is clicked
+            _classroomDownloadViewModel.ResetToClassroomList();
+        }
         CurrentViewModel = _classroomDownloadViewModel;
     }
 

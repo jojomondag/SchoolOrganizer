@@ -10,7 +10,7 @@
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
   </UserControl.Resources>
 
-  <Grid Margin="30" ClipToBounds="False">
+  <Grid Margin="20,30,20,30" ClipToBounds="False">
     <Border x:Name="CardBorder"
             Background="{DynamicResource BackgroundPrimaryBrush}"
             CornerRadius="12"

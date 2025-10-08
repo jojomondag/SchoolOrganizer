@@ -3,6 +3,7 @@
              xmlns:vm="using:SchoolOrganizer.ViewModels"
              xmlns:converters="using:SchoolOrganizer.Views.Converters"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:Views="using:SchoolOrganizer.Views"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
@@ -26,7 +27,8 @@
         <Border Grid.Row="0"
                 Background="{DynamicResource BackgroundPrimaryBrush}"
                 Padding="32,24"
-                Margin="0,0,0,16">
+                Margin="0,0,0,16"
+                IsVisible="{Binding !IsShowingContent}">
             <StackPanel HorizontalAlignment="Center" Spacing="16">
                 <!-- Collapsible Header with Arrow -->
                 <Button Command="{Binding ToggleDownloadSectionCommand}"
@@ -93,7 +95,8 @@
 
         <!-- Classrooms List Section -->
         <Grid Grid.Row="1"
-              Margin="20,0">
+              Margin="20,0"
+              IsVisible="{Binding !IsShowingContent}">
             <ListBox ItemsSource="{Binding Classrooms}"
                      SelectedItem="{Binding SelectedCourse}"
                      Background="Transparent"
@@ -139,8 +142,9 @@
                                     CornerRadius="8"
                                     Padding="16"
                                     Margin="8,1"
-                                    BorderThickness="0"
-                                    Background="White"
+                                    Background="{DynamicResource BackgroundPrimaryBrush}"
+                                    BorderBrush="{DynamicResource CardBorderBrush}"
+                                    BorderThickness="1"
                                     BoxShadow="{DynamicResource ShadowLight}"
                                     Cursor="Hand"
                                     RenderTransformOrigin="0.5,0.5"
@@ -211,6 +215,91 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
+        </Grid>
+
+        <!-- Content View Section -->
+        <Grid Grid.Row="1"
+              Margin="20,0"
+              IsVisible="{Binding IsShowingContent}">
+            <!-- Content View -->
+            <ScrollViewer Grid.Row="1">
+                <ItemsControl ItemsSource="{Binding CurrentContentViewModel.Students}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border x:Name="StudentCardBorder"
+                                    Background="{DynamicResource BackgroundPrimaryBrush}"
+                                    BorderBrush="{DynamicResource CardBorderBrush}"
+                                    BorderThickness="1"
+                                    BoxShadow="{DynamicResource ShadowLight}"
+                                    Cursor="Hand"
+                                    RenderTransformOrigin="0.5,0.5"
+                                    CornerRadius="8"
+                                    Padding="16"
+                                    Margin="8,1"
+                                    PointerEntered="OnStudentCardPointerEntered"
+                                    PointerExited="OnStudentCardPointerExited">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Name}"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource TextPrimaryColor}"
+                                                   VerticalAlignment="Center"/>
+                                        
+                                        <StackPanel Grid.Column="1" 
+                                                    Orientation="Horizontal" 
+                                                    Spacing="15"
+                                                    VerticalAlignment="Center"
+                                                    Margin="20,0,0,0">
+                                            <TextBlock Text="{Binding AssignmentCount, StringFormat='Assignments: {0}'}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextSecondaryColor}"/>
+                                            <TextBlock Text="{Binding FileCount, StringFormat='Files: {0}'}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextSecondaryColor}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Button Grid.Column="1"
+                                            Content="View Details"
+                                            Command="{Binding $parent[ItemsControl].((vm:ClassroomDownloadViewModel)DataContext).CurrentContentViewModel.ViewStudentDetailCommand}"
+                                            CommandParameter="{Binding}"
+                                            Margin="10,0"
+                                            Padding="12,6"/>
+
+                                    <Button Grid.Column="2"
+                                            Command="{Binding $parent[ItemsControl].((vm:ClassroomDownloadViewModel)DataContext).CurrentContentViewModel.OpenStudentFolderCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="12,6"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            CornerRadius="4"
+                                            PointerEntered="OnOpenFolderButtonPointerEntered"
+                                            PointerExited="OnOpenFolderButtonPointerExited">
+                                        <materialIcons:MaterialIcon x:Name="OpenFolderIcon"
+                                                                   Kind="Folder" 
+                                                                   Width="18" 
+                                                                   Height="18"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
 
         <!-- Status Bar -->

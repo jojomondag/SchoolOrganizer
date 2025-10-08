@@ -75,4 +75,38 @@ public partial class ClassroomDownloadView : UserControl
             BrowseIcon.Kind = Material.Icons.MaterialIconKind.Folder;
         }
     }
+
+    private void OnStudentCardPointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (sender is Border studentCardBorder)
+        {
+            if (this.FindResource("ShadowStrong") is BoxShadows hoverShadow)
+                studentCardBorder.BoxShadow = hoverShadow;
+        }
+    }
+
+    private void OnStudentCardPointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (sender is Border studentCardBorder)
+        {
+            if (this.FindResource("ShadowLight") is BoxShadows normalShadow)
+                studentCardBorder.BoxShadow = normalShadow;
+        }
+    }
+
+    private void OnOpenFolderButtonPointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (sender is Button button && button.Content is Material.Icons.Avalonia.MaterialIcon icon)
+        {
+            icon.Kind = Material.Icons.MaterialIconKind.FolderOpen;
+        }
+    }
+
+    private void OnOpenFolderButtonPointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (sender is Button button && button.Content is Material.Icons.Avalonia.MaterialIcon icon)
+        {
+            icon.Kind = Material.Icons.MaterialIconKind.Folder;
+        }
+    }
 }

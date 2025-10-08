@@ -41,6 +41,12 @@ public partial class ClassroomDownloadViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasFolderSelected = false;
 
+    [ObservableProperty]
+    private bool _isShowingContent = false;
+
+    [ObservableProperty]
+    private ContentViewModel? _currentContentViewModel;
+
     public string TeacherName => _authService.TeacherName;
 
     [RelayCommand]
@@ -48,6 +54,14 @@ public partial class ClassroomDownloadViewModel : ObservableObject
     {
         IsDownloadSectionExpanded = !IsDownloadSectionExpanded;
     }
+
+    public void ResetToClassroomList()
+    {
+        IsShowingContent = false;
+        CurrentContentViewModel = null;
+        StatusText = "Select a course to download or view content.";
+    }
+
 
     public ClassroomDownloadViewModel(GoogleAuthService authService)
     {
@@ -261,17 +275,12 @@ public partial class ClassroomDownloadViewModel : ObservableObject
 
             var contentViewModel = new ContentViewModel(
                 courseWrapper.Course.Name ?? "Unknown Course",
-                courseWrapper.CourseFolderPath,
-                null
+                courseWrapper.CourseFolderPath
             );
 
-            var contentView = new Views.ContentView.ContentView
-            {
-                DataContext = contentViewModel
-            };
-
-            contentView.Show();
-            StatusText = $"Opened content view for {courseWrapper.Course.Name}";
+            CurrentContentViewModel = contentViewModel;
+            IsShowingContent = true;
+            StatusText = $"Viewing content for {courseWrapper.Course.Name}";
         }
         catch (Exception ex)
         {

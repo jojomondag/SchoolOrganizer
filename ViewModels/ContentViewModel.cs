@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Google.Apis.Classroom.v1.Data;
@@ -19,7 +21,6 @@ namespace SchoolOrganizer.ViewModels;
 public partial class ContentViewModel : ObservableObject
 {
     private readonly PlagiarismDetectionService _plagiarismService;
-    private readonly Action? _closeAction;
 
     [ObservableProperty]
     private string _courseName = string.Empty;
@@ -36,39 +37,46 @@ public partial class ContentViewModel : ObservableObject
     public ObservableCollection<StudentItem> Students { get; } = new();
     public ObservableCollection<PlagiarismResult> PlagiarismResults { get; } = new();
 
-    public ContentViewModel(string courseName, string courseFolder, Action? closeAction = null)
+    public ContentViewModel(string courseName, string courseFolder)
     {
         _plagiarismService = new PlagiarismDetectionService();
         _courseName = courseName;
         _courseFolder = courseFolder;
-        _closeAction = closeAction;
 
         Task.Run(LoadContentAsync);
     }
 
-    private Task LoadContentAsync()
+    private async Task LoadContentAsync()
     {
         try
         {
-            IsLoading = true;
-            StatusText = "Loading students...";
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsLoading = true;
+                StatusText = "Loading students...";
+            });
 
             if (!Directory.Exists(CourseFolder))
             {
-                StatusText = "Course folder not found";
-                return Task.CompletedTask;
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    StatusText = "Course folder not found";
+                    IsLoading = false;
+                });
+                return;
             }
 
             var studentDirs = Directory.GetDirectories(CourseFolder);
             Log.Information($"Found {studentDirs.Length} student directories");
 
+            var studentItems = new List<StudentItem>();
             foreach (var studentDir in studentDirs)
             {
                 var studentName = Path.GetFileName(studentDir);
                 var assignmentDirs = Directory.GetDirectories(studentDir);
                 var fileCount = Directory.GetFiles(studentDir, "*.*", SearchOption.AllDirectories).Length;
 
-                Students.Add(new StudentItem
+                studentItems.Add(new StudentItem
                 {
                     Name = studentName,
                     FolderPath = studentDir,
@@ -77,18 +85,27 @@ public partial class ContentViewModel : ObservableObject
                 });
             }
 
-            StatusText = $"Loaded {Students.Count} students";
+            // Update UI on the UI thread
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Students.Clear();
+                foreach (var student in studentItems)
+                {
+                    Students.Add(student);
+                }
+                StatusText = $"Loaded {Students.Count} students";
+                IsLoading = false;
+            });
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error loading content");
-            StatusText = $"Error: {ex.Message}";
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusText = $"Error: {ex.Message}";
+                IsLoading = false;
+            });
         }
-        finally
-        {
-            IsLoading = false;
-        }
-        return Task.CompletedTask;
     }
 
     [RelayCommand]
@@ -163,11 +180,6 @@ public partial class ContentViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private void Close()
-    {
-        _closeAction?.Invoke();
-    }
 }
 
 public class StudentItem

@@ -1,13 +1,11 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:SchoolOrganizer.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
-        x:Class="SchoolOrganizer.Views.ContentView.ContentView"
-        x:DataType="vm:ContentViewModel"
-        Title="{Binding CourseName}"
-        Width="1200" Height="800">
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SchoolOrganizer.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SchoolOrganizer.Views.ContentView.ContentView"
+             x:DataType="vm:ContentViewModel">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -27,9 +25,6 @@
                            FontWeight="Bold"
                            Foreground="{DynamicResource TextPrimaryColor}"/>
                 <StackPanel Orientation="Horizontal" Spacing="15">
-                    <Button Content="← Back"
-                            Command="{Binding CloseCommand}"
-                            Padding="15,8"/>
                     <Button Content="Run Plagiarism Detection"
                             Command="{Binding RunPlagiarismDetectionCommand}"
                             Padding="15,8"
@@ -161,4 +156,4 @@
             </Grid>
         </Border>
     </Grid>
-</Window>
+</UserControl>

@@ -11,8 +11,7 @@ namespace SchoolOrganizer.Services
     public class SettingsService
     {
         private static readonly string _settingsFilePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "SchoolOrganizer",
+            AppDomain.CurrentDomain.BaseDirectory,
             "settings.json");
 
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
@@ -25,7 +24,7 @@ namespace SchoolOrganizer.Services
 
         private SettingsService()
         {
-            // Ensure the settings directory exists
+            // Ensure the settings file directory exists (app directory)
             var settingsDir = Path.GetDirectoryName(_settingsFilePath);
             if (!string.IsNullOrEmpty(settingsDir) && !Directory.Exists(settingsDir))
             {
@@ -43,7 +42,7 @@ namespace SchoolOrganizer.Services
                 var settings = LoadSettings();
                 settings.DownloadFolderPath = folderPath;
                 SaveSettings(settings);
-                Log.Information($"Saved download folder path: {folderPath}");
+                Log.Information($"Saved download folder path to app directory: {folderPath}");
             }
             catch (Exception ex)
             {
@@ -61,7 +60,7 @@ namespace SchoolOrganizer.Services
                 var settings = LoadSettings();
                 if (!string.IsNullOrEmpty(settings.DownloadFolderPath) && Directory.Exists(settings.DownloadFolderPath))
                 {
-                    Log.Information($"Loaded saved download folder path: {settings.DownloadFolderPath}");
+                    Log.Information($"Loaded saved download folder path from app directory: {settings.DownloadFolderPath}");
                     return settings.DownloadFolderPath;
                 }
             }
