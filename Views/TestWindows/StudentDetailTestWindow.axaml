@@ -1,0 +1,141 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SchoolOrganizer.ViewModels"
+        xmlns:controls="using:SchoolOrganizer.Controls"
+        xmlns:material="using:Material.Icons.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+        x:Class="SchoolOrganizer.Views.TestWindows.StudentDetailTestWindow"
+        Title="StudentDetailView Test Window"
+        Width="1000" Height="600"
+        MinWidth="800" MinHeight="500"
+        WindowStartupLocation="CenterScreen">
+
+  <Grid Name="MainGrid">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="300" MinWidth="250"/>
+      <ColumnDefinition Width="5"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+
+    <!-- Header - spans all columns -->
+    <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BackgroundSecondaryBrush}" Padding="15">
+      <StackPanel>
+        <StackPanel Orientation="Horizontal">
+          <material:MaterialIcon Kind="Account" Foreground="Blue" Width="20" Height="20" Margin="0,0,5,0"/>
+          <TextBlock Text="Test Student: John Doe" 
+                     FontSize="20" FontWeight="Bold" Margin="0,0,0,5"/>
+        </StackPanel>
+        <TextBlock Text="Course: Computer Science 101" 
+                   FontSize="14" Foreground="Gray" Margin="0,0,0,5"/>
+        <TextBlock Text="Folder: /Users/test/student-files" 
+                   FontSize="12" Foreground="DarkGray"/>
+      </StackPanel>
+    </Border>
+
+    <!-- Status Bar - spans all columns -->
+    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BackgroundTertiaryBrush}" Padding="10">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Ready for testing" VerticalAlignment="Center"/>
+      </StackPanel>
+    </Border>
+
+    <!-- File Explorer (Left Panel) -->
+    <Border Grid.Row="2" Grid.Column="0" 
+            Name="ExplorerPanel"
+            Background="{DynamicResource BackgroundSecondaryBrush}" 
+            BorderBrush="{DynamicResource CardBorderBrush}" 
+            BorderThickness="0,0,1,0">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Explorer Header -->
+        <Border Grid.Row="0" Background="{DynamicResource BackgroundTertiaryBrush}" Padding="8">
+          <TextBlock Text="File Explorer" FontWeight="Bold"/>
+        </Border>
+        
+        <!-- File Tree -->
+        <TreeView Grid.Row="1" Margin="5">
+          <TreeViewItem Header="Assignment 1">
+            <TreeViewItem Header="document.pdf"/>
+            <TreeViewItem Header="code.py"/>
+          </TreeViewItem>
+          <TreeViewItem Header="Assignment 2">
+            <TreeViewItem Header="report.docx"/>
+            <TreeViewItem Header="presentation.pptx"/>
+          </TreeViewItem>
+        </TreeView>
+      </Grid>
+    </Border>
+
+
+    <!-- Main Content (Right Panel) -->
+    <Border Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="1" Name="MainContentPanel" Background="White">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Viewer Header -->
+        <Border Grid.Row="0" Background="{DynamicResource BackgroundSecondaryBrush}" Padding="8">
+          <TextBlock Text="All Student Files" FontWeight="Bold"/>
+        </Border>
+        
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="20">
+            <TextBlock Text="This is a test window for quickly testing the StudentDetailView UI changes." 
+                       FontSize="16" FontWeight="Bold" Margin="0,0,0,20"/>
+            <TextBlock Text="Click the toggle button on the left to test the foldable explorer functionality." 
+                       FontSize="14" Margin="0,0,0,10"/>
+            <TextBlock Text="• Button should show ◀ when explorer is expanded" FontSize="12" Margin="20,0,0,5"/>
+            <TextBlock Text="• Button should show ▶ when explorer is collapsed" FontSize="12" Margin="20,0,0,5"/>
+            <TextBlock Text="• Explorer should hide/show smoothly" FontSize="12" Margin="20,0,0,20"/>
+            <Border Background="{DynamicResource BackgroundTertiaryBrush}" Padding="15" Margin="0,10">
+              <TextBlock Text="Test Content Area - This simulates the main content area that expands when the explorer is collapsed." 
+                         TextWrapping="Wrap"/>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </Border>
+
+    <!-- Footer - spans all columns -->
+    <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BackgroundSecondaryBrush}" Padding="10">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Total Files: 4" VerticalAlignment="Center"/>
+        <TextBlock Text=" - Click toggle button to test explorer collapse/expand" 
+                   VerticalAlignment="Center" 
+                   Foreground="Gray" 
+                   Margin="10,0,0,0"/>
+      </StackPanel>
+    </Border>
+    
+    <!-- Floating Toggle Button Overlay - positioned above all other components -->
+    <Canvas Grid.Row="0" Grid.Column="0" Grid.RowSpan="4" Grid.ColumnSpan="3" 
+            IsHitTestVisible="True" Background="Transparent">
+      <Button Canvas.Left="300" Canvas.Top="200"
+              Name="ToggleExplorerButton"
+              Click="OnToggleExplorerClick"
+              Background="{DynamicResource BackgroundSecondaryBrush}"
+              BorderBrush="{DynamicResource CardBorderBrush}"
+              BorderThickness="1"
+              Padding="2"
+              Width="25"
+              Height="50">
+        <material:MaterialIcon Name="ToggleIcon" Kind="ChevronLeft" Foreground="{DynamicResource TextPrimaryBrush}" Width="20" Height="20"/>
+      </Button>
+    </Canvas>
+  </Grid>
+</Window>

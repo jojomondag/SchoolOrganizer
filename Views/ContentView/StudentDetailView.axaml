@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:SchoolOrganizer.ViewModels"
         xmlns:controls="using:SchoolOrganizer.Controls"
+        xmlns:material="using:Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
         x:Class="SchoolOrganizer.Views.ContentView.StudentDetailView"
         x:DataType="vm:StudentDetailViewModel"
@@ -16,7 +17,7 @@
     <vm:StudentDetailViewModel/>
   </Design.DataContext>
 
-  <Grid>
+  <Grid Name="MainGrid">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
@@ -32,8 +33,11 @@
     <!-- Header - spans all columns -->
     <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BackgroundSecondaryBrush}" Padding="15">
       <StackPanel>
-        <TextBlock Text="{Binding StudentName, StringFormat='Student: {0}'}" 
-                   FontSize="20" FontWeight="Bold" Margin="0,0,0,5"/>
+        <StackPanel Orientation="Horizontal">
+          <material:MaterialIcon Kind="Account" Foreground="Blue" Width="20" Height="20" Margin="0,0,5,0"/>
+          <TextBlock Text="{Binding StudentName, StringFormat='Student: {0}'}" 
+                     FontSize="20" FontWeight="Bold" Margin="0,0,0,5"/>
+        </StackPanel>
         <TextBlock Text="{Binding CourseName, StringFormat='Course: {0}'}" 
                    FontSize="14" Foreground="Gray" Margin="0,0,0,5"/>
         <TextBlock Text="{Binding StudentFolderPath, StringFormat='Folder: {0}'}" 
@@ -53,7 +57,11 @@
     </Border>
 
     <!-- File Explorer (Left Panel) -->
-    <Border Grid.Row="2" Grid.Column="0" Background="{DynamicResource BackgroundSecondaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0">
+    <Border Grid.Row="2" Grid.Column="0" 
+            Name="ExplorerPanel"
+            Background="{DynamicResource BackgroundSecondaryBrush}" 
+            BorderBrush="{DynamicResource CardBorderBrush}" 
+            BorderThickness="0,0,1,0">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
@@ -85,13 +93,9 @@
       </Grid>
     </Border>
 
-    <!-- Splitter -->
-    <GridSplitter Grid.Row="2" Grid.Column="1" 
-                  HorizontalAlignment="Stretch" 
-                  Background="{DynamicResource CardBorderBrush}"/>
 
     <!-- All clear (Right Panel) -->
-    <Border Grid.Row="2" Grid.Column="2" Background="White">
+    <Border Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="1" Name="MainContentPanel" Background="White">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
@@ -252,5 +256,21 @@
                    Margin="10,0,0,0"/>
       </StackPanel>
     </Border>
+    
+    <!-- Floating Toggle Button Overlay - positioned above all other components -->
+    <Canvas Grid.Row="0" Grid.Column="0" Grid.RowSpan="4" Grid.ColumnSpan="3" 
+            IsHitTestVisible="True" Background="Transparent">
+      <Button Canvas.Left="300" Canvas.Top="200"
+              Name="ToggleExplorerButton"
+              Click="OnToggleExplorerClick"
+              Background="{DynamicResource BackgroundSecondaryBrush}"
+              BorderBrush="{DynamicResource CardBorderBrush}"
+              BorderThickness="1"
+              Padding="2"
+              Width="25"
+              Height="50">
+        <material:MaterialIcon Name="ToggleIcon" Kind="ChevronLeft" Foreground="{DynamicResource TextPrimaryBrush}" Width="20" Height="20"/>
+      </Button>
+    </Canvas>
   </Grid>
 </Window>

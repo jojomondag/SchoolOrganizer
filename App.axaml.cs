@@ -10,6 +10,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using SchoolOrganizer.ViewModels;
 using SchoolOrganizer.Views;
+using SchoolOrganizer.Views.TestWindows;
 using SchoolOrganizer.Services;
 using Serilog;
 
@@ -45,6 +46,11 @@ public partial class App : Application
             desktop.MainWindow = mainWindow;
             mainWindow.Show();
             Log.Information("Opened MainWindow - authentication handled in Student Gallery.");
+
+            // Auto-open test window for quick UI testing
+            var testWindow = new StudentDetailTestWindow();
+            testWindow.Show();
+            Log.Information("Opened StudentDetailTestWindow for quick UI testing.");
 
             // Prevent the app from shutting down when the main window is closed
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
