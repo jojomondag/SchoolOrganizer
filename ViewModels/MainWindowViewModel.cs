@@ -70,7 +70,7 @@ public partial class MainWindowViewModel : ObservableObject
     public IBrush ActiveContentBrush => CurrentViewModel switch
     {
         StudentGalleryViewModel => Brushes.White,
-        HomeViewModel => new SolidColorBrush((Color)Application.Current!.Resources["LightBlueColor"]!),
+        HomeViewModel => (IBrush)Application.Current!.Resources["LightBlueBrush"]!,
         ClassroomDownloadViewModel => Brushes.White,
         _ => Brushes.White
     };

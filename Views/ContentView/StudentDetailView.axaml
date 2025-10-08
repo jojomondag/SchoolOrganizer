@@ -30,7 +30,7 @@
     </Grid.ColumnDefinitions>
 
     <!-- Header - spans all columns -->
-    <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Background="#F0F0F0" Padding="15">
+    <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BackgroundSecondaryBrush}" Padding="15">
       <StackPanel>
         <TextBlock Text="{Binding StudentName, StringFormat='Student: {0}'}" 
                    FontSize="20" FontWeight="Bold" Margin="0,0,0,5"/>
@@ -42,7 +42,7 @@
     </Border>
 
     <!-- Status Bar - spans all columns -->
-    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="#E8E8E8" Padding="10">
+    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BackgroundTertiaryBrush}" Padding="10">
       <StackPanel Orientation="Horizontal">
         <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center"/>
         <ProgressBar IsIndeterminate="True" 
@@ -53,7 +53,7 @@
     </Border>
 
     <!-- File Explorer (Left Panel) -->
-    <Border Grid.Row="2" Grid.Column="0" Background="#F8F8F8" BorderBrush="#CCCCCC" BorderThickness="0,0,1,0">
+    <Border Grid.Row="2" Grid.Column="0" Background="{DynamicResource BackgroundSecondaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
@@ -61,7 +61,7 @@
         </Grid.RowDefinitions>
         
         <!-- Explorer Header -->
-        <Border Grid.Row="0" Background="#E0E0E0" Padding="8">
+        <Border Grid.Row="0" Background="{DynamicResource BackgroundTertiaryBrush}" Padding="8">
           <TextBlock Text="File Explorer" FontWeight="Bold"/>
         </Border>
         
@@ -88,7 +88,7 @@
     <!-- Splitter -->
     <GridSplitter Grid.Row="2" Grid.Column="1" 
                   HorizontalAlignment="Stretch" 
-                  Background="#CCCCCC"/>
+                  Background="{DynamicResource CardBorderBrush}"/>
 
     <!-- All clear (Right Panel) -->
     <Border Grid.Row="2" Grid.Column="2" Background="White">
@@ -99,7 +99,7 @@
         </Grid.RowDefinitions>
         
         <!-- Viewer Header -->
-        <Border Grid.Row="0" Background="#F0F0F0" Padding="8">
+        <Border Grid.Row="0" Background="{DynamicResource BackgroundSecondaryBrush}" Padding="8">
           <TextBlock Text="All Student Files" FontWeight="Bold"/>
         </Border>
         
@@ -112,8 +112,8 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <!-- Assignment Group -->
-                <Border Background="#E8F4FD" 
-                        BorderBrush="#B3D9FF" 
+                <Border Background="{DynamicResource BackgroundTertiaryBrush}" 
+                        BorderBrush="{DynamicResource CardBorderBrush}" 
                         BorderThickness="1" 
                         Margin="0,10" 
                         Padding="15"
@@ -123,15 +123,15 @@
                     <TextBlock Text="{Binding AssignmentName}" 
                                FontWeight="Bold" 
                                FontSize="16"
-                               Foreground="#1E3A8A"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
                                Margin="0,0,0,10"/>
                     
                     <!-- Files in Assignment -->
                     <ItemsControl ItemsSource="{Binding Files}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                          <Border Background="#F8F8F8" 
-                                  BorderBrush="#E0E0E0" 
+                          <Border Background="{DynamicResource BackgroundSecondaryBrush}" 
+                                  BorderBrush="{DynamicResource CardBorderBrush}" 
                                   BorderThickness="1" 
                                   Margin="0,5" 
                                   Padding="15">
@@ -242,7 +242,7 @@
     </Border>
 
     <!-- Footer - spans all columns -->
-    <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Background="#F5F5F5" Padding="10">
+    <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BackgroundSecondaryBrush}" Padding="10">
       <StackPanel Orientation="Horizontal">
         <TextBlock Text="{Binding StudentFiles.Count, StringFormat='Total Files: {0}'}" 
                    VerticalAlignment="Center"/>

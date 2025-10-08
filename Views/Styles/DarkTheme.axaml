@@ -46,5 +46,10 @@
     <SolidColorBrush x:Key="ActionBlueLightBrush" Color="{StaticResource BackgroundTertiaryColor}" />
     <SolidColorBrush x:Key="ActionRedBrush" Color="{StaticResource TextPrimaryColor}" />
     <SolidColorBrush x:Key="ActionRedLightBrush" Color="{StaticResource BackgroundSecondaryColor}" />
+    
+    <!-- Button brushes for consistent styling -->
+    <SolidColorBrush x:Key="AccentButtonBackground" Color="{StaticResource AccentButtonBackgroundColor}" />
+    <SolidColorBrush x:Key="AccentButtonBackgroundHover" Color="{StaticResource AccentButtonBackgroundHoverColor}" />
+    <SolidColorBrush x:Key="LightBlueBrush" Color="{StaticResource LightBlueColor}" />
 
 </ResourceDictionary>

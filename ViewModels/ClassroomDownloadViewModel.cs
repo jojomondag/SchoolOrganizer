@@ -35,7 +35,19 @@ public partial class ClassroomDownloadViewModel : ObservableObject
     [ObservableProperty]
     private string _selectedFolderPath = SettingsService.Instance.LoadDownloadFolderPath();
 
+    [ObservableProperty]
+    private bool _isDownloadSectionExpanded = true;
+
+    [ObservableProperty]
+    private bool _hasFolderSelected = false;
+
     public string TeacherName => _authService.TeacherName;
+
+    [RelayCommand]
+    private void ToggleDownloadSection()
+    {
+        IsDownloadSectionExpanded = !IsDownloadSectionExpanded;
+    }
 
     public ClassroomDownloadViewModel(GoogleAuthService authService)
     {
@@ -45,6 +57,8 @@ public partial class ClassroomDownloadViewModel : ObservableObject
         if (!string.IsNullOrEmpty(SelectedFolderPath) && SelectedFolderPath != Environment.GetFolderPath(Environment.SpecialFolder.Desktop))
         {
             StatusText = $"Using saved download folder: {SelectedFolderPath}";
+            HasFolderSelected = true;
+            IsDownloadSectionExpanded = false; // Auto-collapse if folder is already set
         }
 
         if (_authService.ClassroomService != null)
@@ -95,6 +109,8 @@ public partial class ClassroomDownloadViewModel : ObservableObject
         {
             SelectedFolderPath = folderPath;
             StatusText = $"Download folder set to: {folderPath}";
+            HasFolderSelected = true;
+            IsDownloadSectionExpanded = false; // Auto-collapse after folder selection
 
             // Save the selected folder path for future use
             SettingsService.Instance.SaveDownloadFolderPath(folderPath);

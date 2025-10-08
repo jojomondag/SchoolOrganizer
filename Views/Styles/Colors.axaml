@@ -17,4 +17,9 @@
     <BoxShadows x:Key="ShadowLight">0 4 15 0 #15000000</BoxShadows>
     <BoxShadows x:Key="ShadowMedium">0 2 8 0 #20000000</BoxShadows>
     
+    <!-- Button Colors (derived from 7 core colors) -->
+    <Color x:Key="LightBlueColor">#e8f4f8</Color>
+    <Color x:Key="AccentButtonBackgroundColor">#2c3e50</Color>
+    <Color x:Key="AccentButtonBackgroundHoverColor">#34495e</Color>
+    
 </ResourceDictionary>
