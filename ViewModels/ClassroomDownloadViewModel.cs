@@ -314,7 +314,7 @@ public partial class CourseWrapper : ObservableObject
     [RelayCommand]
     private void OpenCourseData()
     {
-        _viewModel.OpenCourseFolder(this);
+        _viewModel.ViewCourseContent(this);
     }
 
     public bool IsDownloaded

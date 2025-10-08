@@ -142,18 +142,19 @@ public partial class ContentViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ViewStudentDetail(StudentItem? student)
+    private async Task ViewStudentDetail(StudentItem? student)
     {
         if (student == null)
             return;
 
         try
         {
-            var detailViewModel = new StudentDetailViewModel(student.Name, student.FolderPath);
-            var detailWindow = new Views.ContentView.StudentDetailView
-            {
-                DataContext = detailViewModel
-            };
+            var detailViewModel = new StudentDetailViewModel();
+            var detailWindow = new Views.ContentView.StudentDetailView(detailViewModel);
+            
+            // Load the student files asynchronously
+            await detailViewModel.LoadStudentFilesAsync(student.Name, CourseName, student.FolderPath);
+            
             detailWindow.Show();
         }
         catch (Exception ex)
