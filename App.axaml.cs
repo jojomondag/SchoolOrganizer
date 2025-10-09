@@ -4,7 +4,9 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
@@ -32,7 +34,7 @@ public partial class App : Application
         ThemeManager.Initialize();
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -47,10 +49,8 @@ public partial class App : Application
             mainWindow.Show();
             Log.Information("Opened MainWindow - authentication handled in Student Gallery.");
 
-            // Auto-open test window for quick UI testing
-            var testWindow = new StudentDetailTestWindow();
-            testWindow.Show();
-            Log.Information("Opened StudentDetailTestWindow for quick UI testing.");
+            // Auto-open StudentDetailView with first real classroom
+            await OpenFirstRealClassroom();
 
             // Prevent the app from shutting down when the main window is closed
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -88,6 +88,148 @@ public partial class App : Application
         {
             desktop.Shutdown();
         }
+    }
+
+
+    private async Task OpenFirstRealClassroom()
+    {
+        try
+        {
+            Log.Information("=== OpenFirstRealClassroom started ===");
+            
+            // Initialize Google Auth Service
+            var authService = new GoogleAuthService();
+            Log.Information("GoogleAuthService created, attempting authentication...");
+            var isAuthenticated = await authService.CheckAndAuthenticateAsync();
+            Log.Information("Authentication result: {IsAuthenticated}", isAuthenticated);
+            
+            if (!isAuthenticated || authService.ClassroomService == null)
+            {
+                Log.Warning("Authentication failed or classroom service not available - skipping auto-open of real classroom");
+                return;
+            }
+
+            // Get the first available classroom
+            var classroomService = new ClassroomDataService(authService.ClassroomService);
+            var cachedService = new CachedClassroomDataService(classroomService);
+            
+            var classrooms = await cachedService.GetActiveClassroomsAsync();
+            
+            if (classrooms.Count == 0)
+            {
+                Log.Warning("No active classrooms found - skipping auto-open");
+                return;
+            }
+
+            var firstClassroom = classrooms.First();
+            Log.Information("Opening StudentDetailView for first real classroom: {Name} (ID: {Id})", firstClassroom.Name, firstClassroom.Id);
+
+            // Get students for this classroom
+            var students = await cachedService.GetStudentsInCourseAsync(firstClassroom.Id);
+            
+            if (students.Count == 0)
+            {
+                Log.Warning("No students found in classroom {Name} - skipping auto-open", firstClassroom.Name);
+                return;
+            }
+
+            // Look for existing downloaded student folders
+            var downloadFolderPath = SettingsService.Instance.LoadDownloadFolderPath();
+            
+            if (string.IsNullOrEmpty(downloadFolderPath) || !Directory.Exists(downloadFolderPath))
+            {
+                Log.Warning("No download folder found or folder doesn't exist - skipping auto-open");
+                return;
+            }
+            
+            Log.Information("Looking for student folders in download directory: {DownloadPath}", downloadFolderPath);
+            
+            // Find the first student folder that exists and has files
+            string? foundStudentFolder = null;
+            string? foundStudentName = null;
+            
+            // First, look for course folders in the download directory
+            var courseFolders = Directory.GetDirectories(downloadFolderPath);
+            Log.Information("Found {CourseCount} course folders in download directory", courseFolders.Length);
+            
+            foreach (var courseFolder in courseFolders)
+            {
+                Log.Information("Checking course folder: {CourseFolder}", Path.GetFileName(courseFolder));
+                
+                foreach (var student in students)
+                {
+                    var studentName = student.Profile?.Name?.FullName ?? "Unknown Student";
+                    var sanitizedStudentName = SanitizeFolderName(studentName);
+                    
+                    // Look for student folder inside the course folder
+                    var studentFolderPath = Path.Combine(courseFolder, sanitizedStudentName);
+                    
+                    Log.Information("Checking student: {StudentName} -> {SanitizedName} -> {FolderPath}", studentName, sanitizedStudentName, studentFolderPath);
+                    
+                    if (Directory.Exists(studentFolderPath))
+                    {
+                        var fileCount = Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length;
+                        Log.Information("Student folder exists with {FileCount} files: {FolderPath}", fileCount, studentFolderPath);
+                        
+                        if (fileCount > 0)
+                        {
+                            foundStudentFolder = studentFolderPath;
+                            foundStudentName = studentName;
+                            Log.Information("Found existing student folder with files: {StudentName} at {FolderPath}", studentName, studentFolderPath);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        Log.Information("Student folder does not exist: {FolderPath}", studentFolderPath);
+                    }
+                }
+                
+                if (foundStudentFolder != null)
+                    break;
+            }
+            
+            if (foundStudentFolder == null)
+            {
+                Log.Warning("No existing student folders with files found - skipping auto-open");
+                return;
+            }
+            
+            // Create StudentDetailView for the found student with real files
+            var detailViewModel = new StudentDetailViewModel();
+            var detailWindow = new Views.ContentView.StudentDetailView(detailViewModel);
+            
+            // Load the real student files using the same method as normal flow
+            await detailViewModel.LoadStudentFilesAsync(foundStudentName!, firstClassroom.Name ?? "Unknown Course", foundStudentFolder);
+            
+            detailWindow.Show();
+            Log.Information("Opened StudentDetailView for student: {StudentName} from classroom: {CourseName} with real files", foundStudentName, firstClassroom.Name);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error opening first real classroom");
+        }
+    }
+
+    private static string SanitizeFolderName(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return "Unknown";
+            
+        // Remove invalid characters for folder names
+        var sanitized = Regex.Replace(name, @"[<>:""/\\|?*]", "_");
+        
+        // Replace spaces with underscores
+        sanitized = Regex.Replace(sanitized, @"\s+", "_");
+        
+        // Remove extra underscores and trim
+        sanitized = Regex.Replace(sanitized, @"_+", "_").Trim('_');
+        
+        // Ensure it's not empty after sanitization
+        if (string.IsNullOrEmpty(sanitized))
+            return "Unknown";
+            
+        return sanitized;
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

@@ -171,13 +171,6 @@
                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigateToStudentGalleryCommand}"
                                     Padding="20,10"
                                     FontSize="14"/>
-                            <Button Content="🧪 Test StudentDetailView (Ctrl+T)"
-                                    Click="OnTestStudentDetailClick"
-                                    Padding="20,10"
-                                    FontSize="14"
-                                    Background="Orange"
-                                    Foreground="White"
-                                    Margin="0,10,0,0"/>
                         </StackPanel>
                     </DataTemplate>
                 </ContentControl.DataTemplates>

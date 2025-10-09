@@ -17,6 +17,7 @@
     <vm:StudentDetailViewModel/>
   </Design.DataContext>
 
+
   <Grid Name="MainGrid">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
@@ -61,7 +62,11 @@
             Name="ExplorerPanel"
             Background="{DynamicResource BackgroundSecondaryBrush}" 
             BorderBrush="{DynamicResource CardBorderBrush}" 
-            BorderThickness="0,0,1,0">
+            BorderThickness="0,0,1,0"
+            RenderTransformOrigin="0,0">
+      <Border.RenderTransform>
+        <TranslateTransform X="0"/>
+      </Border.RenderTransform>
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
@@ -70,7 +75,24 @@
         
         <!-- Explorer Header -->
         <Border Grid.Row="0" Background="{DynamicResource BackgroundTertiaryBrush}" Padding="8">
-          <TextBlock Text="File Explorer" FontWeight="Bold"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="File Explorer" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" 
+                    Name="ExplorerCloseButton"
+                    Click="OnToggleExplorerClick"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="4"
+                    Width="24"
+                    Height="24"
+                    VerticalAlignment="Center">
+              <material:MaterialIcon Name="ExplorerCloseIcon" Kind="ChevronLeft" Foreground="{DynamicResource TextPrimaryBrush}" Width="16" Height="16"/>
+            </Button>
+          </Grid>
         </Border>
         
         <!-- File Tree -->
@@ -259,17 +281,17 @@
     
     <!-- Floating Toggle Button Overlay - positioned above all other components -->
     <Canvas Grid.Row="0" Grid.Column="0" Grid.RowSpan="4" Grid.ColumnSpan="3" 
-            IsHitTestVisible="True" Background="Transparent">
+            IsHitTestVisible="False" Background="Transparent">
       <Button Canvas.Left="300" Canvas.Top="200"
               Name="ToggleExplorerButton"
               Click="OnToggleExplorerClick"
-              Background="{DynamicResource BackgroundSecondaryBrush}"
-              BorderBrush="{DynamicResource CardBorderBrush}"
-              BorderThickness="1"
-              Padding="2"
-              Width="25"
-              Height="50">
-        <material:MaterialIcon Name="ToggleIcon" Kind="ChevronLeft" Foreground="{DynamicResource TextPrimaryBrush}" Width="20" Height="20"/>
+              Background="Transparent"
+              BorderThickness="0"
+              Padding="4"
+              Width="24"
+              Height="24"
+              IsHitTestVisible="True">
+        <material:MaterialIcon Name="ToggleIcon" Kind="ChevronLeft" Foreground="{DynamicResource TextPrimaryBrush}" Width="16" Height="16"/>
       </Button>
     </Canvas>
   </Grid>

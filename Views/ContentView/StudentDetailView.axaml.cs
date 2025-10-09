@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
+using Avalonia.Media;
 using SchoolOrganizer.ViewModels;
 using SchoolOrganizer.Services;
 using SchoolOrganizer.Models;
@@ -42,11 +43,32 @@ public partial class StudentDetailView : Window
         {
             Log.Information("Scroll service not yet initialized in constructor");
         }
+        
+        // Initialize the toggle button visibility based on initial state
+        InitializeToggleButtonState();
     }
 
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
+    }
+    
+    private void InitializeToggleButtonState()
+    {
+        // Since explorer starts as open (_isExplorerCollapsed = false), hide the floating toggle button
+        var toggleButton = this.FindControl<Button>("ToggleExplorerButton");
+        var canvas = toggleButton?.Parent as Canvas;
+        
+        if (toggleButton != null)
+        {
+            toggleButton.IsVisible = false;
+        }
+        
+        // Disable hit testing on the canvas when explorer is open
+        if (canvas != null)
+        {
+            canvas.IsHitTestVisible = false;
+        }
     }
 
     /// <summary>
@@ -317,6 +339,9 @@ public partial class StudentDetailView : Window
         var mainContentPanel = this.FindControl<Border>("MainContentPanel");
         var toggleButton = this.FindControl<Button>("ToggleExplorerButton");
         var toggleIcon = this.FindControl<Material.Icons.Avalonia.MaterialIcon>("ToggleIcon");
+        var explorerCloseButton = this.FindControl<Button>("ExplorerCloseButton");
+        var canvas = toggleButton?.Parent as Canvas;
+        var explorerTransform = explorerPanel?.RenderTransform as TranslateTransform;
         
         if (mainGrid != null && explorerPanel != null && mainContentPanel != null && toggleButton != null)
         {
@@ -324,35 +349,52 @@ public partial class StudentDetailView : Window
             
             if (_isExplorerCollapsed)
             {
-                // Collapse the explorer
+                // Smooth slide out animation
+                if (explorerTransform != null)
+                {
+                    explorerTransform.X = -300;
+                }
+                
+                // Collapse the explorer column
                 explorerColumn.Width = new GridLength(0);
-                explorerPanel.IsVisible = false;
                 
                 // Expand main content to use full width
                 Grid.SetColumnSpan(mainContentPanel, 3); // Span all 3 columns
                 Grid.SetColumn(mainContentPanel, 0); // Start from first column
                 
-                // Move button to left border of the window (Canvas.Left = 0)
+                // Show floating toggle button and move it to left border at same height as close button
+                toggleButton.IsVisible = true;
                 Canvas.SetLeft(toggleButton, 0);
+                Canvas.SetTop(toggleButton, 120); // Positioned at the center of where the explorer header would be
+                
+                // Enable hit testing on the canvas when explorer is collapsed
+                if (canvas != null)
+                    canvas.IsHitTestVisible = true;
                 
                 if (toggleIcon != null)
                     toggleIcon.Kind = Material.Icons.MaterialIconKind.ChevronRight;
             }
             else
             {
-                // Expand the explorer
+                // Expand the explorer column first
                 explorerColumn.Width = new GridLength(300, GridUnitType.Pixel);
-                explorerPanel.IsVisible = true;
+                
+                // Smooth slide in animation
+                if (explorerTransform != null)
+                {
+                    explorerTransform.X = 0;
+                }
                 
                 // Reset main content to normal position
                 Grid.SetColumnSpan(mainContentPanel, 1); // Span only 1 column
                 Grid.SetColumn(mainContentPanel, 2); // Start from third column
                 
-                // Move button to the splitter position (Canvas.Left = 300)
-                Canvas.SetLeft(toggleButton, 300);
+                // Hide floating toggle button since we have the close button inside explorer
+                toggleButton.IsVisible = false;
                 
-                if (toggleIcon != null)
-                    toggleIcon.Kind = Material.Icons.MaterialIconKind.ChevronLeft;
+                // Disable hit testing on the canvas when explorer is open
+                if (canvas != null)
+                    canvas.IsHitTestVisible = false;
             }
         }
     }
