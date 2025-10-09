@@ -203,8 +203,15 @@ public class StudentDetailViewModel : ReactiveObject
             Log.Information("File parameter: {FileName}, {FilePath}", file?.FileName, file?.FilePath);
             try
             {
-                OpenFile(file);
-                Log.Information("OpenFile method completed successfully");
+                if (file != null)
+                {
+                    OpenFile(file);
+                    Log.Information("OpenFile method completed successfully");
+                }
+                else
+                {
+                    Log.Warning("OpenFileCommand called with null file parameter");
+                }
             }
             catch (Exception ex)
             {

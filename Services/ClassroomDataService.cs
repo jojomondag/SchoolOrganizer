@@ -12,14 +12,14 @@ namespace SchoolOrganizer.Services;
 
 public class ClassroomDataService
 {
-    private readonly ClassroomService _classroomService;
+    private readonly ClassroomService _classroomService = null!;
 
     public ClassroomDataService(ClassroomService classroomService)
     {
         _classroomService = classroomService ?? throw new ArgumentNullException(nameof(classroomService));
         Log.Information($"ClassroomDataService initialized with ClassroomService: {_classroomService != null}");
         Log.Information($"ClassroomService ApplicationName: {_classroomService?.ApplicationName ?? "null"}");
-        Log.Information($"ClassroomService BaseUri: {_classroomService.BaseUri}");
+        Log.Information($"ClassroomService BaseUri: {_classroomService?.BaseUri}");
     }
 
     public async Task<IList<Course>> GetActiveClassroomsAsync()

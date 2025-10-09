@@ -121,19 +121,20 @@
                                       BorderBrush="{DynamicResource CardBorderBrush}" 
                                       BorderThickness="1" 
                                       Margin="0,0,0,0" 
-                                      Padding="15">
+                                      Padding="0">
                                 <Grid>
                                   <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>  <!-- File Header -->
+                                    <RowDefinition Height="Auto"/>  <!-- File Content Preview -->
                                   </Grid.RowDefinitions>
                                   
                                   <!-- File Header -->
-                                  <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                                  <StackPanel Grid.Row="0" Margin="15,15,15,10">
                                     <Grid Margin="0,0,0,5">
                                       <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                       </Grid.ColumnDefinitions>
                                       
@@ -171,67 +172,86 @@
                                                  Foreground="Gray" 
                                                  FontSize="10" 
                                                  VerticalAlignment="Center" 
-                                                 Margin="10,0"/>
+                                                 Margin="10,0,5,0"/>
+                                      
+                                      <!-- Maximizer Button -->
+                                      <Button Grid.Column="3"
+                                              x:Name="MaximizerButton"
+                                              Padding="4"
+                                              Background="Transparent"
+                                              BorderThickness="0"
+                                              CornerRadius="4"
+                                              Click="OnMaximizerClick"
+                                              PointerEntered="OnMaximizerButtonPointerEntered"
+                                              PointerExited="OnMaximizerButtonPointerExited"
+                                              VerticalAlignment="Center"
+                                              Margin="0,0,0,0">
+                                          <materialIcons:MaterialIcon x:Name="MaximizerIcon"
+                                                                     Kind="Fullscreen" 
+                                                                     Width="18" 
+                                                                     Height="18"
+                                                                     Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                      </Button>
                                     </Grid>
                                   </StackPanel>
                                   
                                   <!-- File Content Preview -->
-                                  <Border Grid.Row="1" 
-                                          Background="White" 
-                                          BorderBrush="#D0D0D0" 
-                                          BorderThickness="1" 
-                                          Padding="10"
-                                          MaxHeight="400">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                                                  HorizontalScrollBarVisibility="Auto">
-                                      <StackPanel>
-                                        <!-- Image Content -->
-                                        <Image Source="{Binding ImageSource}" 
-                                               Stretch="Uniform" 
-                                               MaxWidth="600" 
-                                               MaxHeight="300"
-                                               IsVisible="{Binding IsImage}"/>
-                                        
-                                        <!-- Code Content -->
-                                        <controls:SyntaxHighlightedCodeViewer 
-                                            CodeContent="{Binding CodeContent}"
-                                            FileExtension="{Binding FileExtension}"
-                                            IsVisible="{Binding IsCode}"
-                                            MaxHeight="300"/>
-                                        
-                                        <!-- Text Content -->
-                                        <TextBlock Text="{Binding TextContent}" 
-                                                   FontFamily="Consolas, Courier New, monospace"
-                                                   FontSize="12"
-                                                   TextWrapping="Wrap"
-                                                   IsVisible="{Binding IsText}"
-                                                   MaxHeight="300"
-                                                   TextTrimming="CharacterEllipsis"/>
-                                        
-                                        <!-- Binary/Unsupported Content -->
-                                        <StackPanel IsVisible="{Binding IsBinary}" 
-                                                    HorizontalAlignment="Center"
-                                                    Margin="20">
-                                          <TextBlock Text="Binary file - cannot preview" 
-                                                     FontStyle="Italic" 
-                                                     Foreground="Gray"
-                                                     HorizontalAlignment="Center"/>
-                                          <TextBlock Text="{Binding FileSizeFormatted, StringFormat='Size: {0}'}" 
-                                                     FontSize="10" 
-                                                     Foreground="Gray"
-                                                     HorizontalAlignment="Center"
-                                                     Margin="0,5,0,0"/>
-                                        </StackPanel>
-                                        
-                                        <!-- No Content -->
-                                        <TextBlock Text="No content available" 
+                                  <ScrollViewer Grid.Row="1"
+                                                x:Name="ContentScrollViewer"
+                                                VerticalScrollBarVisibility="Auto" 
+                                                HorizontalScrollBarVisibility="Auto"
+                                                MaxHeight="400"
+                                                Margin="0,0,0,0"
+                                                Padding="0">
+                                    <Grid>
+                                      <!-- Image Content -->
+                                      <Image Source="{Binding ImageSource}" 
+                                             Stretch="Uniform" 
+                                             MaxHeight="300"
+                                             HorizontalAlignment="Stretch"
+                                             IsVisible="{Binding IsImage}"/>
+                                      
+                                      <!-- Code Content -->
+                                      <controls:SyntaxHighlightedCodeViewer 
+                                          CodeContent="{Binding CodeContent}"
+                                          FileExtension="{Binding FileExtension}"
+                                          IsVisible="{Binding IsCode}"
+                                          MaxHeight="300"
+                                          HorizontalAlignment="Stretch"/>
+                                      
+                                      <!-- Text Content -->
+                                      <TextBlock Text="{Binding TextContent}" 
+                                                 FontFamily="Consolas, Courier New, monospace"
+                                                 FontSize="12"
+                                                 TextWrapping="Wrap"
+                                                 IsVisible="{Binding IsText}"
+                                                 MaxHeight="300"
+                                                 TextTrimming="CharacterEllipsis"
+                                                 HorizontalAlignment="Stretch"/>
+                                      
+                                      <!-- Binary/Unsupported Content -->
+                                      <StackPanel IsVisible="{Binding IsBinary}" 
+                                                  HorizontalAlignment="Center"
+                                                  Margin="20">
+                                        <TextBlock Text="Binary file - cannot preview" 
                                                    FontStyle="Italic" 
                                                    Foreground="Gray"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding FileSizeFormatted, StringFormat='Size: {0}'}" 
+                                                   FontSize="10" 
+                                                   Foreground="Gray"
                                                    HorizontalAlignment="Center"
-                                                   IsVisible="{Binding IsNone}"/>
+                                                   Margin="0,5,0,0"/>
                                       </StackPanel>
-                                    </ScrollViewer>
-                                  </Border>
+                                      
+                                      <!-- No Content -->
+                                      <TextBlock Text="No content available" 
+                                                 FontStyle="Italic" 
+                                                 Foreground="Gray"
+                                                 HorizontalAlignment="Center"
+                                                 IsVisible="{Binding IsNone}"/>
+                                    </Grid>
+                                  </ScrollViewer>
                                 </Grid>
                               </Border>
                             </DataTemplate>

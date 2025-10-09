@@ -21,6 +21,7 @@ public partial class StudentDetailView : Window
 {
     private FileViewerScrollService? _scrollService;
     private bool _isExplorerCollapsed = false;
+    private bool _isContentMaximized = false;
 
     public StudentDetailView()
     {
@@ -531,6 +532,135 @@ public partial class StudentDetailView : Window
         if (sender is Button button && button.Content is Material.Icons.Avalonia.MaterialIcon icon)
         {
             icon.Kind = Material.Icons.MaterialIconKind.Folder;
+        }
+    }
+
+    private void OnMaximizerClick(object? sender, RoutedEventArgs e)
+    {
+        Log.Information("=== OnMaximizerClick called ===");
+        
+        if (sender is Button button)
+        {
+            // Traverse up to find the parent Grid that contains both the button and the ScrollViewer
+            Avalonia.Visual? parent = button;
+            while (parent is not null && parent is not Grid { RowDefinitions.Count: >= 2 })
+            {
+                parent = parent.GetVisualParent();
+            }
+            
+            if (parent is Grid parentGrid)
+            {
+                // Find the ScrollViewer in Row 1 of the parent Grid
+                var scrollViewer = parentGrid.Children
+                    .OfType<ScrollViewer>()
+                    .FirstOrDefault(sv => Grid.GetRow(sv) == 1);
+                
+                // Find the maximizer icon (child of the button)
+                var maximizerIcon = button.Content as Material.Icons.Avalonia.MaterialIcon;
+                
+                if (scrollViewer != null && maximizerIcon != null)
+                {
+                    _isContentMaximized = !_isContentMaximized;
+                    
+                    if (_isContentMaximized)
+                    {
+                        // Maximize: Remove MaxHeight constraint to use full available space
+                        scrollViewer.MaxHeight = double.PositiveInfinity;
+                        maximizerIcon.Kind = Material.Icons.MaterialIconKind.FullscreenExit;
+                        
+                        // Also remove MaxHeight from content elements
+                        if (scrollViewer.Content is Grid contentGrid)
+                        {
+                            foreach (var child in contentGrid.Children)
+                            {
+                                if (child is Image image)
+                                {
+                                    image.MaxHeight = double.PositiveInfinity;
+                                }
+                                else if (child is TextBlock textBlock)
+                                {
+                                    textBlock.MaxHeight = double.PositiveInfinity;
+                                }
+                                else if (child is Control control && control.GetType().Name == "SyntaxHighlightedCodeViewer")
+                                {
+                                    control.MaxHeight = double.PositiveInfinity;
+                                }
+                            }
+                        }
+                        
+                        Log.Information("Content maximized - using full height");
+                    }
+                    else
+                    {
+                        // Restore: Set back to normal height
+                        scrollViewer.MaxHeight = 400;
+                        maximizerIcon.Kind = Material.Icons.MaterialIconKind.Fullscreen;
+                        
+                        // Restore MaxHeight on content elements
+                        if (scrollViewer.Content is Grid contentGrid)
+                        {
+                            foreach (var child in contentGrid.Children)
+                            {
+                                if (child is Image image)
+                                {
+                                    image.MaxHeight = 300;
+                                }
+                                else if (child is TextBlock textBlock)
+                                {
+                                    textBlock.MaxHeight = 300;
+                                }
+                                else if (child is Control control && control.GetType().Name == "SyntaxHighlightedCodeViewer")
+                                {
+                                    control.MaxHeight = 300;
+                                }
+                            }
+                        }
+                        
+                        Log.Information("Content restored to normal height");
+                    }
+                }
+                else
+                {
+                    Log.Warning("Could not find ScrollViewer or MaximizerIcon. ScrollViewer: {Sv}, Icon: {Icon}", 
+                        scrollViewer != null, maximizerIcon != null);
+                }
+            }
+            else
+            {
+                Log.Warning("Could not find parent Grid for maximizer button");
+            }
+        }
+    }
+
+    private void OnMaximizerButtonPointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (sender is Button button && button.Content is Material.Icons.Avalonia.MaterialIcon icon)
+        {
+            // Change icon on hover for better UX
+            if (_isContentMaximized)
+            {
+                icon.Kind = Material.Icons.MaterialIconKind.FullscreenExit;
+            }
+            else
+            {
+                icon.Kind = Material.Icons.MaterialIconKind.Fullscreen;
+            }
+        }
+    }
+
+    private void OnMaximizerButtonPointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (sender is Button button && button.Content is Material.Icons.Avalonia.MaterialIcon icon)
+        {
+            // Restore original icon
+            if (_isContentMaximized)
+            {
+                icon.Kind = Material.Icons.MaterialIconKind.FullscreenExit;
+            }
+            else
+            {
+                icon.Kind = Material.Icons.MaterialIconKind.Fullscreen;
+            }
         }
     }
 }
