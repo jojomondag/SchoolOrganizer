@@ -38,13 +38,28 @@ public class StudentDetailViewModel : ReactiveObject
     public string StudentName
     {
         get => _studentName;
-        set => this.RaiseAndSetIfChanged(ref _studentName, value);
+        set 
+        { 
+            this.RaiseAndSetIfChanged(ref _studentName, value);
+            UpdateWindowTitle();
+        }
     }
 
     public string CourseName
     {
         get => _courseName;
-        set => this.RaiseAndSetIfChanged(ref _courseName, value);
+        set 
+        { 
+            this.RaiseAndSetIfChanged(ref _courseName, value);
+            UpdateWindowTitle();
+        }
+    }
+
+    public string WindowTitle => $"{StudentName} - {CourseName}";
+
+    private void UpdateWindowTitle()
+    {
+        this.RaisePropertyChanged(nameof(WindowTitle));
     }
 
     public string StudentFolderPath
