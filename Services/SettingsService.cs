@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Serilog;
@@ -75,6 +76,48 @@ namespace SchoolOrganizer.Services
             return defaultPath;
         }
 
+        /// <summary>
+        /// Saves a file type association (extension -> program path)
+        /// </summary>
+        public void SaveFileTypeAssociation(string fileExtension, string programPath)
+        {
+            try
+            {
+                var settings = LoadSettings();
+                settings.FileTypeAssociations[fileExtension.ToLowerInvariant()] = programPath;
+                SaveSettings(settings);
+                Log.Information($"Saved file type association: {fileExtension} -> {programPath}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error saving file type association for {Extension}", fileExtension);
+            }
+        }
+
+        /// <summary>
+        /// Loads the saved program path for a file extension, returns null if not found
+        /// </summary>
+        public string? LoadFileTypeAssociation(string fileExtension)
+        {
+            try
+            {
+                var settings = LoadSettings();
+                var extension = fileExtension.ToLowerInvariant();
+                if (settings.FileTypeAssociations.TryGetValue(extension, out var programPath))
+                {
+                    Log.Information($"Loaded file type association: {extension} -> {programPath}");
+                    return programPath;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error loading file type association for {Extension}", fileExtension);
+            }
+
+            Log.Information($"No saved association found for file extension: {fileExtension}");
+            return null;
+        }
+
         private AppSettings LoadSettings()
         {
             try
@@ -115,5 +158,6 @@ namespace SchoolOrganizer.Services
     public class AppSettings
     {
         public string DownloadFolderPath { get; set; } = string.Empty;
+        public Dictionary<string, string> FileTypeAssociations { get; set; } = new Dictionary<string, string>();
     }
 }

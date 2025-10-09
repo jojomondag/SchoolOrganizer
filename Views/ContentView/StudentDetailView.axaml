@@ -5,6 +5,7 @@
         xmlns:vm="using:SchoolOrganizer.ViewModels"
         xmlns:controls="using:SchoolOrganizer.Controls"
         xmlns:material="using:Material.Icons.Avalonia"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
         x:Class="SchoolOrganizer.Views.ContentView.StudentDetailView"
         x:DataType="vm:StudentDetailViewModel"
@@ -26,7 +27,7 @@
     </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="300" MinWidth="250"/>
-      <ColumnDefinition Width="40" MinWidth="30"/>
+      <ColumnDefinition Width="12"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
 
@@ -128,39 +129,51 @@
                                   </Grid.RowDefinitions>
                                   
                                   <!-- File Header -->
-                                  <Grid Grid.Row="0" Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions>
-                                      <ColumnDefinition Width="*"/>
-                                      <ColumnDefinition Width="Auto"/>
-                                      <ColumnDefinition Width="Auto"/>
-                                      <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                      <TextBlock Text="{Binding FileName}" 
-                                                 FontWeight="Bold" 
-                                                 FontSize="14"
-                                                 VerticalAlignment="Center"/>
-                                      <TextBlock Text="{Binding FileSizeFormatted, StringFormat=' ({0})'}" 
+                                  <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                                    <Grid Margin="0,0,0,5">
+                                      <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                      </Grid.ColumnDefinitions>
+                                      
+                                      <Button Grid.Column="0"
+                                              Padding="4"
+                                              Background="Transparent"
+                                              BorderThickness="0"
+                                              CornerRadius="4"
+                                              Click="OnFileOpenClick"
+                                              PointerEntered="OnOpenFolderButtonPointerEntered"
+                                              PointerExited="OnOpenFolderButtonPointerExited"
+                                              VerticalAlignment="Center"
+                                              Margin="0,0,5,0">
+                                          <materialIcons:MaterialIcon x:Name="OpenFolderIcon"
+                                                                     Kind="Folder" 
+                                                                     Width="18" 
+                                                                     Height="18"
+                                                                     Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                      </Button>
+                                      
+                                      <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock Text="{Binding FileName}" 
+                                                   FontWeight="Bold" 
+                                                   FontSize="14"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding FileSizeFormatted, StringFormat=' ({0})'}" 
+                                                   Foreground="Gray" 
+                                                   FontSize="12" 
+                                                   VerticalAlignment="Center" 
+                                                   Margin="5,0,0,0"/>
+                                      </StackPanel>
+                                      
+                                      <TextBlock Grid.Column="2" 
+                                                 Text="{Binding LastModifiedFormatted}" 
                                                  Foreground="Gray" 
-                                                 FontSize="12" 
+                                                 FontSize="10" 
                                                  VerticalAlignment="Center" 
-                                                 Margin="5,0,0,0"/>
-                                    </StackPanel>
-                                    
-                                    <TextBlock Grid.Column="1" 
-                                               Text="{Binding LastModifiedFormatted}" 
-                                               Foreground="Gray" 
-                                               FontSize="10" 
-                                               VerticalAlignment="Center" 
-                                               Margin="10,0"/>
-                                    
-                                    <Button Grid.Column="2" 
-                                            Content="Open" 
-                                            Margin="10,0,0,0"
-                                            Padding="8,4"
-                                            Click="OnFileOpenClick"/>
-                                  </Grid>
+                                                 Margin="10,0"/>
+                                    </Grid>
+                                  </StackPanel>
                                   
                                   <!-- File Content Preview -->
                                   <Border Grid.Row="1" 
@@ -236,54 +249,29 @@
     </Border>
 
     <!-- Separator with centered chevron -->
-    <Border Grid.Row="2" Grid.Column="1" 
+    <Border Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" 
             Name="SeparatorPanel"
             Background="{DynamicResource BackgroundSecondaryBrush}"
             BorderBrush="{DynamicResource CardBorderBrush}" 
             BorderThickness="1,0,1,0"
             Margin="0">
-      <Grid VerticalAlignment="Stretch">
-        <Grid.RowDefinitions>
-          <RowDefinition Height="*"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        
-        <!-- Top separator line -->
-        <Border Grid.Row="0" 
-                Background="{DynamicResource CardBorderBrush}" 
-                Height="2" 
-                VerticalAlignment="Bottom" 
-                Margin="0"/>
-        
-        <!-- Centered chevron button -->
-        <Button Grid.Row="1"
-                Name="SeparatorToggleButton"
-                Click="OnToggleExplorerClick"
-                Background="White"
-                BorderBrush="Gray"
-                BorderThickness="1"
-                Padding="0"
-                Margin="0"
-                Width="16"
-                Height="16"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center">
-          <TextBlock Text="‹" 
-                     FontSize="10" 
-                     FontWeight="Bold" 
-                     Foreground="Black" 
-                     HorizontalAlignment="Center"
-                     VerticalAlignment="Center"/>
-        </Button>
-        
-        <!-- Bottom separator line -->
-        <Border Grid.Row="2" 
-                Background="{DynamicResource CardBorderBrush}" 
-                Height="2" 
-                VerticalAlignment="Top" 
-                Margin="0"/>
-      </Grid>
+      <Button Name="SeparatorToggleButton"
+              Click="OnToggleExplorerClick"
+              Background="White"
+              BorderBrush="Gray"
+              BorderThickness="1"
+              Padding="0"
+              Margin="0"
+              VerticalAlignment="Stretch"
+              HorizontalAlignment="Stretch"
+              CornerRadius="0">
+        <TextBlock Text="‹" 
+                   FontSize="10" 
+                   FontWeight="Bold" 
+                   Foreground="Black" 
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+      </Button>
     </Border>
     
   </Grid>

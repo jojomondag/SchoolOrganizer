@@ -197,7 +197,21 @@ public class StudentDetailViewModel : ReactiveObject
 
     public StudentDetailViewModel()
     {
-        OpenFileCommand = ReactiveCommand.Create<StudentFile>(OpenFile);
+        OpenFileCommand = ReactiveCommand.Create<StudentFile>(file => 
+        {
+            Log.Information("=== OpenFileCommand.Execute called ===");
+            Log.Information("File parameter: {FileName}, {FilePath}", file?.FileName, file?.FilePath);
+            try
+            {
+                OpenFile(file);
+                Log.Information("OpenFile method completed successfully");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception in OpenFileCommand: {Message}", ex.Message);
+            }
+            Log.Information("=== OpenFileCommand.Execute completed ===");
+        });
         CloseCommand = ReactiveCommand.Create(() => { });
         OpenSelectedFileCommand = ReactiveCommand.Create(OpenSelectedFile);
     }
@@ -438,17 +452,21 @@ public class StudentDetailViewModel : ReactiveObject
         };
     }
 
-    private void OpenFile(StudentFile file)
+    public void OpenFile(StudentFile file)
     {
-        Log.Information("OpenFile called with file: {FileName}, Path: {FilePath}", file?.FileName, file?.FilePath);
+        Log.Information("=== OpenFile called ===");
+        Log.Information("File: {FileName}, Path: {FilePath}", file?.FileName, file?.FilePath);
+        Log.Information("File is null: {IsNull}", file == null);
         
         if (file == null || string.IsNullOrEmpty(file.FilePath))
         {
             StatusText = "No file selected or file path is empty.";
-            Log.Warning("Attempted to open file with null or empty path.");
+            Log.Warning("Attempted to open file with null or empty path. File is null: {IsNull}, FilePath: {FilePath}", 
+                file == null, file?.FilePath ?? "null");
             return;
         }
 
+        Log.Information("Checking if file exists: {FilePath}", file.FilePath);
         // Check if file exists
         if (!System.IO.File.Exists(file.FilePath))
         {
@@ -457,18 +475,48 @@ public class StudentDetailViewModel : ReactiveObject
             return;
         }
 
+        Log.Information("File exists, attempting to open with Process.Start...");
         try
         {
-            Log.Information("Attempting to open file: {FilePath}", file.FilePath);
+            var fileExtension = Path.GetExtension(file.FilePath).ToLowerInvariant();
+            Log.Information("File extension: {Extension}", fileExtension);
             
-            // For now, let's simplify and just use the default application
-            // This ensures it works regardless of editor detection
-            var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(file.FilePath) { UseShellExecute = true });
+            // Check for saved file type association
+            var savedProgramPath = SettingsService.Instance.LoadFileTypeAssociation(fileExtension);
+            
+            System.Diagnostics.ProcessStartInfo startInfo;
+            if (!string.IsNullOrEmpty(savedProgramPath))
+            {
+                Log.Information("Using saved program for {Extension}: {ProgramPath}", fileExtension, savedProgramPath);
+                startInfo = new System.Diagnostics.ProcessStartInfo(savedProgramPath, $"\"{file.FilePath}\"");
+            }
+            else
+            {
+                Log.Information("No saved association found, using default system behavior");
+                startInfo = new System.Diagnostics.ProcessStartInfo(file.FilePath) { UseShellExecute = true };
+            }
+            
+            Log.Information("ProcessStartInfo created. UseShellExecute: {UseShellExecute}, FileName: {FileName}, Arguments: {Arguments}", 
+                startInfo.UseShellExecute, startInfo.FileName, startInfo.Arguments);
+            
+            Log.Information("Calling Process.Start...");
+            var process = System.Diagnostics.Process.Start(startInfo);
+            Log.Information("Process.Start returned: {Process}", process != null ? "Process object" : "null");
             
             if (process != null)
             {
-                StatusText = $"Opened {file.FileName} with default application.";
-                Log.Information("Successfully opened file with default application: {FilePath}", file.FilePath);
+                StatusText = $"Opened {file.FileName} with {(string.IsNullOrEmpty(savedProgramPath) ? "default application" : "saved program")}.";
+                Log.Information("Successfully opened file: {FilePath}", file.FilePath);
+                Log.Information("Process ID: {ProcessId}, HasExited: {HasExited}", process.Id, process.HasExited);
+                
+                // If we used the default system behavior and it worked, save the association
+                if (string.IsNullOrEmpty(savedProgramPath))
+                {
+                    Log.Information("Saving file type association for future use...");
+                    // Note: We can't easily determine which program was used with UseShellExecute=true
+                    // So we'll just save a marker that we've used the default for this extension
+                    SettingsService.Instance.SaveFileTypeAssociation(fileExtension, "DEFAULT_SYSTEM");
+                }
             }
             else
             {
@@ -479,8 +527,10 @@ public class StudentDetailViewModel : ReactiveObject
         catch (Exception ex)
         {
             StatusText = $"Error opening file: {ex.Message}";
-            Log.Error(ex, "Error opening file: {FilePath}", file.FilePath);
+            Log.Error(ex, "Error opening file: {FilePath}. Exception: {ExceptionType}, Message: {Message}", 
+                file.FilePath, ex.GetType().Name, ex.Message);
         }
+        Log.Information("=== OpenFile completed ===");
     }
 
     private bool IsCodeFile(string fileName)

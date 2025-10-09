@@ -12,7 +12,6 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using SchoolOrganizer.ViewModels;
 using SchoolOrganizer.Views;
-using SchoolOrganizer.Views.TestWindows;
 using SchoolOrganizer.Services;
 using Serilog;
 

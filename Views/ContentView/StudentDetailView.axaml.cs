@@ -344,16 +344,19 @@ public partial class StudentDetailView : Window
 
     private void OnFileOpenClick(object sender, RoutedEventArgs e)
     {
-        Log.Information("OnFileOpenClick called");
+        Log.Information("=== OnFileOpenClick called ===");
+        Log.Information("Sender type: {SenderType}", sender?.GetType().Name ?? "null");
+        Log.Information("DataContext type: {DataContextType}", DataContext?.GetType().Name ?? "null");
         
         if (DataContext is StudentDetailViewModel viewModel && sender is Button button)
         {
-            Log.Information("Button clicked, DataContext type: {DataType}", button.DataContext?.GetType().Name ?? "null");
+            Log.Information("Button clicked, Button DataContext type: {ButtonDataType}", button.DataContext?.GetType().Name ?? "null");
+            Log.Information("Button DataContext: {ButtonDataContext}", button.DataContext);
             
             // Check if it's a FileTreeNode (from tree view)
             if (button.DataContext is FileTreeNode fileNode)
             {
-                Log.Information("FileTreeNode detected: {FileName}", fileNode.Name);
+                Log.Information("FileTreeNode detected: {FileName}, FullPath: {FullPath}", fileNode.Name, fileNode.FullPath);
                 // Create a StudentFile from the FileTreeNode and open it
                 var studentFile = new StudentFile
                 {
@@ -365,23 +368,46 @@ public partial class StudentDetailView : Window
                     RelativePath = fileNode.RelativePath
                 };
                 
+                Log.Information("Created StudentFile: {FileName}, FilePath: {FilePath}", studentFile.FileName, studentFile.FilePath);
+                Log.Information("Executing OpenFileCommand...");
+                Log.Information("Command CanExecute: {CanExecute}", viewModel.OpenFileCommand.CanExecute);
                 viewModel.OpenFileCommand.Execute(studentFile);
+                Log.Information("OpenFileCommand executed");
             }
             // Check if it's a StudentFile (from assignment files)
             else if (button.DataContext is StudentFile studentFile)
             {
-                Log.Information("StudentFile detected: {FileName}", studentFile.FileName);
+                Log.Information("StudentFile detected: {FileName}, FilePath: {FilePath}", studentFile.FileName, studentFile.FilePath);
+                Log.Information("Executing OpenFileCommand...");
+                Log.Information("Command CanExecute: {CanExecute}", viewModel.OpenFileCommand.CanExecute);
+                
+                // Try direct method call instead of command
+                Log.Information("Calling OpenFile directly...");
+                try
+                {
+                    viewModel.OpenFile(studentFile);
+                    Log.Information("OpenFile called successfully");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception calling OpenFile directly: {Message}", ex.Message);
+                }
+                
                 viewModel.OpenFileCommand.Execute(studentFile);
+                Log.Information("OpenFileCommand executed");
             }
             else
             {
                 Log.Warning("Unknown DataContext type: {DataType}", button.DataContext?.GetType().Name ?? "null");
+                Log.Warning("Button DataContext: {DataContext}", button.DataContext);
             }
         }
         else
         {
-            Log.Warning("Invalid DataContext or sender in OnFileOpenClick");
+            Log.Warning("Invalid DataContext or sender in OnFileOpenClick. DataContext is StudentDetailViewModel: {IsViewModel}, Sender is Button: {IsButton}", 
+                DataContext is StudentDetailViewModel, sender is Button);
         }
+        Log.Information("=== OnFileOpenClick completed ===");
     }
 
     private void OnFileTapped(object? sender, RoutedEventArgs e)
@@ -489,6 +515,22 @@ public partial class StudentDetailView : Window
                     textBlock.Text = "‹"; // Left-pointing chevron
                 }
             }
+        }
+    }
+
+    private void OnOpenFolderButtonPointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (sender is Button button && button.Content is Material.Icons.Avalonia.MaterialIcon icon)
+        {
+            icon.Kind = Material.Icons.MaterialIconKind.FolderOpen;
+        }
+    }
+
+    private void OnOpenFolderButtonPointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (sender is Button button && button.Content is Material.Icons.Avalonia.MaterialIcon icon)
+        {
+            icon.Kind = Material.Icons.MaterialIconKind.Folder;
         }
     }
 }
