@@ -33,6 +33,12 @@ public partial class StudentGalleryViewModel : ObservableObject
     [ObservableProperty]
     private Student? selectedStudent;
 
+    // Computed properties for safe binding
+    public string SelectedStudentName => SelectedStudent?.Name ?? "No student selected";
+    public string SelectedStudentEmail => SelectedStudent?.Email ?? "No student selected";
+    public string SelectedStudentClassName => SelectedStudent?.ClassName ?? "No student selected";
+    public string SelectedStudentSecondaryInfo => SelectedStudent?.SecondaryInfo ?? "No student selected";
+
     [ObservableProperty]
     private string searchText = string.Empty;
 
@@ -201,6 +207,15 @@ public partial class StudentGalleryViewModel : ObservableObject
     }
 
     partial void OnForceGridViewChanged(bool value) => UpdateViewProperties();
+
+    partial void OnSelectedStudentChanged(Student? value)
+    {
+        // Notify computed properties that they may have changed
+        OnPropertyChanged(nameof(SelectedStudentName));
+        OnPropertyChanged(nameof(SelectedStudentEmail));
+        OnPropertyChanged(nameof(SelectedStudentClassName));
+        OnPropertyChanged(nameof(SelectedStudentSecondaryInfo));
+    }
 
     private void UpdateViewProperties()
     {

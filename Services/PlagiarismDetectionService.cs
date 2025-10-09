@@ -96,7 +96,7 @@ public class PlagiarismDetectionService : IPlagiarismDetectionService
             if (results.Any())
             {
                 Log.Information("Running deep verification analysis on flagged files...");
-                results = await RunDeepVerificationAsync(results, allFileData, settings);
+                results = RunDeepVerification(results, allFileData, settings);
             }
         }
         catch (Exception ex)
@@ -143,7 +143,7 @@ public class PlagiarismDetectionService : IPlagiarismDetectionService
 
             if (results.Any())
             {
-                results = await RunDeepVerificationAsync(results, allFileData, settings);
+                results = RunDeepVerification(results, allFileData, settings);
             }
         }
         catch (Exception ex)
@@ -1155,7 +1155,7 @@ public class PlagiarismDetectionService : IPlagiarismDetectionService
         return R * c;
     }
 
-    private async Task<List<PlagiarismResult>> RunDeepVerificationAsync(
+    private List<PlagiarismResult> RunDeepVerification(
         List<PlagiarismResult> flaggedResults,
         List<FileAnalysisData> allFileData,
         PlagiarismAnalysisSettings settings)

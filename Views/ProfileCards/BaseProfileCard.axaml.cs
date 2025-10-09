@@ -240,7 +240,6 @@ namespace SchoolOrganizer.Views.ProfileCards
                 if (this.FindControl<Ellipse>("ProfileImageEllipse") is { } ellipse)
                 {
                     var pictureUrl = PictureUrl;
-                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: UpdateProfileImage called with PictureUrl: {pictureUrl ?? "NULL"}");
 
                     if (!string.IsNullOrEmpty(pictureUrl))
                     {
@@ -251,7 +250,6 @@ namespace SchoolOrganizer.Views.ProfileCards
                         if (bitmap is Avalonia.Media.Imaging.Bitmap bmp)
                         {
                             ellipse.Fill = new ImageBrush(bmp) { Stretch = Avalonia.Media.Stretch.UniformToFill };
-                            System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Successfully updated image for PictureUrl: {pictureUrl}");
                         }
                     }
                 }

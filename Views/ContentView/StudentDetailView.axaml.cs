@@ -109,6 +109,32 @@ public partial class StudentDetailView : Window
                         Log.Information("Method 3 - ItemsControl found as direct content: {Found}", itemsControl != null);
                     }
                 }
+                
+                if (itemsControl == null)
+                {
+                    // Method 4: Search in StackPanel content
+                    if (scrollViewer.Content is StackPanel stackPanel)
+                    {
+                        itemsControl = stackPanel.Children.OfType<ItemsControl>().FirstOrDefault();
+                        Log.Information("Method 4 - ItemsControl found in StackPanel: {Found}", itemsControl != null);
+                    }
+                }
+                
+                if (itemsControl == null)
+                {
+                    // Method 5: Deep search through all descendants
+                    var allDescendants = scrollViewer.GetVisualDescendants().ToList();
+                    Log.Information("Method 5 - Searching through {Count} descendants", allDescendants.Count);
+                    foreach (var descendant in allDescendants)
+                    {
+                        if (descendant is ItemsControl ic)
+                        {
+                            itemsControl = ic;
+                            Log.Information("Method 5 - Found ItemsControl: {Type}", ic.GetType().Name);
+                            break;
+                        }
+                    }
+                }
             }
 
             if (scrollViewer != null && itemsControl != null)
@@ -132,7 +158,7 @@ public partial class StudentDetailView : Window
             }
             else
             {
-                Log.Warning("Could not find ScrollViewer or ItemsControl for scroll service initialization. ScrollViewer: {SV}, ItemsControl: {IC}", 
+                Log.Information("Could not find ScrollViewer or ItemsControl for scroll service initialization. ScrollViewer: {SV}, ItemsControl: {IC}", 
                     scrollViewer != null, itemsControl != null);
                 
                 // Schedule a retry after a short delay to allow UI to fully load
@@ -184,6 +210,27 @@ public partial class StudentDetailView : Window
                 if (itemsControl == null && scrollViewer.Content is ItemsControl directItemsControl)
                 {
                     itemsControl = directItemsControl;
+                }
+                
+                if (itemsControl == null && scrollViewer.Content is StackPanel stackPanel)
+                {
+                    itemsControl = stackPanel.Children.OfType<ItemsControl>().FirstOrDefault();
+                    Log.Information("Retry - ItemsControl found in StackPanel: {Found}", itemsControl != null);
+                }
+                
+                if (itemsControl == null)
+                {
+                    var allDescendants = scrollViewer.GetVisualDescendants().ToList();
+                    Log.Information("Retry - Searching through {Count} descendants", allDescendants.Count);
+                    foreach (var descendant in allDescendants)
+                    {
+                        if (descendant is ItemsControl ic)
+                        {
+                            itemsControl = ic;
+                            Log.Information("Retry - Found ItemsControl: {Type}", ic.GetType().Name);
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -297,22 +344,43 @@ public partial class StudentDetailView : Window
 
     private void OnFileOpenClick(object sender, RoutedEventArgs e)
     {
-        if (DataContext is StudentDetailViewModel viewModel && 
-            sender is Button button && 
-            button.DataContext is FileTreeNode fileNode)
+        Log.Information("OnFileOpenClick called");
+        
+        if (DataContext is StudentDetailViewModel viewModel && sender is Button button)
         {
-            // Create a StudentFile from the FileTreeNode and open it
-            var studentFile = new StudentFile
-            {
-                FileName = fileNode.Name,
-                FilePath = fileNode.FullPath,
-                AssignmentName = fileNode.AssignmentName,
-                FileSize = fileNode.FileSize,
-                LastModified = fileNode.LastModified,
-                RelativePath = fileNode.RelativePath
-            };
+            Log.Information("Button clicked, DataContext type: {DataType}", button.DataContext?.GetType().Name ?? "null");
             
-            viewModel.OpenFileCommand.Execute(studentFile);
+            // Check if it's a FileTreeNode (from tree view)
+            if (button.DataContext is FileTreeNode fileNode)
+            {
+                Log.Information("FileTreeNode detected: {FileName}", fileNode.Name);
+                // Create a StudentFile from the FileTreeNode and open it
+                var studentFile = new StudentFile
+                {
+                    FileName = fileNode.Name,
+                    FilePath = fileNode.FullPath,
+                    AssignmentName = fileNode.AssignmentName,
+                    FileSize = fileNode.FileSize,
+                    LastModified = fileNode.LastModified,
+                    RelativePath = fileNode.RelativePath
+                };
+                
+                viewModel.OpenFileCommand.Execute(studentFile);
+            }
+            // Check if it's a StudentFile (from assignment files)
+            else if (button.DataContext is StudentFile studentFile)
+            {
+                Log.Information("StudentFile detected: {FileName}", studentFile.FileName);
+                viewModel.OpenFileCommand.Execute(studentFile);
+            }
+            else
+            {
+                Log.Warning("Unknown DataContext type: {DataType}", button.DataContext?.GetType().Name ?? "null");
+            }
+        }
+        else
+        {
+            Log.Warning("Invalid DataContext or sender in OnFileOpenClick");
         }
     }
 
@@ -355,16 +423,25 @@ public partial class StudentDetailView : Window
                 explorerColumn.Width = new GridLength(0);
                 
                 // Move separator to column 0 and set its width explicitly
-                Grid.SetColumn(separatorPanel, 0);
-                separatorPanel.Width = 16; // Set explicit width to match button
-                separatorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
+                if (separatorPanel != null)
+                {
+                    Grid.SetColumn(separatorPanel, 0);
+                    separatorPanel.Width = 16; // Set explicit width to match button
+                    separatorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
+                }
                 
                 // Expand main content to fill space all the way to the separator
-                Grid.SetColumnSpan(mainContentPanel, 3); // Span all 3 columns
-                Grid.SetColumn(mainContentPanel, 0); // Start from first column (next to separator)
+                if (mainContentPanel != null)
+                {
+                    Grid.SetColumnSpan(mainContentPanel, 3); // Span all 3 columns
+                    Grid.SetColumn(mainContentPanel, 0); // Start from first column (next to separator)
+                }
                 
                 // Add left margin to respect the separator bar space
-                mainContentPanel.Margin = new Avalonia.Thickness(16, 0, 0, 0); // 16px left margin
+                if (mainContentPanel != null)
+                {
+                    mainContentPanel.Margin = new Avalonia.Thickness(16, 0, 0, 0); // 16px left margin
+                }
                 
                 // Update separator button chevron to point right (to expand)
                 var textBlock = separatorToggleButton.Content as TextBlock;
@@ -385,14 +462,25 @@ public partial class StudentDetailView : Window
                 }
                 
                 // Move separator back to column 1 (between explorer and content)
-                Grid.SetColumn(separatorPanel, 1);
-                separatorPanel.Width = double.NaN; // Reset to auto width
-                separatorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch; // Reset alignment
+                if (separatorPanel != null)
+                {
+                    Grid.SetColumn(separatorPanel, 1);
+                    separatorPanel.Width = double.NaN; // Reset to auto width
+                    separatorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch; // Reset alignment
+                }
                 
                 // Reset main content to normal position
-                Grid.SetColumnSpan(mainContentPanel, 1); // Span only 1 column
-                Grid.SetColumn(mainContentPanel, 2); // Start from third column
-                mainContentPanel.Margin = new Avalonia.Thickness(0); // Reset margin
+                if (mainContentPanel != null)
+                {
+                    Grid.SetColumnSpan(mainContentPanel, 1); // Span only 1 column
+                    Grid.SetColumn(mainContentPanel, 2); // Start from third column
+                }
+                
+                // Reset margin
+                if (mainContentPanel != null)
+                {
+                    mainContentPanel.Margin = new Avalonia.Thickness(0); // Reset margin
+                }
                 
                 // Update separator button chevron to point left (to collapse)
                 var textBlock = separatorToggleButton.Content as TextBlock;

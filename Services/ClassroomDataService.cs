@@ -18,7 +18,7 @@ public class ClassroomDataService
     {
         _classroomService = classroomService ?? throw new ArgumentNullException(nameof(classroomService));
         Log.Information($"ClassroomDataService initialized with ClassroomService: {_classroomService != null}");
-        Log.Information($"ClassroomService ApplicationName: {_classroomService.ApplicationName}");
+        Log.Information($"ClassroomService ApplicationName: {_classroomService?.ApplicationName ?? "null"}");
         Log.Information($"ClassroomService BaseUri: {_classroomService.BaseUri}");
     }
 

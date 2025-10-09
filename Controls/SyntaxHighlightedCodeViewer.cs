@@ -70,7 +70,7 @@ public class SyntaxHighlightedCodeViewer : UserControl
             Background = new SolidColorBrush(Color.FromRgb(30, 30, 30)),
             Foreground = new SolidColorBrush(Color.FromRgb(248, 248, 248)),
             TextWrapping = TextWrapping.Wrap,
-            Padding = new Thickness(8)
+            Padding = new Thickness(0)
         };
 
         _scrollViewer = new ScrollViewer

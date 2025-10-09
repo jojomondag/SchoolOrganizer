@@ -440,6 +440,8 @@ public class StudentDetailViewModel : ReactiveObject
 
     private void OpenFile(StudentFile file)
     {
+        Log.Information("OpenFile called with file: {FileName}, Path: {FilePath}", file?.FileName, file?.FilePath);
+        
         if (file == null || string.IsNullOrEmpty(file.FilePath))
         {
             StatusText = "No file selected or file path is empty.";
@@ -447,17 +449,192 @@ public class StudentDetailViewModel : ReactiveObject
             return;
         }
 
+        // Check if file exists
+        if (!System.IO.File.Exists(file.FilePath))
+        {
+            StatusText = $"File not found: {file.FilePath}";
+            Log.Warning("File does not exist: {FilePath}", file.FilePath);
+            return;
+        }
+
         try
         {
-            // Use Process.Start to open the file with the default application
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(file.FilePath) { UseShellExecute = true });
-            StatusText = $"Opened {file.FileName}.";
-            Log.Information("Opened file: {FilePath}", file.FilePath);
+            Log.Information("Attempting to open file: {FilePath}", file.FilePath);
+            
+            // For now, let's simplify and just use the default application
+            // This ensures it works regardless of editor detection
+            var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(file.FilePath) { UseShellExecute = true });
+            
+            if (process != null)
+            {
+                StatusText = $"Opened {file.FileName} with default application.";
+                Log.Information("Successfully opened file with default application: {FilePath}", file.FilePath);
+            }
+            else
+            {
+                StatusText = $"Failed to open {file.FileName}.";
+                Log.Warning("Process.Start returned null for file: {FilePath}", file.FilePath);
+            }
         }
         catch (Exception ex)
         {
             StatusText = $"Error opening file: {ex.Message}";
             Log.Error(ex, "Error opening file: {FilePath}", file.FilePath);
+        }
+    }
+
+    private bool IsCodeFile(string fileName)
+    {
+        var codeExtensions = new[] { ".cs", ".js", ".ts", ".py", ".java", ".cpp", ".c", ".h", ".hpp", ".php", ".rb", ".go", ".rs", ".swift", ".kt", ".scala", ".sh", ".ps1", ".bat", ".sql", ".html", ".css", ".xml", ".json", ".yaml", ".yml", ".md", ".txt" };
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return codeExtensions.Contains(extension);
+    }
+
+    private void OpenWithPreferredEditor(string filePath)
+    {
+        // Try to find and use a preferred editor
+        var editorInfo = FindPreferredEditor();
+        
+        if (editorInfo != null)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = editorInfo.Path,
+                    Arguments = $"{editorInfo.Arguments} \"{filePath}\"",
+                    UseShellExecute = false
+                });
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to open with preferred editor: {EditorPath}", editorInfo.Path);
+            }
+        }
+        
+        // If no preferred editor found or failed, show editor selection dialog
+        ShowEditorSelectionDialog(filePath);
+    }
+
+    private EditorInfo? FindPreferredEditor()
+    {
+        // Check for common editors in order of preference
+        var commonEditors = new[]
+        {
+            new EditorInfo("Visual Studio Code", "code", ""),
+            new EditorInfo("Visual Studio Code (Insiders)", "code-insiders", ""),
+            new EditorInfo("Sublime Text", "subl", ""),
+            new EditorInfo("Notepad++", "notepad++", ""),
+            new EditorInfo("Vim", "vim", ""),
+            new EditorInfo("Nano", "nano", ""),
+            new EditorInfo("JetBrains Rider", "rider64", ""),
+            new EditorInfo("Visual Studio", "devenv", "")
+        };
+
+        foreach (var editor in commonEditors)
+        {
+            if (IsEditorAvailable(editor.Path))
+            {
+                return editor;
+            }
+        }
+
+        return null;
+    }
+
+    private bool IsEditorAvailable(string editorPath)
+    {
+        try
+        {
+            var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = editorPath,
+                Arguments = "--version",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            });
+            
+            if (process != null)
+            {
+                process.WaitForExit(2000); // Wait max 2 seconds
+                return process.ExitCode == 0;
+            }
+        }
+        catch
+        {
+            // Editor not available
+        }
+        
+        return false;
+    }
+
+    private void ShowEditorSelectionDialog(string filePath)
+    {
+        // For now, show a simple message with available options
+        // In a real implementation, you could show a proper dialog
+        var availableEditors = GetAvailableEditors();
+        
+        if (availableEditors.Any())
+        {
+            var editorList = string.Join(", ", availableEditors.Select(e => e.Name));
+            StatusText = $"Available editors: {editorList}. Please configure your preferred editor in settings.";
+            Log.Information("Available editors: {Editors}", editorList);
+        }
+        else
+        {
+            StatusText = "No code editors found. Opening with default application.";
+            Log.Warning("No code editors found, falling back to default application");
+        }
+        
+        // Fallback to default application
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(filePath) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Error opening file: {ex.Message}";
+            Log.Error(ex, "Error opening file with default application: {FilePath}", filePath);
+        }
+    }
+
+    private List<EditorInfo> GetAvailableEditors()
+    {
+        var editors = new List<EditorInfo>();
+        var commonEditors = new[]
+        {
+            new EditorInfo("Visual Studio Code", "code", ""),
+            new EditorInfo("Sublime Text", "subl", ""),
+            new EditorInfo("Notepad++", "notepad++", ""),
+            new EditorInfo("Vim", "vim", ""),
+            new EditorInfo("Nano", "nano", "")
+        };
+
+        foreach (var editor in commonEditors)
+        {
+            if (IsEditorAvailable(editor.Path))
+            {
+                editors.Add(editor);
+            }
+        }
+
+        return editors;
+    }
+
+    private class EditorInfo
+    {
+        public string Name { get; }
+        public string Path { get; }
+        public string Arguments { get; }
+
+        public EditorInfo(string name, string path, string arguments)
+        {
+            Name = name;
+            Path = path;
+            Arguments = arguments;
         }
     }
 
