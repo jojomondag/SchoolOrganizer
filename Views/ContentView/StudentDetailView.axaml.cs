@@ -55,19 +55,17 @@ public partial class StudentDetailView : Window
     
     private void InitializeToggleButtonState()
     {
-        // Since explorer starts as open (_isExplorerCollapsed = false), hide the floating toggle button
-        var toggleButton = this.FindControl<Button>("ToggleExplorerButton");
-        var canvas = toggleButton?.Parent as Canvas;
+        // Initialize the separator button state
+        var separatorToggleButton = this.FindControl<Button>("SeparatorToggleButton");
         
-        if (toggleButton != null)
+        if (separatorToggleButton != null)
         {
-            toggleButton.IsVisible = false;
-        }
-        
-        // Disable hit testing on the canvas when explorer is open
-        if (canvas != null)
-        {
-            canvas.IsHitTestVisible = false;
+            // Set initial chevron direction (left-pointing since explorer starts open)
+            var textBlock = separatorToggleButton.Content as TextBlock;
+            if (textBlock != null)
+            {
+                textBlock.Text = "‹"; // Left-pointing chevron for collapse
+            }
         }
     }
 
@@ -337,13 +335,11 @@ public partial class StudentDetailView : Window
         var mainGrid = this.FindControl<Grid>("MainGrid");
         var explorerPanel = this.FindControl<Border>("ExplorerPanel");
         var mainContentPanel = this.FindControl<Border>("MainContentPanel");
-        var toggleButton = this.FindControl<Button>("ToggleExplorerButton");
-        var toggleIcon = this.FindControl<Material.Icons.Avalonia.MaterialIcon>("ToggleIcon");
-        var explorerCloseButton = this.FindControl<Button>("ExplorerCloseButton");
-        var canvas = toggleButton?.Parent as Canvas;
+        var separatorPanel = this.FindControl<Border>("SeparatorPanel");
+        var separatorToggleButton = this.FindControl<Button>("SeparatorToggleButton");
         var explorerTransform = explorerPanel?.RenderTransform as TranslateTransform;
         
-        if (mainGrid != null && explorerPanel != null && mainContentPanel != null && toggleButton != null)
+        if (mainGrid != null && explorerPanel != null && mainContentPanel != null && separatorPanel != null && separatorToggleButton != null)
         {
             var explorerColumn = mainGrid.ColumnDefinitions[0]; // First column
             
@@ -355,24 +351,27 @@ public partial class StudentDetailView : Window
                     explorerTransform.X = -300;
                 }
                 
-                // Collapse the explorer column
+                // Collapse the explorer column completely
                 explorerColumn.Width = new GridLength(0);
                 
-                // Expand main content to use full width
+                // Move separator to column 0 and set its width explicitly
+                Grid.SetColumn(separatorPanel, 0);
+                separatorPanel.Width = 16; // Set explicit width to match button
+                separatorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
+                
+                // Expand main content to fill space all the way to the separator
                 Grid.SetColumnSpan(mainContentPanel, 3); // Span all 3 columns
-                Grid.SetColumn(mainContentPanel, 0); // Start from first column
+                Grid.SetColumn(mainContentPanel, 0); // Start from first column (next to separator)
                 
-                // Show floating toggle button and move it to left border at same height as close button
-                toggleButton.IsVisible = true;
-                Canvas.SetLeft(toggleButton, 0);
-                Canvas.SetTop(toggleButton, 120); // Positioned at the center of where the explorer header would be
+                // Add left margin to respect the separator bar space
+                mainContentPanel.Margin = new Avalonia.Thickness(16, 0, 0, 0); // 16px left margin
                 
-                // Enable hit testing on the canvas when explorer is collapsed
-                if (canvas != null)
-                    canvas.IsHitTestVisible = true;
-                
-                if (toggleIcon != null)
-                    toggleIcon.Kind = Material.Icons.MaterialIconKind.ChevronRight;
+                // Update separator button chevron to point right (to expand)
+                var textBlock = separatorToggleButton.Content as TextBlock;
+                if (textBlock != null)
+                {
+                    textBlock.Text = "›"; // Right-pointing chevron
+                }
             }
             else
             {
@@ -385,16 +384,22 @@ public partial class StudentDetailView : Window
                     explorerTransform.X = 0;
                 }
                 
+                // Move separator back to column 1 (between explorer and content)
+                Grid.SetColumn(separatorPanel, 1);
+                separatorPanel.Width = double.NaN; // Reset to auto width
+                separatorPanel.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch; // Reset alignment
+                
                 // Reset main content to normal position
                 Grid.SetColumnSpan(mainContentPanel, 1); // Span only 1 column
                 Grid.SetColumn(mainContentPanel, 2); // Start from third column
+                mainContentPanel.Margin = new Avalonia.Thickness(0); // Reset margin
                 
-                // Hide floating toggle button since we have the close button inside explorer
-                toggleButton.IsVisible = false;
-                
-                // Disable hit testing on the canvas when explorer is open
-                if (canvas != null)
-                    canvas.IsHitTestVisible = false;
+                // Update separator button chevron to point left (to collapse)
+                var textBlock = separatorToggleButton.Content as TextBlock;
+                if (textBlock != null)
+                {
+                    textBlock.Text = "‹"; // Left-pointing chevron
+                }
             }
         }
     }

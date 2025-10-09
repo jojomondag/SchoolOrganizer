@@ -17,7 +17,6 @@
     <vm:StudentDetailViewModel/>
   </Design.DataContext>
 
-
   <Grid Name="MainGrid">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
@@ -27,14 +26,12 @@
     </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="300" MinWidth="250"/>
-      <ColumnDefinition Width="5"/>
+      <ColumnDefinition Width="16" MinWidth="16"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
 
-
-
     <!-- File Explorer (Left Panel) -->
-    <Border Grid.Row="0" Grid.Column="0" 
+    <Border Grid.Row="2" Grid.Column="0" 
             Name="ExplorerPanel"
             Background="{DynamicResource BackgroundSecondaryBrush}" 
             BorderBrush="{DynamicResource CardBorderBrush}" 
@@ -45,27 +42,11 @@
       </Border.RenderTransform>
       <Grid>
         <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
-        <!-- Explorer Header -->
-        <Border Grid.Row="0" Background="{DynamicResource BackgroundTertiaryBrush}" Padding="8">
-          <Button HorizontalAlignment="Right"
-                  Name="ExplorerCloseButton"
-                  Click="OnToggleExplorerClick"
-                  Background="Transparent"
-                  BorderThickness="0"
-                  Padding="4"
-                  Width="24"
-                  Height="24"
-                  VerticalAlignment="Center">
-            <material:MaterialIcon Name="ExplorerCloseIcon" Kind="ChevronLeft" Foreground="{DynamicResource TextPrimaryBrush}" Width="16" Height="16"/>
-          </Button>
-        </Border>
-        
         <!-- File Tree -->
-        <TreeView Grid.Row="1" 
+        <TreeView Grid.Row="0" 
                   ItemsSource="{Binding FileTree}"
                   SelectionChanged="OnTreeViewSelectionChanged"
                   Margin="5">
@@ -80,9 +61,8 @@
       </Grid>
     </Border>
 
-
     <!-- All clear (Right Panel) -->
-    <Border Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="1" Name="MainContentPanel" Background="White">
+    <Border Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="1" Name="MainContentPanel" Background="White">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/>
@@ -228,32 +208,56 @@
       </Grid>
     </Border>
 
-    <!-- Footer - spans all columns -->
-    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BackgroundSecondaryBrush}" Padding="10">
-      <StackPanel Orientation="Horizontal">
-        <TextBlock Text="{Binding StudentFiles.Count, StringFormat='Total Files: {0}'}" 
-                   VerticalAlignment="Center"/>
-        <TextBlock Text=" - Click on files to preview" 
-                   VerticalAlignment="Center" 
-                   Foreground="Gray" 
-                   Margin="10,0,0,0"/>
-      </StackPanel>
+    <!-- Separator with centered chevron -->
+    <Border Grid.Row="2" Grid.Column="1" 
+            Name="SeparatorPanel"
+            Background="{DynamicResource BackgroundSecondaryBrush}"
+            BorderBrush="{DynamicResource CardBorderBrush}" 
+            BorderThickness="1,0,1,0"
+            Margin="0">
+      <Grid VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Top separator line -->
+        <Border Grid.Row="0" 
+                Background="{DynamicResource CardBorderBrush}" 
+                Height="2" 
+                VerticalAlignment="Bottom" 
+                Margin="0"/>
+        
+        <!-- Centered chevron button -->
+        <Button Grid.Row="1"
+                Name="SeparatorToggleButton"
+                Click="OnToggleExplorerClick"
+                Background="White"
+                BorderBrush="Gray"
+                BorderThickness="1"
+                Padding="0"
+                Margin="0"
+                Width="16"
+                Height="16"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+          <TextBlock Text="‹" 
+                     FontSize="10" 
+                     FontWeight="Bold" 
+                     Foreground="Black" 
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+        </Button>
+        
+        <!-- Bottom separator line -->
+        <Border Grid.Row="2" 
+                Background="{DynamicResource CardBorderBrush}" 
+                Height="2" 
+                VerticalAlignment="Top" 
+                Margin="0"/>
+      </Grid>
     </Border>
     
-    <!-- Floating Toggle Button Overlay - positioned above all other components -->
-    <Canvas Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="3" 
-            IsHitTestVisible="False" Background="Transparent">
-      <Button Canvas.Left="300" Canvas.Top="200"
-              Name="ToggleExplorerButton"
-              Click="OnToggleExplorerClick"
-              Background="Transparent"
-              BorderThickness="0"
-              Padding="4"
-              Width="24"
-              Height="24"
-              IsHitTestVisible="True">
-        <material:MaterialIcon Name="ToggleIcon" Kind="ChevronLeft" Foreground="{DynamicResource TextPrimaryBrush}" Width="16" Height="16"/>
-      </Button>
-    </Canvas>
   </Grid>
 </Window>
