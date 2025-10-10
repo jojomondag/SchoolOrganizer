@@ -27,8 +27,6 @@
     <Border Grid.Column="0" 
             Name="ExplorerPanel"
             Background="{DynamicResource BackgroundSecondaryBrush}" 
-            BorderBrush="{DynamicResource CardBorderBrush}" 
-            BorderThickness="0"
             RenderTransformOrigin="0,0">
       <Border.RenderTransform>
         <TranslateTransform X="0"/>
@@ -48,8 +46,7 @@
     <!-- Main Content Panel -->
     <Border Grid.Column="2" 
             Name="MainContentPanel" 
-            Background="{DynamicResource BackgroundPrimaryBrush}"
-            BorderThickness="0">
+            Background="{DynamicResource BackgroundPrimaryBrush}">
       <ScrollViewer Name="MainScrollViewer"
                     VerticalScrollBarVisibility="Auto" 
                     HorizontalScrollBarVisibility="Disabled">
@@ -57,8 +54,6 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <Border Background="{DynamicResource BackgroundTertiaryBrush}" 
-                      BorderBrush="{DynamicResource CardBorderBrush}" 
-                      BorderThickness="1" 
                       Margin="0,0,0,0">
                 <Grid>
                   <Grid.RowDefinitions>
@@ -68,9 +63,8 @@
                   
                   <!-- Assignment Header -->
                   <Border Grid.Row="0" 
+                          x:Name="AssignmentHeaderBorder"
                           Background="{DynamicResource BackgroundSecondaryBrush}" 
-                          BorderBrush="{DynamicResource CardBorderBrush}" 
-                          BorderThickness="0,0,0,1" 
                           Padding="15">
                     <TextBlock Text="{Binding AssignmentName}" 
                                FontWeight="Bold" 
@@ -98,14 +92,10 @@
     <!-- Custom Fold Button Separator -->
     <Border Grid.Column="1" 
             Name="SeparatorPanel"
-            Background="{DynamicResource BackgroundSecondaryBrush}"
-            BorderBrush="{DynamicResource CardBorderBrush}" 
-            BorderThickness="0">
+            Background="{DynamicResource BackgroundSecondaryBrush}">
       <Button Name="SeparatorToggleButton"
               Click="OnToggleExplorerClick"
               Background="White"
-              BorderBrush="Gray"
-              BorderThickness="0"
               Padding="0"
               Margin="0"
               VerticalAlignment="Stretch"

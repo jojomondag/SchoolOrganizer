@@ -7,8 +7,6 @@
              x:DataType="models:StudentFile">
 
   <Border Background="{DynamicResource BackgroundSecondaryBrush}" 
-          BorderBrush="{DynamicResource CardBorderBrush}" 
-          BorderThickness="1" 
           Margin="0,0,0,0" 
           Padding="0">
     <Grid>
