@@ -29,41 +29,40 @@ public class FileTreeNode
     public bool IsText { get; set; }
     public bool IsBinary { get; set; }
     public bool IsNone { get; set; }
+    public bool IsContentLoaded { get; set; }
 
     public async Task LoadContentAsync()
     {
-        if (IsDirectory) return;
+        if (IsDirectory || IsContentLoaded) return;
 
         try
         {
             var extension = Path.GetExtension(FullPath).ToLowerInvariant();
-            Serilog.Log.Information("LoadContentAsync: Loading {FilePath} with extension {Extension}", FullPath, extension);
             
             if (IsImageFile(extension))
             {
-                Serilog.Log.Information("LoadContentAsync: File {FileName} detected as IMAGE", Name);
                 await LoadImageContent();
             }
             else if (IsCodeFile(extension))
             {
-                Serilog.Log.Information("LoadContentAsync: File {FileName} detected as CODE", Name);
                 await LoadCodeContent();
             }
             else if (IsTextFile(extension))
             {
-                Serilog.Log.Information("LoadContentAsync: File {FileName} detected as TEXT", Name);
                 await LoadTextContent();
             }
             else
             {
-                Serilog.Log.Information("LoadContentAsync: File {FileName} detected as BINARY", Name);
                 IsBinary = true;
             }
+            
+            IsContentLoaded = true;
         }
         catch (Exception ex)
         {
             Serilog.Log.Warning(ex, "Error loading content for file: {FilePath}", FullPath);
             IsNone = true;
+            IsContentLoaded = true; // Mark as loaded even if failed to prevent retries
         }
     }
 
@@ -106,12 +105,10 @@ public class FileTreeNode
         {
             CodeContent = await File.ReadAllTextAsync(FullPath);
             IsCode = true;
-            Serilog.Log.Information("LoadCodeContent: Successfully loaded {Length} characters for {FileName}, IsCode set to {IsCode}", 
-                CodeContent.Length, Name, IsCode);
         }
         catch (Exception ex)
         {
-            Serilog.Log.Warning(ex, "LoadCodeContent: Failed to load code content for {FileName}", Name);
+            Serilog.Log.Warning(ex, "Failed to load code content for {FileName}", Name);
             IsNone = true;
         }
     }

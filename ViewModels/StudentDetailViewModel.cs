@@ -97,21 +97,10 @@ public class StudentDetailViewModel : ReactiveObject
         get => _selectedFile;
         set 
         { 
-            Log.Information("SelectedFile property setter called with: {NodeName}, IsDirectory: {IsDirectory}, AssignmentName: {AssignmentName}, FullPath: {FullPath}", 
-                value?.Name ?? "null", value?.IsDirectory ?? false, value?.AssignmentName ?? "null", value?.FullPath ?? "null");
-                    
             this.RaiseAndSetIfChanged(ref _selectedFile, value);
             if (value != null)
             {
-                Log.Information("Calling LoadFolderFiles for: {NodeName}", value.Name);
                 LoadFolderFiles(value);
-                
-                Log.Information("SelectedFile set complete: Name={Name}, IsDirectory={IsDirectory}, AssignmentName={AssignmentName}", 
-                    value.Name, value.IsDirectory, value.AssignmentName);
-            }
-            else
-            {
-                Log.Information("SelectedFile set to null");
             }
         }
     }
@@ -139,7 +128,6 @@ public class StudentDetailViewModel : ReactiveObject
     public void SetScrollService(FileViewerScrollService scrollService)
     {
         _scrollService = scrollService;
-        Log.Information("Scroll service set in StudentDetailViewModel. Service is null: {IsNull}", scrollService == null);
     }
 
     /// <summary>
@@ -199,14 +187,11 @@ public class StudentDetailViewModel : ReactiveObject
     {
         OpenFileCommand = ReactiveCommand.Create<StudentFile>(file => 
         {
-            Log.Information("=== OpenFileCommand.Execute called ===");
-            Log.Information("File parameter: {FileName}, {FilePath}", file?.FileName, file?.FilePath);
             try
             {
                 if (file != null)
                 {
                     OpenFile(file);
-                    Log.Information("OpenFile method completed successfully");
                 }
                 else
                 {
@@ -217,7 +202,6 @@ public class StudentDetailViewModel : ReactiveObject
             {
                 Log.Error(ex, "Exception in OpenFileCommand: {Message}", ex.Message);
             }
-            Log.Information("=== OpenFileCommand.Execute completed ===");
         });
         CloseCommand = ReactiveCommand.Create(() => { });
         OpenSelectedFileCommand = ReactiveCommand.Create(OpenSelectedFile);
@@ -228,9 +212,6 @@ public class StudentDetailViewModel : ReactiveObject
     /// </summary>
     public async Task LoadStudentFilesAsync(string studentName, string courseName, string studentFolderPath)
     {
-        Log.Information("=== LoadStudentFilesAsync started ===");
-        Log.Information("Student: {StudentName}, Course: {CourseName}, Path: {FolderPath}", studentName, courseName, studentFolderPath);
-        
         StudentName = studentName;
         CourseName = courseName;
         StudentFolderPath = studentFolderPath;
@@ -246,36 +227,21 @@ public class StudentDetailViewModel : ReactiveObject
                 return;
             }
 
-            Log.Information("Directory exists, starting file loading...");
             var files = new List<StudentFile>();
             await LoadFilesRecursively(studentFolderPath, files, studentFolderPath);
-            Log.Information("LoadFilesRecursively completed. Found {FileCount} files", files.Count);
 
             StudentFiles = new ObservableCollection<StudentFile>(files.OrderBy(f => f.AssignmentName).ThenBy(f => f.FileName));
-            Log.Information("StudentFiles collection set with {FileCount} files", StudentFiles.Count);
             
             // Build file tree
-            Log.Information("Building file tree...");
             var fileTree = BuildFileTree(studentFolderPath, studentFolderPath);
             FileTree = new ObservableCollection<FileTreeNode>(fileTree);
-            Log.Information("FileTree built with {TreeNodeCount} nodes", FileTree.Count);
             
             // Build grouped files for the main scroll view
-            Log.Information("Building grouped files...");
             var groupedFiles = BuildGroupedFiles(files);
             AllFilesGrouped = new ObservableCollection<AssignmentGroup>(groupedFiles);
-            Log.Information("AllFilesGrouped built with {GroupCount} groups", AllFilesGrouped.Count);
-            
-            // Log group details
-            foreach (var group in AllFilesGrouped)
-            {
-                Log.Information("Group: {GroupName} has {FileCount} files", group.AssignmentName, group.Files.Count);
-            }
             
             // Load content for all files to enable preview
-            Log.Information("Loading content for all files...");
             await LoadContentForAllFilesAsync();
-            Log.Information("Content loading completed");
             
             // Automatically select the first file and load its content
             if (fileTree.Count > 0)
@@ -283,21 +249,12 @@ public class StudentDetailViewModel : ReactiveObject
                 var firstFile = fileTree.FirstOrDefault();
                 if (firstFile != null)
                 {
-                    Log.Information("Auto-selecting first file: {FirstFileName}, IsDirectory: {IsDirectory}", firstFile.Name, firstFile.IsDirectory);
                     SelectedFile = firstFile;
                     await firstFile.LoadContentAsync();
-                    
-                    // If it's a directory, load all files in it
-                    if (firstFile.IsDirectory)
-                    {
-                        Log.Information("First file is directory, loading folder files...");
-                        LoadFolderFiles(firstFile);
-                    }
                 }
             }
             else
             {
-                Log.Information("No files in tree, creating FolderFiles from all files");
                 // If no files in tree, show all files directly
                 var allFiles = new ObservableCollection<FileTreeNode>();
                 foreach (var file in files)
@@ -318,24 +275,19 @@ public class StudentDetailViewModel : ReactiveObject
                     allFiles.Add(fileNode);
                 }
                 FolderFiles = allFiles;
-                Log.Information("FolderFiles set with {FolderFileCount} files", allFiles.Count);
             }
             
             StatusText = $"Loaded {files.Count} files for {studentName}";
-            Log.Information("=== LoadStudentFilesAsync completed successfully ===");
-            Log.Information("Final counts - StudentFiles: {StudentFileCount}, FileTree: {TreeCount}, AllFilesGrouped: {GroupCount}, FolderFiles: {FolderFileCount}", 
-                StudentFiles.Count, FileTree.Count, AllFilesGrouped.Count, FolderFiles.Count);
+            Log.Information("Successfully loaded {FileCount} files for {StudentName}", files.Count, studentName);
         }
         catch (Exception ex)
         {
             StatusText = $"Error loading files: {ex.Message}";
-            Log.Error(ex, "=== LoadStudentFilesAsync failed ===");
             Log.Error(ex, "Error loading student files for {StudentName}", studentName);
         }
         finally
         {
             IsLoading = false;
-            Log.Information("LoadStudentFilesAsync finally block - IsLoading set to false");
         }
     }
 
@@ -461,239 +413,39 @@ public class StudentDetailViewModel : ReactiveObject
 
     public void OpenFile(StudentFile file)
     {
-        Log.Information("=== OpenFile called ===");
-        Log.Information("File: {FileName}, Path: {FilePath}", file?.FileName, file?.FilePath);
-        Log.Information("File is null: {IsNull}", file == null);
-        
         if (file == null || string.IsNullOrEmpty(file.FilePath))
         {
             StatusText = "No file selected or file path is empty.";
-            Log.Warning("Attempted to open file with null or empty path. File is null: {IsNull}, FilePath: {FilePath}", 
-                file == null, file?.FilePath ?? "null");
             return;
         }
 
-        Log.Information("Checking if file exists: {FilePath}", file.FilePath);
-        // Check if file exists
         if (!System.IO.File.Exists(file.FilePath))
         {
             StatusText = $"File not found: {file.FilePath}";
-            Log.Warning("File does not exist: {FilePath}", file.FilePath);
             return;
         }
 
-        Log.Information("File exists, attempting to open with Process.Start...");
         try
         {
-            var fileExtension = Path.GetExtension(file.FilePath).ToLowerInvariant();
-            Log.Information("File extension: {Extension}", fileExtension);
+            var fileHandlingService = new FileHandlingService();
+            var success = fileHandlingService.OpenFile(file);
             
-            // Check for saved file type association
-            var savedProgramPath = SettingsService.Instance.LoadFileTypeAssociation(fileExtension);
-            
-            System.Diagnostics.ProcessStartInfo startInfo;
-            if (!string.IsNullOrEmpty(savedProgramPath))
+            if (success)
             {
-                Log.Information("Using saved program for {Extension}: {ProgramPath}", fileExtension, savedProgramPath);
-                startInfo = new System.Diagnostics.ProcessStartInfo(savedProgramPath, $"\"{file.FilePath}\"");
+                StatusText = $"Opened {file.FileName}";
             }
             else
             {
-                Log.Information("No saved association found, using default system behavior");
-                startInfo = new System.Diagnostics.ProcessStartInfo(file.FilePath) { UseShellExecute = true };
-            }
-            
-            Log.Information("ProcessStartInfo created. UseShellExecute: {UseShellExecute}, FileName: {FileName}, Arguments: {Arguments}", 
-                startInfo.UseShellExecute, startInfo.FileName, startInfo.Arguments);
-            
-            Log.Information("Calling Process.Start...");
-            var process = System.Diagnostics.Process.Start(startInfo);
-            Log.Information("Process.Start returned: {Process}", process != null ? "Process object" : "null");
-            
-            if (process != null)
-            {
-                StatusText = $"Opened {file.FileName} with {(string.IsNullOrEmpty(savedProgramPath) ? "default application" : "saved program")}.";
-                Log.Information("Successfully opened file: {FilePath}", file.FilePath);
-                Log.Information("Process ID: {ProcessId}, HasExited: {HasExited}", process.Id, process.HasExited);
-                
-                // If we used the default system behavior and it worked, save the association
-                if (string.IsNullOrEmpty(savedProgramPath))
-                {
-                    Log.Information("Saving file type association for future use...");
-                    // Note: We can't easily determine which program was used with UseShellExecute=true
-                    // So we'll just save a marker that we've used the default for this extension
-                    SettingsService.Instance.SaveFileTypeAssociation(fileExtension, "DEFAULT_SYSTEM");
-                }
-            }
-            else
-            {
-                StatusText = $"Failed to open {file.FileName}.";
-                Log.Warning("Process.Start returned null for file: {FilePath}", file.FilePath);
+                StatusText = $"Failed to open {file.FileName}";
             }
         }
         catch (Exception ex)
         {
             StatusText = $"Error opening file: {ex.Message}";
-            Log.Error(ex, "Error opening file: {FilePath}. Exception: {ExceptionType}, Message: {Message}", 
-                file.FilePath, ex.GetType().Name, ex.Message);
-        }
-        Log.Information("=== OpenFile completed ===");
-    }
-
-    private bool IsCodeFile(string fileName)
-    {
-        var codeExtensions = new[] { ".cs", ".js", ".ts", ".py", ".java", ".cpp", ".c", ".h", ".hpp", ".php", ".rb", ".go", ".rs", ".swift", ".kt", ".scala", ".sh", ".ps1", ".bat", ".sql", ".html", ".css", ".xml", ".json", ".yaml", ".yml", ".md", ".txt" };
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        return codeExtensions.Contains(extension);
-    }
-
-    private void OpenWithPreferredEditor(string filePath)
-    {
-        // Try to find and use a preferred editor
-        var editorInfo = FindPreferredEditor();
-        
-        if (editorInfo != null)
-        {
-            try
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = editorInfo.Path,
-                    Arguments = $"{editorInfo.Arguments} \"{filePath}\"",
-                    UseShellExecute = false
-                });
-                return;
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to open with preferred editor: {EditorPath}", editorInfo.Path);
-            }
-        }
-        
-        // If no preferred editor found or failed, show editor selection dialog
-        ShowEditorSelectionDialog(filePath);
-    }
-
-    private EditorInfo? FindPreferredEditor()
-    {
-        // Check for common editors in order of preference
-        var commonEditors = new[]
-        {
-            new EditorInfo("Visual Studio Code", "code", ""),
-            new EditorInfo("Visual Studio Code (Insiders)", "code-insiders", ""),
-            new EditorInfo("Sublime Text", "subl", ""),
-            new EditorInfo("Notepad++", "notepad++", ""),
-            new EditorInfo("Vim", "vim", ""),
-            new EditorInfo("Nano", "nano", ""),
-            new EditorInfo("JetBrains Rider", "rider64", ""),
-            new EditorInfo("Visual Studio", "devenv", "")
-        };
-
-        foreach (var editor in commonEditors)
-        {
-            if (IsEditorAvailable(editor.Path))
-            {
-                return editor;
-            }
-        }
-
-        return null;
-    }
-
-    private bool IsEditorAvailable(string editorPath)
-    {
-        try
-        {
-            var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = editorPath,
-                Arguments = "--version",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            });
-            
-            if (process != null)
-            {
-                process.WaitForExit(2000); // Wait max 2 seconds
-                return process.ExitCode == 0;
-            }
-        }
-        catch
-        {
-            // Editor not available
-        }
-        
-        return false;
-    }
-
-    private void ShowEditorSelectionDialog(string filePath)
-    {
-        // For now, show a simple message with available options
-        // In a real implementation, you could show a proper dialog
-        var availableEditors = GetAvailableEditors();
-        
-        if (availableEditors.Any())
-        {
-            var editorList = string.Join(", ", availableEditors.Select(e => e.Name));
-            StatusText = $"Available editors: {editorList}. Please configure your preferred editor in settings.";
-            Log.Information("Available editors: {Editors}", editorList);
-        }
-        else
-        {
-            StatusText = "No code editors found. Opening with default application.";
-            Log.Warning("No code editors found, falling back to default application");
-        }
-        
-        // Fallback to default application
-        try
-        {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(filePath) { UseShellExecute = true });
-        }
-        catch (Exception ex)
-        {
-            StatusText = $"Error opening file: {ex.Message}";
-            Log.Error(ex, "Error opening file with default application: {FilePath}", filePath);
+            Log.Error(ex, "Error opening file: {FilePath}", file.FilePath);
         }
     }
 
-    private List<EditorInfo> GetAvailableEditors()
-    {
-        var editors = new List<EditorInfo>();
-        var commonEditors = new[]
-        {
-            new EditorInfo("Visual Studio Code", "code", ""),
-            new EditorInfo("Sublime Text", "subl", ""),
-            new EditorInfo("Notepad++", "notepad++", ""),
-            new EditorInfo("Vim", "vim", ""),
-            new EditorInfo("Nano", "nano", "")
-        };
-
-        foreach (var editor in commonEditors)
-        {
-            if (IsEditorAvailable(editor.Path))
-            {
-                editors.Add(editor);
-            }
-        }
-
-        return editors;
-    }
-
-    private class EditorInfo
-    {
-        public string Name { get; }
-        public string Path { get; }
-        public string Arguments { get; }
-
-        public EditorInfo(string name, string path, string arguments)
-        {
-            Name = name;
-            Path = path;
-            Arguments = arguments;
-        }
-    }
 
     private void OpenSelectedFile()
     {
@@ -713,77 +465,51 @@ public class StudentDetailViewModel : ReactiveObject
 
     private async void LoadFolderFiles(FileTreeNode selectedNode)
     {
-        Log.Information("LoadFolderFiles called for: {NodeName}, IsDirectory: {IsDirectory}", selectedNode.Name, selectedNode.IsDirectory);
-        
         var folderFiles = new ObservableCollection<FileTreeNode>();
         
         if (selectedNode.IsDirectory)
         {
-            Log.Information("Loading files from directory: {DirectoryPath}", selectedNode.FullPath);
-            
             // Load all files from the selected folder
             LoadFolderFilesRecursively(selectedNode, folderFiles);
-            Log.Information("Recursive loading complete. Found {Count} items", folderFiles.Count);
             
             // Load content for all files
-            var fileCount = folderFiles.Where(f => !f.IsDirectory).Count();
-            Log.Information("Loading content for {FileCount} files", fileCount);
-            
             foreach (var file in folderFiles.Where(f => !f.IsDirectory))
             {
-                Log.Debug("Loading content for file: {FileName}", file.Name);
                 await file.LoadContentAsync();
             }
-            
-            Log.Information("Content loading complete for all files");
         }
         else
         {
-            Log.Information("Selected item is a file, adding single file: {FileName}", selectedNode.Name);
-            
             // If it's a file, just show that file
             folderFiles.Add(selectedNode);
             if (!selectedNode.IsDirectory)
             {
-                Log.Information("Loading content for single file: {FileName}", selectedNode.Name);
                 await selectedNode.LoadContentAsync();
             }
         }
         
-        Log.Information("Setting FolderFiles collection with {Count} items", folderFiles.Count);
         FolderFiles = folderFiles;
-        Log.Information("LoadFolderFiles completed. Loaded {Count} files for folder {FolderName}", folderFiles.Count, selectedNode.Name);
         
         // Also update the corresponding files in AllFilesGrouped with the loaded content
         await UpdateAllFilesGroupedWithLoadedContent(folderFiles, selectedNode.AssignmentName);
-        Log.Information("Updated AllFilesGrouped with content from {Count} loaded files", folderFiles.Count);
     }
 
     private void LoadFolderFilesRecursively(FileTreeNode folderNode, ObservableCollection<FileTreeNode> files)
     {
-        Log.Information("LoadFolderFilesRecursively called for: {FolderPath}", folderNode.FullPath);
-        
         try
         {
             if (Directory.Exists(folderNode.FullPath))
             {
-                Log.Information("Directory exists: {DirectoryPath}", folderNode.FullPath);
                 var directory = new DirectoryInfo(folderNode.FullPath);
                 
                 var directoryFiles = directory.GetFiles().OrderBy(f => f.Name).ToArray();
                 var subdirectories = directory.GetDirectories().OrderBy(d => d.Name).ToArray();
-                
-                Log.Information("Found {FileCount} files and {DirCount} subdirectories in {Directory}", 
-                    directoryFiles.Length, subdirectories.Length, folderNode.FullPath);
                 
                 // Add files in current directory
                 foreach (var file in directoryFiles)
                 {
                     var relativePath = Path.GetRelativePath(StudentFolderPath, file.FullName);
                     var assignmentName = GetAssignmentNameFromPath(relativePath);
-                    
-                    Log.Debug("Adding file: {FileName}, RelativePath: {RelativePath}, Assignment: {Assignment}", 
-                        file.Name, relativePath, assignmentName);
                     
                     files.Add(new FileTreeNode
                     {
@@ -805,9 +531,6 @@ public class StudentDetailViewModel : ReactiveObject
                     var relativePath = Path.GetRelativePath(StudentFolderPath, subdirectory.FullName);
                     var assignmentName = GetAssignmentNameFromPath(relativePath);
                     
-                    Log.Debug("Adding subdirectory: {DirName}, RelativePath: {RelativePath}, Assignment: {Assignment}", 
-                        subdirectory.Name, relativePath, assignmentName);
-                    
                     var dirNode = new FileTreeNode
                     {
                         Name = subdirectory.Name,
@@ -824,16 +547,8 @@ public class StudentDetailViewModel : ReactiveObject
                     files.Add(dirNode);
                     
                     // Recursively add files from subdirectories
-                    Log.Debug("Recursively loading subdirectory: {SubDirPath}", subdirectory.FullName);
                     LoadFolderFilesRecursively(dirNode, files);
                 }
-                
-                Log.Information("LoadFolderFilesRecursively completed for: {FolderPath}. Total items: {TotalCount}", 
-                    folderNode.FullPath, files.Count);
-            }
-            else
-            {
-                Log.Warning("Directory does not exist: {DirectoryPath}", folderNode.FullPath);
             }
         }
         catch (Exception ex)
@@ -849,9 +564,6 @@ public class StudentDetailViewModel : ReactiveObject
     {
         try
         {
-            Log.Information("UpdateAllFilesGroupedWithLoadedContent called for assignment: {AssignmentName} with {FileCount} files", 
-                assignmentName, loadedFiles.Count);
-            
             // Find the matching assignment group in AllFilesGrouped
             var targetGroup = AllFilesGrouped.FirstOrDefault(g => g.AssignmentName == assignmentName);
             if (targetGroup == null)
@@ -866,9 +578,6 @@ public class StudentDetailViewModel : ReactiveObject
                 var targetFile = targetGroup.Files.FirstOrDefault(f => f.FileName == loadedFile.Name);
                 if (targetFile != null)
                 {
-                    Log.Information("Updating {FileName} - LoadedFile: IsCode={LoadedIsCode}, CodeLength={LoadedCodeLength}, TargetFile: IsCode={TargetIsCode}, CodeLength={TargetCodeLength}", 
-                        loadedFile.Name, loadedFile.IsCode, loadedFile.CodeContent?.Length ?? 0, targetFile.IsCode, targetFile.CodeContent?.Length ?? 0);
-                    
                     // Update on UI thread to ensure proper data binding
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
@@ -880,26 +589,9 @@ public class StudentDetailViewModel : ReactiveObject
                         targetFile.IsText = loadedFile.IsText;
                         targetFile.IsBinary = loadedFile.IsBinary;
                         targetFile.IsNone = loadedFile.IsNone;
-                        
-                        Log.Information("Updated AllFilesGrouped file {FileName}: IsCode={IsCode}, CodeContentLength={Length}, FileExtension={Extension}", 
-                            targetFile.FileName, targetFile.IsCode, targetFile.CodeContent?.Length ?? 0, targetFile.FileExtension);
-                        
-                        // Log if this is a code file to verify syntax highlighting data
-                        if (targetFile.IsCode)
-                        {
-                            Log.Information("CODE FILE UPDATED: {FileName} with {CodeLength} characters, FileExtension='{Extension}'", 
-                                targetFile.FileName, targetFile.CodeContent?.Length ?? 0, targetFile.FileExtension);
-                        }
                     });
                 }
-                else
-                {
-                    Log.Warning("File {FileName} not found in AllFilesGrouped for assignment {AssignmentName}", 
-                        loadedFile.Name, assignmentName);
-                }
             }
-            
-            Log.Information("AllFilesGrouped update completed for assignment: {AssignmentName}", assignmentName);
         }
         catch (Exception ex)
         {
@@ -931,23 +623,11 @@ public class StudentDetailViewModel : ReactiveObject
     {
         try
         {
-            Log.Information("Loading content for all files to enable preview");
-            
-            int totalFiles = AllFilesGrouped.Sum(g => g.Files.Count);
-            int processedFiles = 0;
-            
             // Load content for all files in all assignment groups
             foreach (var assignmentGroup in AllFilesGrouped)
             {
-                Log.Information("Loading content for assignment group: {GroupName} ({FileCount} files)", 
-                    assignmentGroup.AssignmentName, assignmentGroup.Files.Count);
-                
                 foreach (var file in assignmentGroup.Files)
                 {
-                    processedFiles++;
-                    Log.Debug("Loading content for file {Current}/{Total}: {FileName}", 
-                        processedFiles, totalFiles, file.FileName);
-                    
                     // Create a FileTreeNode to load content
                     var fileNode = new FileTreeNode
                     {
@@ -961,7 +641,11 @@ public class StudentDetailViewModel : ReactiveObject
                         FileType = GetFileType(Path.GetExtension(file.FilePath))
                     };
                     
-                    await fileNode.LoadContentAsync();
+                    // Only load content if not already loaded
+                    if (!fileNode.IsContentLoaded)
+                    {
+                        await fileNode.LoadContentAsync();
+                    }
                     
                     // Update the StudentFile with the loaded content on the UI thread
                     await Dispatcher.UIThread.InvokeAsync(() =>
@@ -974,27 +658,9 @@ public class StudentDetailViewModel : ReactiveObject
                         file.IsText = fileNode.IsText;
                         file.IsBinary = fileNode.IsBinary;
                         file.IsNone = fileNode.IsNone;
-                        
-                        Log.Information("AllFilesGrouped - Content updated for {FileName}: IsImage={IsImage}, IsCode={IsCode}, IsText={IsText}, IsBinary={IsBinary}, CodeContentLength={CodeLength}, FileExtension={Extension}", 
-                            file.FileName, file.IsImage, file.IsCode, file.IsText, file.IsBinary, file.CodeContent?.Length ?? 0, file.FileExtension);
-                        
-                        // Also verify the file object is the same one in AllFilesGrouped
-                        var allFilesFlat = AllFilesGrouped.SelectMany(g => g.Files).ToList();
-                        var matchingFile = allFilesFlat.FirstOrDefault(f => f.FileName == file.FileName);
-                        if (matchingFile != null)
-                        {
-                            Log.Information("AllFilesGrouped - Found matching file in collection: IsCode={IsCode}, CodeContentLength={Length}", 
-                                matchingFile.IsCode, matchingFile.CodeContent?.Length ?? 0);
-                        }
-                        else
-                        {
-                            Log.Warning("AllFilesGrouped - File {FileName} not found in AllFilesGrouped collection!", file.FileName);
-                        }
                     });
                 }
             }
-            
-            Log.Information("Successfully loaded content for all {TotalFiles} files", totalFiles);
         }
         catch (Exception ex)
         {

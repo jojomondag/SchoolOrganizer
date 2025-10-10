@@ -33,7 +33,6 @@ public class StudentFile : INotifyPropertyChanged
         {
             var ext = Path.GetExtension(FilePath);
             if (string.IsNullOrEmpty(ext)) ext = "";
-            Serilog.Log.Debug("StudentFile.FileExtension for {FileName}: '{Extension}' (from path: {FilePath})", FileName, ext, FilePath);
             return ext;
         }
     }
