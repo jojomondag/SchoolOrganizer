@@ -196,7 +196,7 @@ public partial class App : Application
             
             // Create StudentDetailView for the found student with real files
             var detailViewModel = new StudentDetailViewModel();
-            var detailWindow = new Views.ContentView.StudentDetailView(detailViewModel);
+            var detailWindow = new Views.AssignmentManagement.AssignmentViewer(detailViewModel);
             
             // Load the real student files using the same method as normal flow
             await detailViewModel.LoadStudentFilesAsync(foundStudentName!, firstClassroom.Name ?? "Unknown Course", foundStudentFolder);

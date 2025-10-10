@@ -167,7 +167,7 @@ public partial class ContentViewModel : ObservableObject
         try
         {
             var detailViewModel = new StudentDetailViewModel();
-            var detailWindow = new Views.ContentView.StudentDetailView(detailViewModel);
+            var detailWindow = new Views.AssignmentManagement.AssignmentViewer(detailViewModel);
             
             // Load the student files asynchronously
             await detailViewModel.LoadStudentFilesAsync(student.Name, CourseName, student.FolderPath);

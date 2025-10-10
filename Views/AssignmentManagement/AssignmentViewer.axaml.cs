@@ -13,33 +13,27 @@ using SchoolOrganizer.Services;
 using SchoolOrganizer.Models;
 using Serilog;
 
-namespace SchoolOrganizer.Views.ContentView;
+namespace SchoolOrganizer.Views.AssignmentManagement;
 
 /// <summary>
 /// Window for displaying a student's downloaded assignments
 /// </summary>
-public partial class StudentDetailView : Window
+public partial class AssignmentViewer : Window
 {
     private FileViewerScrollService? _scrollService;
     private readonly PanelManagementService _panelManagementService;
 
-    public StudentDetailView()
+    public AssignmentViewer()
     {
         InitializeComponent();
         _panelManagementService = new PanelManagementService();
         InitializeScrollService();
     }
 
-    public StudentDetailView(StudentDetailViewModel viewModel) : this()
+    public AssignmentViewer(StudentDetailViewModel viewModel) : this()
     {
         DataContext = viewModel;
-        
-        // Connect the scroll service to the ViewModel if it's already initialized
-        if (_scrollService != null)
-        {
-            viewModel.SetScrollService(_scrollService);
-        }
-        
+        ConnectScrollServiceToViewModel();
         InitializeToggleButtonState();
     }
 
@@ -78,19 +72,14 @@ public partial class StudentDetailView : Window
             if (scrollViewer != null && itemsControl != null)
             {
                 _scrollService = new FileViewerScrollService(scrollViewer, itemsControl);
-                
-                // Connect the scroll service to the ViewModel if available
-                if (DataContext is StudentDetailViewModel viewModel)
-                {
-                    viewModel.SetScrollService(_scrollService);
-                }
+                ConnectScrollServiceToViewModel();
             }
             else
             {
                 // Schedule a retry after a short delay to allow UI to fully load
                 _ = Task.Delay(500).ContinueWith(_ => 
                 {
-                    Dispatcher.UIThread.InvokeAsync(InitializeScrollServiceRetry);
+                    Dispatcher.UIThread.InvokeAsync(InitializeScrollService);
                 });
             }
         }
@@ -101,48 +90,17 @@ public partial class StudentDetailView : Window
     }
 
     /// <summary>
-    /// Retry initialization after UI is fully loaded
+    /// Connects the scroll service to the ViewModel if available
     /// </summary>
-    private void InitializeScrollServiceRetry()
+    private void ConnectScrollServiceToViewModel()
     {
-        try
+        if (_scrollService != null && DataContext is StudentDetailViewModel viewModel)
         {
-            if (_scrollService != null) return;
-
-            var scrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
-            var itemsControl = scrollViewer?.FindDescendantOfType<ItemsControl>() ?? 
-                              scrollViewer?.GetVisualDescendants().OfType<ItemsControl>().FirstOrDefault();
-
-            if (scrollViewer != null && itemsControl != null)
-            {
-                _scrollService = new FileViewerScrollService(scrollViewer, itemsControl);
-                
-                if (DataContext is StudentDetailViewModel viewModel)
-                {
-                    viewModel.SetScrollService(_scrollService);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error during scroll service retry initialization");
+            viewModel.SetScrollService(_scrollService);
         }
     }
 
-    private void OnDataGridDoubleClick(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is StudentDetailViewModel viewModel && 
-            sender is DataGrid dataGrid && 
-            dataGrid.SelectedItem is StudentFile selectedFile)
-        {
-            viewModel.OpenFileCommand.Execute(selectedFile);
-        }
-    }
-
-    private void OnDataGridSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        // Handle selection changes if needed
-    }
+    // Removed unused event handlers - no DataGrid in current UI
 
     private async void OnTreeViewSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
