@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Avalonia.Media;
 using SchoolOrganizer.ViewModels;
@@ -22,6 +25,10 @@ public partial class StudentDetailView : Window
     private FileViewerScrollService? _scrollService;
     private bool _isExplorerCollapsed = false;
     private bool _isContentMaximized = false;
+    
+    // Scroll tracking for maximize functionality
+    private readonly Dictionary<Button, double> _preMaximizeScrollPositions = new();
+    private DispatcherTimer? _scrollAnimationTimer;
 
     public StudentDetailView()
     {
@@ -535,12 +542,20 @@ public partial class StudentDetailView : Window
         }
     }
 
-    private void OnMaximizerClick(object? sender, RoutedEventArgs e)
+    private async void OnMaximizerClick(object? sender, RoutedEventArgs e)
     {
         Log.Information("=== OnMaximizerClick called ===");
         
         if (sender is Button button)
         {
+            // Get the main scroll viewer for scroll position tracking
+            var mainScrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
+            if (mainScrollViewer == null)
+            {
+                Log.Warning("MainScrollViewer not found");
+                return;
+            }
+
             // Traverse up to find the parent Grid that contains both the button and the ScrollViewer
             Avalonia.Visual? parent = button;
             while (parent is not null && parent is not Grid { RowDefinitions.Count: >= 2 })
@@ -564,6 +579,27 @@ public partial class StudentDetailView : Window
                     
                     if (_isContentMaximized)
                     {
+                        // Save current scroll position before maximizing
+                        var currentScrollOffset = mainScrollViewer.Offset.Y;
+                        _preMaximizeScrollPositions[button] = currentScrollOffset;
+                        Log.Information("Saved scroll position: {Offset} for button", currentScrollOffset);
+                        
+                        // Force layout update and wait for it to complete
+                        mainScrollViewer.UpdateLayout();
+                        await Task.Delay(50); // Allow layout to settle
+                        
+                        // Find the file header (Border containing the maximize button) to calculate scroll target
+                        var fileHeader = FindFileHeaderBorder(button);
+                        if (fileHeader != null)
+                        {
+                            // Calculate target scroll position to move file header to top
+                            var targetOffset = await CalculateScrollTargetForMaximize(fileHeader, mainScrollViewer);
+                            Log.Information("Calculated target scroll offset: {Offset}", targetOffset);
+                            
+                            // Smooth scroll to position the file header at the top
+                            SmoothScrollToVerticalOffset(targetOffset);
+                        }
+                        
                         // Maximize: Remove MaxHeight constraint to use full available space
                         scrollViewer.MaxHeight = double.PositiveInfinity;
                         maximizerIcon.Kind = Material.Icons.MaterialIconKind.FullscreenExit;
@@ -616,6 +652,14 @@ public partial class StudentDetailView : Window
                             }
                         }
                         
+                        // Restore scroll position to keep header visible at top
+                        if (_preMaximizeScrollPositions.TryGetValue(button, out var savedOffset))
+                        {
+                            Log.Information("Restoring scroll position: {Offset}", savedOffset);
+                            SmoothScrollToVerticalOffset(savedOffset);
+                            _preMaximizeScrollPositions.Remove(button);
+                        }
+                        
                         Log.Information("Content restored to normal height");
                     }
                 }
@@ -661,6 +705,287 @@ public partial class StudentDetailView : Window
             {
                 icon.Kind = Material.Icons.MaterialIconKind.Fullscreen;
             }
+        }
+    }
+
+    /// <summary>
+    /// Cancels any ongoing scroll animation
+    /// </summary>
+    private void CancelScrollAnimation()
+    {
+        try
+        {
+            if (_scrollAnimationTimer != null)
+            {
+                _scrollAnimationTimer.Stop();
+                _scrollAnimationTimer = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error canceling scroll animation");
+        }
+    }
+
+    /// <summary>
+    /// Smoothly scrolls the main scroll viewer to the specified vertical offset
+    /// </summary>
+    /// <param name="targetOffset">The target vertical offset to scroll to</param>
+    /// <param name="durationMs">Duration of the scroll animation in milliseconds</param>
+    private void SmoothScrollToVerticalOffset(double targetOffset, int durationMs = 300)
+    {
+        try
+        {
+            var mainScrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
+            if (mainScrollViewer == null)
+            {
+                Log.Warning("MainScrollViewer not found for smooth scrolling");
+                return;
+            }
+
+            CancelScrollAnimation();
+
+            var startOffset = mainScrollViewer.Offset.Y;
+            var delta = targetOffset - startOffset;
+            
+            if (Math.Abs(delta) < 0.5 || durationMs <= 0)
+            {
+                mainScrollViewer.Offset = new Avalonia.Vector(mainScrollViewer.Offset.X, targetOffset);
+                return;
+            }
+
+            var startTime = DateTime.UtcNow;
+            _scrollAnimationTimer = new DispatcherTimer();
+            _scrollAnimationTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60fps
+            _scrollAnimationTimer.Tick += (s, e) =>
+            {
+                try
+                {
+                    var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+                    var t = Math.Min(1.0, elapsed / durationMs);
+
+                    // Cubic ease-out: 1 - (1 - t)^3
+                    var eased = 1.0 - Math.Pow(1.0 - t, 3);
+
+                    var newOffset = startOffset + (delta * eased);
+                    mainScrollViewer.Offset = new Avalonia.Vector(mainScrollViewer.Offset.X, newOffset);
+
+                    if (t >= 1.0)
+                    {
+                        CancelScrollAnimation();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Scroll animation error");
+                    CancelScrollAnimation();
+                }
+            };
+
+            _scrollAnimationTimer.Start();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error starting smooth scroll animation");
+        }
+    }
+
+    /// <summary>
+    /// Finds the assignment group Border that contains the maximize button
+    /// </summary>
+    /// <param name="maximizeButton">The maximize button</param>
+    /// <returns>The assignment group Border, or null if not found</returns>
+    private Border? FindFileHeaderBorder(Button maximizeButton)
+    {
+        try
+        {
+            // Use a more direct approach: find the ItemsControl that contains all assignment groups,
+            // then find which assignment group contains our button
+            var mainScrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
+            if (mainScrollViewer == null)
+            {
+                Log.Warning("MainScrollViewer not found");
+                return null;
+            }
+
+            // Find the ItemsControl that contains assignment groups
+            var assignmentItemsControl = mainScrollViewer.GetVisualDescendants()
+                .OfType<ItemsControl>()
+                .FirstOrDefault(ic => ic.ItemsSource != null);
+            
+            if (assignmentItemsControl == null)
+            {
+                Log.Warning("Assignment ItemsControl not found");
+                return null;
+            }
+
+            Log.Information("Found assignment ItemsControl with {Count} items", assignmentItemsControl.Items.Count);
+
+            // Find which assignment group container contains our button
+            var assignmentContainers = assignmentItemsControl.GetVisualDescendants()
+                .OfType<Border>()
+                .Where(b => b.Name != "MainContentPanel" && 
+                           b.Name != "ExplorerPanel" && 
+                           b.Name != "SeparatorPanel")
+                .ToList();
+
+            Log.Information("Found {Count} potential assignment containers", assignmentContainers.Count);
+
+            foreach (var container in assignmentContainers)
+            {
+                // Check if this container contains our maximize button
+                var containsButton = container.GetVisualDescendants()
+                    .OfType<Button>()
+                    .Contains(maximizeButton);
+
+                if (containsButton)
+                {
+                    // Verify this is an assignment group by checking for assignment header structure
+                    var hasAssignmentHeader = container.GetVisualDescendants()
+                        .OfType<TextBlock>()
+                        .Any(tb => !string.IsNullOrEmpty(tb.Text) && 
+                                  tb.FontWeight == FontWeight.Bold && 
+                                  tb.FontSize == 18 &&
+                                  tb.HorizontalAlignment == Avalonia.Layout.HorizontalAlignment.Center);
+
+                    if (hasAssignmentHeader)
+                    {
+                        Log.Information("Found assignment group Border containing maximize button");
+                        return container;
+                    }
+                }
+            }
+
+            Log.Warning("Could not find assignment group Border containing maximize button");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error finding assignment group Border");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Calculates the target scroll offset to position the file header at the top
+    /// </summary>
+    /// <param name="fileHeader">The file header Border</param>
+    /// <param name="scrollViewer">The main scroll viewer</param>
+    /// <returns>The target scroll offset</returns>
+    private async Task<double> CalculateScrollTargetForMaximize(Border fileHeader, ScrollViewer scrollViewer)
+    {
+        try
+        {
+            // Log scroll viewer state for debugging
+            Log.Information("ScrollViewer state - Extent: {Extent}, Viewport: {Viewport}, Offset: {Offset}", 
+                scrollViewer.Extent, scrollViewer.Viewport, scrollViewer.Offset);
+            
+            // Get the current scroll position
+            var currentOffset = scrollViewer.Offset.Y;
+            
+            // Log file header bounds
+            Log.Information("FileHeader bounds: {Bounds}", fileHeader.Bounds);
+            
+            // Method 1: Try using TranslatePoint (viewport-relative coordinates)
+            var headerPosition = fileHeader.TranslatePoint(new Avalonia.Point(0, 0), scrollViewer);
+            if (headerPosition.HasValue)
+            {
+                Log.Information("TranslatePoint result: {Position}", headerPosition.Value);
+                
+                // TranslatePoint gives viewport-relative coordinates
+                // If headerPosition.Y is positive, header is below viewport top
+                // If headerPosition.Y is negative, header is above viewport top
+                var targetOffset = currentOffset + headerPosition.Value.Y; // No margin for exact top alignment
+                
+                // Clamp to valid scroll range
+                var maxScroll = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
+                targetOffset = Math.Max(0, Math.Min(targetOffset, maxScroll));
+                
+                Log.Information("Method 1 - Header position: {Position}, Current offset: {Current}, Target offset: {Target}", 
+                    headerPosition.Value.Y, currentOffset, targetOffset);
+                
+                return targetOffset;
+            }
+            
+            // Method 2: Fallback using bounds traversal to get absolute position in scroll content
+            Log.Information("TranslatePoint failed, trying bounds traversal method");
+            
+            // Get the absolute position of the file header in the scroll content
+            var absolutePosition = CalculateAbsolutePositionInScrollContent(fileHeader, scrollViewer);
+            if (absolutePosition.HasValue)
+            {
+                var targetOffset = absolutePosition.Value; // No margin for exact top alignment
+                
+                // Clamp to valid scroll range
+                var maxScroll = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
+                targetOffset = Math.Max(0, Math.Min(targetOffset, maxScroll));
+                
+                Log.Information("Method 2 - Absolute position: {Position}, Target offset: {Target}", 
+                    absolutePosition.Value, targetOffset);
+                
+                return targetOffset;
+            }
+            
+            // Method 3: Fallback using BringIntoView and measuring
+            Log.Information("Bounds traversal failed, trying BringIntoView method");
+            
+            // Use BringIntoView to get the element to the top, then measure the offset
+            fileHeader.BringIntoView();
+            await Task.Delay(100); // Wait for BringIntoView to complete
+            
+            var newOffset = scrollViewer.Offset.Y;
+            Log.Information("Method 3 - BringIntoView result: {Offset}", newOffset);
+            
+            return newOffset;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error calculating scroll target for maximize");
+            return scrollViewer.Offset.Y;
+        }
+    }
+
+    /// <summary>
+    /// Calculates the absolute position of an element within the scroll content
+    /// </summary>
+    /// <param name="element">The element to find position for</param>
+    /// <param name="scrollViewer">The scroll viewer containing the element</param>
+    /// <returns>The absolute Y position in scroll content coordinates, or null if calculation fails</returns>
+    private double? CalculateAbsolutePositionInScrollContent(Visual element, ScrollViewer scrollViewer)
+    {
+        try
+        {
+            double absoluteY = 0;
+            var current = element;
+            
+            // Traverse up the visual tree until we reach the scroll viewer's content
+            while (current != null && current != scrollViewer)
+            {
+                if (current is Control control && control.IsArrangeValid)
+                {
+                    absoluteY += control.Bounds.Y;
+                    Log.Information("Added bounds Y: {Y} from {Type}, total: {Total}", 
+                        control.Bounds.Y, control.GetType().Name, absoluteY);
+                }
+                
+                current = current.GetVisualParent();
+            }
+            
+            if (current == scrollViewer)
+            {
+                Log.Information("Calculated absolute position: {Position}", absoluteY);
+                return absoluteY;
+            }
+            else
+            {
+                Log.Warning("Could not traverse to scroll viewer");
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error calculating absolute position in scroll content");
+            return null;
         }
     }
 }
