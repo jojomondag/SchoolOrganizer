@@ -28,7 +28,7 @@
             Name="ExplorerPanel"
             Background="{DynamicResource BackgroundSecondaryBrush}" 
             BorderBrush="{DynamicResource CardBorderBrush}" 
-            BorderThickness="0,0,1,0"
+            BorderThickness="0"
             RenderTransformOrigin="0,0">
       <Border.RenderTransform>
         <TranslateTransform X="0"/>
@@ -48,7 +48,8 @@
     <!-- Main Content Panel -->
     <Border Grid.Column="2" 
             Name="MainContentPanel" 
-            Background="{DynamicResource BackgroundPrimaryBrush}">
+            Background="{DynamicResource BackgroundPrimaryBrush}"
+            BorderThickness="0">
       <ScrollViewer Name="MainScrollViewer"
                     VerticalScrollBarVisibility="Auto" 
                     HorizontalScrollBarVisibility="Disabled">
@@ -58,7 +59,7 @@
               <Border Background="{DynamicResource BackgroundTertiaryBrush}" 
                       BorderBrush="{DynamicResource CardBorderBrush}" 
                       BorderThickness="1" 
-                      Margin="0,0,0,8">
+                      Margin="0,0,0,0">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -99,12 +100,12 @@
             Name="SeparatorPanel"
             Background="{DynamicResource BackgroundSecondaryBrush}"
             BorderBrush="{DynamicResource CardBorderBrush}" 
-            BorderThickness="1,0,1,0">
+            BorderThickness="0">
       <Button Name="SeparatorToggleButton"
               Click="OnToggleExplorerClick"
               Background="White"
               BorderBrush="Gray"
-              BorderThickness="1"
+              BorderThickness="0"
               Padding="0"
               Margin="0"
               VerticalAlignment="Stretch"
