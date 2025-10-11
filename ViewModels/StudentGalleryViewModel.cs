@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Input;
 using SchoolOrganizer.Models;
 using SchoolOrganizer.Services;
 using SchoolOrganizer.Views.Converters;
+using SchoolOrganizer.Views.Windows;
 
 namespace SchoolOrganizer.ViewModels;
 
@@ -26,6 +27,7 @@ public partial class StudentGalleryViewModel : ObservableObject
     private System.Threading.CancellationTokenSource? searchCts;
 
     public ObservableCollection<Student> AllStudents => allStudents;
+    public GoogleAuthService? AuthService => authService;
 
     [ObservableProperty]
     private ObservableCollection<IPerson> students = new();
@@ -350,6 +352,45 @@ public partial class StudentGalleryViewModel : ObservableObject
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error adding new student: {ex.Message}");
+        }
+    }
+
+    public async Task AddMultipleStudentsAsync(List<AddStudentWindow.AddedStudentResult> students)
+    {
+        try
+        {
+            var newStudents = new List<Student>();
+            var nextId = await GenerateNextStudentIdAsync();
+
+            foreach (var studentData in students)
+            {
+                var newStudent = new Student
+                {
+                    Id = nextId++,
+                    Name = studentData.Name,
+                    ClassName = studentData.ClassName,
+                    Email = studentData.Email,
+                    EnrollmentDate = studentData.EnrollmentDate,
+                    PictureUrl = studentData.PicturePath ?? string.Empty
+                };
+
+                foreach (var mentor in studentData.Mentors ?? new List<string>())
+                    newStudent.AddMentor(mentor);
+
+                newStudents.Add(newStudent);
+            }
+
+            foreach (var student in newStudents)
+            {
+                allStudents.Add(student);
+            }
+
+            await ApplySearchImmediate();
+            await SaveAllStudentsToJson();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error adding multiple students: {ex.Message}");
         }
     }
 

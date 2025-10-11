@@ -1,12 +1,18 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using Avalonia.Input;
 using SchoolOrganizer.Views.Windows.ImageCrop;
+using SchoolOrganizer.Models;
+using SchoolOrganizer.Services;
+using Google.Apis.Classroom.v1.Data;
 
 namespace SchoolOrganizer.Views.Windows;
 
@@ -14,11 +20,72 @@ public partial class AddStudentWindow : Window
 {
     public enum Mode { Add, Edit }
 
-    public class AddStudentState : ObservableObject
+    public enum WindowMode
+    {
+        Manual,
+        FromClassroom
+    }
+
+    public partial class AddStudentState : ObservableObject
     {
         public ObservableCollection<string> AvailableClasses { get; } = new();
         public ObservableCollection<string> AvailableMentors { get; } = new();
         public ObservableCollection<string> SelectedMentors { get; } = new();
+        
+        // Mode switching properties
+        [ObservableProperty]
+        private WindowMode windowMode = WindowMode.Manual;
+        
+        // Tab binding properties
+        public bool IsManualMode 
+        { 
+            get => WindowMode == WindowMode.Manual; 
+            set 
+            { 
+                if (value && WindowMode != WindowMode.Manual)
+                {
+                    WindowMode = WindowMode.Manual;
+                }
+            }
+        }
+        
+        public bool IsClassroomMode 
+        { 
+            get => WindowMode == WindowMode.FromClassroom; 
+            set 
+            { 
+                if (value && WindowMode != WindowMode.FromClassroom)
+                {
+                    WindowMode = WindowMode.FromClassroom;
+                }
+            }
+        }
+        
+        // Commands for tab switching
+        [RelayCommand]
+        private void SwitchToManualMode()
+        {
+            WindowMode = WindowMode.Manual;
+        }
+        
+        [RelayCommand]
+        private void SwitchToClassroomMode()
+        {
+            WindowMode = WindowMode.FromClassroom;
+        }
+        
+        // Classroom import properties
+        public ObservableCollection<Google.Apis.Classroom.v1.Data.Course> AvailableClassrooms { get; } = new();
+        public ObservableCollection<ClassroomStudentWrapper> ClassroomStudents { get; } = new();
+        
+        [ObservableProperty]
+        private Google.Apis.Classroom.v1.Data.Course? selectedClassroom;
+        
+        [ObservableProperty]
+        private bool isLoadingClassrooms = false;
+        
+        [ObservableProperty]
+        private bool isLoadingStudents = false;
         
         private string selectedImagePath = string.Empty;
         public string SelectedImagePath
@@ -34,9 +101,46 @@ public partial class AddStudentWindow : Window
         }
 
         public bool IsImageMissing => string.IsNullOrWhiteSpace(SelectedImagePath);
+        
+        // Helper methods for classroom mode
+        public void SelectAllClassroomStudents()
+        {
+            foreach (var student in ClassroomStudents)
+            {
+                student.IsSelected = true;
+            }
+        }
+        
+        public void DeselectAllClassroomStudents()
+        {
+            foreach (var student in ClassroomStudents)
+            {
+                student.IsSelected = false;
+            }
+        }
+        
+        public List<ClassroomStudentWrapper> GetSelectedClassroomStudents()
+        {
+            return ClassroomStudents.Where(s => s.IsSelected).ToList();
+        }
+        
+        // Override OnPropertyChanged to handle computed properties
+        protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            
+            if (e.PropertyName == nameof(WindowMode))
+            {
+                OnPropertyChanged(nameof(IsManualMode));
+                OnPropertyChanged(nameof(IsClassroomMode));
+            }
+        }
     }
 
     private readonly AddStudentState state = new();
+    private GoogleAuthService? authService;
+    private ClassroomDataService? classroomService;
+    private ImageDownloadService? imageDownloadService;
 
     public string StudentName => NameBox.Text ?? string.Empty;
     public string StudentClass => (ClassBox.SelectedItem as string) ?? string.Empty;
@@ -53,6 +157,30 @@ public partial class AddStudentWindow : Window
         
         // Add Escape key handling to close the window
         this.KeyDown += OnKeyDown;
+    }
+
+    public AddStudentWindow(GoogleAuthService authService) : this()
+    {
+        this.authService = authService;
+        this.classroomService = new ClassroomDataService(authService.ClassroomService!);
+        this.imageDownloadService = new ImageDownloadService();
+        
+        // Subscribe to mode changes to trigger classroom loading
+        state.PropertyChanged += OnStatePropertyChanged;
+        
+        // Load classrooms when initialized with auth service
+        _ = LoadClassroomsAsync();
+    }
+    
+    private void OnStatePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AddStudentState.WindowMode) && 
+            state.WindowMode == WindowMode.FromClassroom &&
+            classroomService != null && 
+            state.AvailableClassrooms.Count == 0)
+        {
+            _ = LoadClassroomsAsync();
+        }
     }
 
     public void InitializeForEdit(Models.Student student)
@@ -133,21 +261,28 @@ public partial class AddStudentWindow : Window
 
     private void OnAddClick(object? sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(StudentName))
+        if (state.WindowMode == WindowMode.Manual)
         {
-            ValidationText.Text = "Name is required";
-            return;
-        }
+            if (string.IsNullOrWhiteSpace(StudentName))
+            {
+                ValidationText.Text = "Name is required";
+                return;
+            }
 
-        Close(new AddedStudentResult
+            Close(new AddedStudentResult
+            {
+                Name = StudentName,
+                ClassName = StudentClass,
+                Mentors = StudentMentors,
+                Email = StudentEmail,
+                EnrollmentDate = EnrollmentDate ?? DateTime.Now,
+                PicturePath = SelectedImagePath
+            });
+        }
+        else if (state.WindowMode == WindowMode.FromClassroom)
         {
-            Name = StudentName,
-            ClassName = StudentClass,
-            Mentors = StudentMentors,
-            Email = StudentEmail,
-            EnrollmentDate = EnrollmentDate ?? DateTime.Now,
-            PicturePath = SelectedImagePath
-        });
+            OnImportFromClassroomClick(sender, e);
+        }
     }
 
     private void OnAddMentorClick(object? sender, RoutedEventArgs e)
@@ -174,6 +309,136 @@ public partial class AddStudentWindow : Window
         if (sender is Button button && button.Tag is string mentorToRemove)
         {
             state.SelectedMentors.Remove(mentorToRemove);
+        }
+    }
+
+    // Mode switching handlers - now handled by commands in AddStudentState
+
+    private void UpdateButtonText()
+    {
+        PrimaryButton.Content = state.WindowMode == WindowMode.Manual ? "Add Student" : "Import Selected Students";
+    }
+
+    // Classroom loading methods
+    private async Task LoadClassroomsAsync()
+    {
+        if (classroomService == null) return;
+
+        try
+        {
+            state.IsLoadingClassrooms = true;
+            var classrooms = await classroomService.GetActiveClassroomsAsync();
+            
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                state.AvailableClassrooms.Clear();
+                foreach (var classroom in classrooms)
+                {
+                    state.AvailableClassrooms.Add(classroom);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading classrooms: {ex.Message}");
+        }
+        finally
+        {
+            state.IsLoadingClassrooms = false;
+        }
+    }
+
+    private async void OnClassroomSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (state.SelectedClassroom == null || classroomService == null) return;
+
+        try
+        {
+            state.IsLoadingStudents = true;
+            state.ClassroomStudents.Clear();
+            
+            var students = await classroomService.GetStudentsInCourseAsync(state.SelectedClassroom.Id);
+            
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                foreach (var student in students)
+                {
+                    state.ClassroomStudents.Add(new ClassroomStudentWrapper(student));
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading students: {ex.Message}");
+        }
+        finally
+        {
+            state.IsLoadingStudents = false;
+        }
+    }
+
+    // Classroom student selection handlers
+    private void OnSelectAllStudentsClick(object? sender, RoutedEventArgs e)
+    {
+        state.SelectAllClassroomStudents();
+    }
+
+    private void OnDeselectAllStudentsClick(object? sender, RoutedEventArgs e)
+    {
+        state.DeselectAllClassroomStudents();
+    }
+
+    // Import from classroom handler
+    private async void OnImportFromClassroomClick(object? sender, RoutedEventArgs e)
+    {
+        var selectedStudents = state.GetSelectedClassroomStudents();
+        if (selectedStudents.Count == 0)
+        {
+            ValidationText.Text = "Please select at least one student to import";
+            return;
+        }
+
+        if (state.SelectedClassroom == null)
+        {
+            ValidationText.Text = "Please select a classroom";
+            return;
+        }
+
+        try
+        {
+            var results = new List<AddedStudentResult>();
+            var teacherName = authService?.TeacherName ?? "Unknown Teacher";
+
+            foreach (var wrapper in selectedStudents)
+            {
+                var student = wrapper.ClassroomStudent;
+                var result = new AddedStudentResult
+                {
+                    Name = student.Profile?.Name?.FullName ?? "Unknown Student",
+                    ClassName = state.SelectedClassroom.Name ?? "Unknown Class",
+                    Email = student.Profile?.EmailAddress ?? string.Empty,
+                    EnrollmentDate = DateTime.Now,
+                    Mentors = new List<string> { teacherName },
+                    PicturePath = string.Empty
+                };
+
+                // Download profile photo if available
+                if (!string.IsNullOrEmpty(wrapper.ProfilePhotoUrl) && imageDownloadService != null)
+                {
+                    var localPath = await imageDownloadService.DownloadProfileImageAsync(
+                        wrapper.ProfilePhotoUrl, 
+                        result.Name);
+                    result.PicturePath = localPath;
+                }
+
+                results.Add(result);
+            }
+
+            Close(results);
+        }
+        catch (Exception ex)
+        {
+            ValidationText.Text = $"Error importing students: {ex.Message}";
         }
     }
 

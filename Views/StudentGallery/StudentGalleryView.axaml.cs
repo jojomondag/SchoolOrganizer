@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using SchoolOrganizer.ViewModels;
@@ -248,19 +249,33 @@ public partial class StudentGalleryView : UserControl
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             if (parentWindow == null || ViewModel == null) return;
 
-            var addWindow = new AddStudentWindow();
+            // Check if we have GoogleAuthService available for classroom import
+            var addWindow = ViewModel.AuthService != null 
+                ? new AddStudentWindow(ViewModel.AuthService)
+                : new AddStudentWindow();
+            
             addWindow.LoadOptionsFromStudents(ViewModel.AllStudents);
-            var result = await addWindow.ShowDialog<AddStudentWindow.AddedStudentResult?>(parentWindow);
+            var result = await addWindow.ShowDialog<object?>(parentWindow);
+            
             if (result != null)
             {
-                await ViewModel.AddNewStudentAsync(
-                    result.Name,
-                    result.ClassName,
-                    result.Mentors,
-                    result.Email,
-                    result.EnrollmentDate,
-                    result.PicturePath
-                );
+                // Handle single student result (manual mode)
+                if (result is AddStudentWindow.AddedStudentResult singleResult)
+                {
+                    await ViewModel.AddNewStudentAsync(
+                        singleResult.Name,
+                        singleResult.ClassName,
+                        singleResult.Mentors,
+                        singleResult.Email,
+                        singleResult.EnrollmentDate,
+                        singleResult.PicturePath
+                    );
+                }
+                // Handle multiple students result (classroom import mode)
+                else if (result is List<AddStudentWindow.AddedStudentResult> multipleResults)
+                {
+                    await ViewModel.AddMultipleStudentsAsync(multipleResults);
+                }
             }
         }
         catch (Exception ex)
