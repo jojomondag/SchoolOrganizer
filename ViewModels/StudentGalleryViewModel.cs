@@ -332,6 +332,13 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         try
         {
+            // Check if student already exists (both email AND name must match)
+            if (IsStudentDuplicate(email, name))
+            {
+                System.Diagnostics.Debug.WriteLine($"Cannot add duplicate student: {name} ({email})");
+                return; // Skip adding duplicate student
+            }
+
             var newStudent = new Student
             {
                 Id = await GenerateNextStudentIdAsync(),
@@ -360,10 +367,19 @@ public partial class StudentGalleryViewModel : ObservableObject
         try
         {
             var newStudents = new List<Student>();
+            var skippedStudents = new List<string>();
             var nextId = await GenerateNextStudentIdAsync();
 
             foreach (var studentData in students)
             {
+                // Check if student already exists (both email AND name must match)
+                if (IsStudentDuplicate(studentData.Email, studentData.Name))
+                {
+                    skippedStudents.Add($"{studentData.Name} ({studentData.Email})");
+                    System.Diagnostics.Debug.WriteLine($"Skipping duplicate student: {studentData.Name} ({studentData.Email})");
+                    continue;
+                }
+
                 var newStudent = new Student
                 {
                     Id = nextId++,
@@ -383,6 +399,11 @@ public partial class StudentGalleryViewModel : ObservableObject
             foreach (var student in newStudents)
             {
                 allStudents.Add(student);
+            }
+
+            if (skippedStudents.Count > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"Skipped {skippedStudents.Count} duplicate students: {string.Join(", ", skippedStudents)}");
             }
 
             await ApplySearchImmediate();
@@ -532,6 +553,16 @@ public partial class StudentGalleryViewModel : ObservableObject
             System.Diagnostics.Debug.WriteLine($"Error loading profile image: {ex.Message}");
             await Dispatcher.UIThread.InvokeAsync(() => ProfileImage = null);
         }
+    }
+
+    /// <summary>
+    /// Checks if a student already exists by comparing both email AND name (case-insensitive)
+    /// </summary>
+    private bool IsStudentDuplicate(string email, string name)
+    {
+        return allStudents.Any(s => 
+            s.Email.Equals(email, StringComparison.OrdinalIgnoreCase) && 
+            s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
 
 
