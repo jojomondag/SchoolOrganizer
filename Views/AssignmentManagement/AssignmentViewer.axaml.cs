@@ -23,6 +23,7 @@ public partial class AssignmentViewer : Window
 {
     private FileViewerScrollService? _scrollService;
     private readonly PanelManagementService _panelManagementService;
+    private DateTime _lastScrollTime = DateTime.MinValue;
 
     public AssignmentViewer()
     {
@@ -122,7 +123,7 @@ public partial class AssignmentViewer : Window
 
     // Removed unused event handlers - no DataGrid in current UI
 
-    private async void OnTreeViewSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void OnTreeViewSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (DataContext is StudentDetailViewModel viewModel && 
             sender is TreeView treeView &&
@@ -136,10 +137,30 @@ public partial class AssignmentViewer : Window
                 _ = selectedNode.LoadContentAsync();
             }
 
-            // Scroll to the corresponding assignment group in the Files Viewer
-            if (_scrollService != null && selectedNode.IsDirectory)
+            // Scroll to the assignment header when a folder is clicked (same behavior as maximize button)
+            if (selectedNode.IsDirectory)
             {
-                await _scrollService.ScrollToAssignmentGroupAsync(selectedNode, viewModel.AllFilesGrouped ?? new ObservableCollection<AssignmentGroup>());
+                var assignmentName = GetAssignmentNameFromNode(selectedNode);
+                var filePreviewControl = FindFilePreviewControlForAssignment(assignmentName);
+                
+                if (filePreviewControl != null)
+                {
+                    // Debounce rapid clicks - only scroll if it's been more than 200ms since last scroll
+                    var now = DateTime.Now;
+                    if ((now - _lastScrollTime).TotalMilliseconds > 200)
+                    {
+                        _lastScrollTime = now;
+                        
+                        // Use a small delay to allow UI to settle
+                        _ = Task.Delay(50).ContinueWith(_ => 
+                        {
+                            Dispatcher.UIThread.InvokeAsync(() => 
+                            {
+                                ScrollToAssignmentHeader(filePreviewControl);
+                            });
+                        });
+                    }
+                }
             }
         }
     }
@@ -180,6 +201,7 @@ public partial class AssignmentViewer : Window
         }
     }
 
+
     /// <summary>
     /// Scrolls to the assignment header that contains the given FilePreviewControl
     /// </summary>
@@ -194,14 +216,41 @@ public partial class AssignmentViewer : Window
             return;
         }
         
+        // Try simple BringIntoView first as a fallback
+        try
+        {
+            var assignmentHeaderBorder = FindAssignmentHeaderBorder(filePreviewControl);
+            if (assignmentHeaderBorder != null)
+            {
+                Log.Information("Trying simple BringIntoView as fallback");
+                
+                // Use BringIntoView with specific parameters to ensure it scrolls to the top
+                assignmentHeaderBorder.BringIntoView(new Rect(0, 0, 100, 100));
+                
+                // Also try the complex scroll method after a short delay
+                _ = Task.Delay(100).ContinueWith(_ => 
+                {
+                    Dispatcher.UIThread.InvokeAsync(() => 
+                    {
+                        PerformScroll(filePreviewControl, mainScrollViewer);
+                    });
+                });
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Simple BringIntoView failed, trying complex scroll method");
+        }
+        
         // Wait for layout to update before scrolling
         EventHandler? layoutHandler = null;
         var startTime = DateTime.Now;
         
         layoutHandler = (s, e) =>
         {
-            // Timeout protection
-            if ((DateTime.Now - startTime).TotalMilliseconds > 500)
+            // Timeout protection - increased timeout for folder clicks
+            if ((DateTime.Now - startTime).TotalMilliseconds > 2000)
             {
                 mainScrollViewer.LayoutUpdated -= layoutHandler;
                 Log.Warning("Layout update timeout, aborting scroll");
@@ -260,6 +309,11 @@ public partial class AssignmentViewer : Window
                 var targetY = absolutePoint.Value.Y;
                 Log.Information("Target scroll Y position: {TargetY}", targetY);
                 
+                // Also calculate position relative to ScrollViewer for verification
+                var scrollViewerPoint = assignmentHeaderBorder.TranslatePoint(new Point(0, 0), mainScrollViewer);
+                Log.Information("Header position relative to ScrollViewer before scroll: {HasPoint}, Y: {Y}", 
+                    scrollViewerPoint.HasValue, scrollViewerPoint?.Y);
+                
                 // Check ScrollViewer extent to ensure we don't scroll beyond available content
                 var extent = mainScrollViewer.Extent;
                 var viewport = mainScrollViewer.Viewport;
@@ -268,21 +322,48 @@ public partial class AssignmentViewer : Window
                 Log.Information("ScrollViewer extent: {ExtentWidth}x{ExtentHeight}, viewport: {ViewportWidth}x{ViewportHeight}, maxScrollY: {MaxScrollY}", 
                     extent.Width, extent.Height, viewport.Width, viewport.Height, maxScrollY);
                 
-                // Clamp the scroll position to valid range
-                var clampedY = Math.Min(Math.Max(0, targetY), maxScrollY);
-                Log.Information("Clamped scroll Y from {OriginalY} to {ClampedY}", targetY, clampedY);
+                // Calculate the optimal scroll position to show the header at the top
+                // If the target position is beyond what we can scroll to, scroll to the maximum
+                // This will show as much of the assignment as possible
+                var optimalY = Math.Min(targetY, maxScrollY);
+                Log.Information("Optimal scroll Y: {OptimalY} (target: {TargetY}, max: {MaxY})", optimalY, targetY, maxScrollY);
+                
+                // If the target is beyond scrollable area, try to scroll to show as much as possible
+                if (targetY > maxScrollY)
+                {
+                    Log.Information("Target Y {TargetY} is beyond max scroll {MaxY}, scrolling to maximum", targetY, maxScrollY);
+                    optimalY = maxScrollY;
+                }
                 
                 // Get current offset for X coordinate (keep horizontal scroll unchanged)
                 var currentOffset = mainScrollViewer.Offset;
                 
                 // Scroll to position the assignment header at the top of the viewport
-                Log.Information("Setting scroll offset to: X={TargetX}, Y={TargetY}", currentOffset.X, clampedY);
-                mainScrollViewer.Offset = new Vector(currentOffset.X, clampedY);
+                Log.Information("Setting scroll offset to: X={TargetX}, Y={TargetY}", currentOffset.X, optimalY);
+                mainScrollViewer.Offset = new Vector(currentOffset.X, optimalY);
                 
                 // Verify the scroll was applied
                 var actualOffset = mainScrollViewer.Offset;
                 Log.Information("Scroll completed. Actual offset: X={ActualX}, Y={ActualY}", 
                     actualOffset.X, actualOffset.Y);
+                
+                // Additional verification: check if the header is actually at the top
+                var headerPositionAfterScroll = assignmentHeaderBorder.TranslatePoint(new Point(0, 0), mainScrollViewer);
+                Log.Information("Header position after scroll relative to ScrollViewer: {HasPoint}, Y: {Y}", 
+                    headerPositionAfterScroll.HasValue, headerPositionAfterScroll?.Y);
+                
+                // If the header is still not visible or not at the top, try BringIntoView as a final attempt
+                if (headerPositionAfterScroll.HasValue && headerPositionAfterScroll.Value.Y > 50)
+                {
+                    Log.Information("Header still not at top (Y: {Y}), trying BringIntoView as final attempt", headerPositionAfterScroll.Value.Y);
+                    _ = Task.Delay(50).ContinueWith(_ => 
+                    {
+                        Dispatcher.UIThread.InvokeAsync(() => 
+                        {
+                            assignmentHeaderBorder.BringIntoView(new Rect(0, 0, 100, 100));
+                        });
+                    });
+                }
             }
             else
             {
@@ -347,6 +428,94 @@ public partial class AssignmentViewer : Window
         catch (Exception ex)
         {
             Log.Error(ex, "Error finding assignment header border");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Gets the assignment name from a FileTreeNode
+    /// </summary>
+    private string GetAssignmentNameFromNode(FileTreeNode node)
+    {
+        // If the node has an assignment name, use it
+        if (!string.IsNullOrEmpty(node.AssignmentName))
+        {
+            return node.AssignmentName;
+        }
+
+        // If it's a top-level directory, use the folder name as assignment name
+        if (node.IsDirectory)
+        {
+            // Check if this is a top-level assignment folder
+            var pathParts = node.RelativePath.Split('/', '\\');
+            if (pathParts.Length == 1)
+            {
+                return node.Name;
+            }
+            else if (pathParts.Length > 1)
+            {
+                return pathParts[0]; // Use the root assignment folder name
+            }
+        }
+
+        // Fallback: try to extract from relative path
+        if (!string.IsNullOrEmpty(node.RelativePath))
+        {
+            var pathParts = node.RelativePath.Split('/', '\\');
+            if (pathParts.Length > 0 && !string.IsNullOrEmpty(pathParts[0]))
+            {
+                return pathParts[0];
+            }
+        }
+
+        return node.Name;
+    }
+
+    /// <summary>
+    /// Finds a FilePreviewControl for the given assignment name by searching the visual tree
+    /// </summary>
+    private FilePreviewControl? FindFilePreviewControlForAssignment(string assignmentName)
+    {
+        Log.Information("FindFilePreviewControlForAssignment called for assignment: {AssignmentName}", assignmentName);
+        
+        try
+        {
+            var mainContentPanel = this.FindControl<Border>("MainContentPanel");
+            if (mainContentPanel == null)
+            {
+                Log.Warning("MainContentPanel not found");
+                return null;
+            }
+
+            // Get all FilePreviewControl instances in the main content panel
+            var filePreviewControls = mainContentPanel.GetVisualDescendants()
+                .OfType<FilePreviewControl>()
+                .ToList();
+
+            Log.Information("Found {ControlCount} FilePreviewControl instances", filePreviewControls.Count);
+
+            // Find the first FilePreviewControl whose DataContext is a StudentFile with matching assignment name
+            foreach (var control in filePreviewControls)
+            {
+                if (control.DataContext is StudentFile studentFile)
+                {
+                    Log.Information("Found FilePreviewControl with StudentFile: {FileName}, Assignment: {AssignmentName}", 
+                        studentFile.FileName, studentFile.AssignmentName);
+                    
+                    if (string.Equals(studentFile.AssignmentName, assignmentName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.Information("Found matching FilePreviewControl for assignment: {AssignmentName}", assignmentName);
+                        return control;
+                    }
+                }
+            }
+
+            Log.Warning("No FilePreviewControl found for assignment: {AssignmentName}", assignmentName);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error finding FilePreviewControl for assignment: {AssignmentName}", assignmentName);
             return null;
         }
     }
