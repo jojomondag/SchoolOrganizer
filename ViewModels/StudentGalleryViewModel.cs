@@ -65,6 +65,9 @@ public partial class StudentGalleryViewModel : ObservableObject
     [ObservableProperty]
     private bool isAuthenticated = false;
 
+    [ObservableProperty]
+    private bool isDoubleClickMode = false;
+
     // Properties for controlling view mode
     public bool ShowSingleStudent => !ForceGridView && Students.Count == 2 && Students.Any(s => s is Student);
     public bool ShowMultipleStudents => ForceGridView || Students.Count != 2 || !Students.Any(s => s is Student);
@@ -160,13 +163,47 @@ public partial class StudentGalleryViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void DoubleClickStudent(IPerson? person)
+    {
+        if (person is Student student)
+        {
+            SelectedStudent = student;
+            ForceGridView = false;
+            IsDoubleClickMode = true;
+            
+            // Filter Students collection to show only the double-clicked student + AddStudentCard
+            var filteredStudents = new ObservableCollection<IPerson> { student, new AddStudentCard() };
+            Students = filteredStudents;
+        }
+    }
+
+    [RelayCommand]
     private void EditStudent(Student student) => EditStudentRequested?.Invoke(this, student);
 
     [RelayCommand]
     private void ChangeImage(Student student) => StudentImageChangeRequested?.Invoke(this, student);
 
     [RelayCommand]
-    private void DeselectStudent() => SelectedStudent = null;
+    private async Task DeselectStudent() 
+    {
+        SelectedStudent = null;
+        // Exit double-click mode when deselecting
+        if (IsDoubleClickMode)
+        {
+            IsDoubleClickMode = false;
+            // Cancel any pending debounced searches
+            searchCts?.Cancel();
+            // Reset search text
+            SearchText = string.Empty;
+            // Immediately restore the full student list (not debounced)
+            await ApplySearchImmediate();
+            // Let automatic sizing determine the optimal display level based on student count
+            // IMPORTANT: Call this BEFORE setting ForceGridView = true, otherwise it returns early
+            UpdateDisplayLevelBasedOnItemCount();
+            // Set ForceGridView last to ensure display level is calculated first
+            ForceGridView = true;
+        }
+    }
 
     [RelayCommand]
     private void DeleteStudent(Student? student)
@@ -197,6 +234,11 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         if (ForceGridView && !string.IsNullOrEmpty(value))
             ForceGridView = false;
+        
+        // Exit double-click mode when search text changes
+        if (IsDoubleClickMode)
+            IsDoubleClickMode = false;
+            
         _ = ApplySearchDebounced();
     }
 
@@ -312,13 +354,18 @@ public partial class StudentGalleryViewModel : ObservableObject
     private void AddStudent() => AddStudentRequested?.Invoke(this, EventArgs.Empty);
 
     [RelayCommand]
-    private void BackToGallery()
+    private async Task BackToGallery()
     {
         SearchText = string.Empty;
         SelectedStudent = null;
+        IsDoubleClickMode = false;
+        // Immediately restore the full student list
+        await ApplySearchImmediate();
+        // Let automatic sizing determine the optimal display level based on student count
+        // IMPORTANT: Call this BEFORE setting ForceGridView = true, otherwise it returns early
+        UpdateDisplayLevelBasedOnItemCount();
+        // Set ForceGridView last to ensure display level is calculated first
         ForceGridView = true;
-        CurrentDisplayLevel = ProfileCardDisplayLevel.Medium;
-        DisplayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium);
     }
 
     [RelayCommand]

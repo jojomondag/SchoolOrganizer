@@ -48,8 +48,8 @@ public partial class App : Application
             mainWindow.Show();
             Log.Information("Opened MainWindow - authentication handled in Student Gallery.");
 
-            // Auto-open StudentDetailView with first real classroom
-            await OpenFirstRealClassroom();
+            // Auto-open StudentDetailView with first real classroom - DISABLED to show StudentGallery first
+            // await OpenFirstRealClassroom();
 
             // Prevent the app from shutting down when the main window is closed
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;

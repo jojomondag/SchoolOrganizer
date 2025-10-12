@@ -27,7 +27,6 @@ public partial class MainWindowViewModel : ObservableObject
             if (SetProperty(ref _currentViewModel, value))
             {
                 OnPropertyChanged(nameof(IsStudentGalleryActive));
-                OnPropertyChanged(nameof(IsHomeActive));
                 OnPropertyChanged(nameof(IsClassroomDownloadActive));
                 OnPropertyChanged(nameof(ActiveContentBrush));
             }
@@ -65,12 +64,10 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     public bool IsStudentGalleryActive => CurrentViewModel is StudentGalleryViewModel;
-    public bool IsHomeActive => CurrentViewModel is HomeViewModel;
     public bool IsClassroomDownloadActive => CurrentViewModel is ClassroomDownloadViewModel;
     public IBrush ActiveContentBrush => CurrentViewModel switch
     {
         StudentGalleryViewModel => Brushes.White,
-        HomeViewModel => (IBrush)Application.Current!.Resources["LightBlueBrush"]!,
         ClassroomDownloadViewModel => Brushes.White,
         _ => Brushes.White
     };
@@ -78,8 +75,6 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void NavigateToStudentGallery() => CurrentViewModel = _studentGalleryViewModel;
 
-    [RelayCommand]
-    private void NavigateToHome() => CurrentViewModel = new HomeViewModel();
 
     [RelayCommand]
     private void NavigateToClassroomDownload()
@@ -182,10 +177,4 @@ public partial class MainWindowViewModel : ObservableObject
             Log.Error(ex, "Error loading profile image");
         }
     }
-}
-
-public class HomeViewModel : ObservableObject
-{
-    public string Title { get; } = "Home";
-    public string Message { get; } = "Welcome to the School Organizer application!";
 }

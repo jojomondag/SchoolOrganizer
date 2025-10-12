@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using System;
+using Splat;
 
 namespace SchoolOrganizer;
 
@@ -13,6 +14,9 @@ sealed class Program
     {
         try
         {
+            // Configure Splat to suppress ReactiveUI console logging before app starts
+            Locator.CurrentMutable.RegisterConstant(new NullLogger(), typeof(ILogger));
+            
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
         catch (Exception ex)
@@ -29,4 +33,30 @@ sealed class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+}
+
+// NullLogger implementation to suppress all ReactiveUI console logging
+public class NullLogger : ILogger
+{
+    public LogLevel Level => LogLevel.Debug;
+
+    public void Write(string message, LogLevel logLevel)
+    {
+        // Suppress all ReactiveUI console output
+    }
+
+    public void Write(Exception exception, string message, LogLevel logLevel)
+    {
+        // Suppress all ReactiveUI console output
+    }
+
+    public void Write(string message, Type type, LogLevel logLevel)
+    {
+        // Suppress all ReactiveUI console output
+    }
+
+    public void Write(Exception exception, string message, Type type, LogLevel logLevel)
+    {
+        // Suppress all ReactiveUI console output
+    }
 }

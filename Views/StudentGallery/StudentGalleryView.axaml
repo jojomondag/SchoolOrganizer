@@ -294,7 +294,8 @@
                       Padding="0"
                       Margin="0"
                       ClipToBounds="False"
-                      Template="{StaticResource FlatButtonTemplate}">
+                      Template="{StaticResource FlatButtonTemplate}"
+                      DoubleTapped="OnStudentCardDoubleTapped">
                 <Button.Styles>
                   <Style Selector="Button">
                     <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
@@ -362,32 +363,55 @@
         </ItemsControl>
 
         <!-- Single Student - Detailed View (Large Card) -->
-        <ContentControl Grid.Row="0"
-                       Content="{Binding FirstStudent}"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch"
-                       Margin="0">
-          <ContentControl.IsVisible>
+        <Grid Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0">
+          <Grid.IsVisible>
             <MultiBinding Converter="{x:Static BoolConverters.And}">
               <Binding Path="!IsLoading"/>
               <Binding Path="ShowSingleStudent"/>
             </MultiBinding>
-          </ContentControl.IsVisible>
-          <ContentControl.ContentTemplate>
-            <DataTemplate x:DataType="models:Student">
-              <profileCard:ProfileCardLarge Name="{Binding Name}"
-                                           Email="{Binding Email}"
-                                           RoleInfo="{Binding RoleInfo}"
-                                           SecondaryInfo="{Binding SecondaryInfo}"
-                                           EnrollmentDate="{Binding EnrollmentDate, StringFormat='{}{0:MMMM d, yyyy}'}"
-                                           Id="{Binding Id}"
-                                           PictureUrl="{Binding PictureUrl}"
-                                           DataContext="{Binding}"
-                                           ProfileImageClicked="OnDetailedProfileImageClicked"
-                                           ProfileImageUpdated="OnProfileImageUpdated"/>
-            </DataTemplate>
-          </ContentControl.ContentTemplate>
-        </ContentControl>
+          </Grid.IsVisible>
+          
+          <!-- Background button for double-click to return to gallery -->
+          <Button Background="Transparent"
+                  BorderThickness="0"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  Command="{Binding DeselectStudentCommand}"
+                  Cursor="Arrow"
+                  Template="{StaticResource FlatButtonTemplate}"
+                  DoubleTapped="OnBackgroundDoubleTapped">
+            <Button.Styles>
+              <Style Selector="Button:pointerover">
+                <Setter Property="Background" Value="Transparent"/>
+              </Style>
+              <Style Selector="Button:pressed">
+                <Setter Property="Background" Value="Transparent"/>
+              </Style>
+            </Button.Styles>
+          </Button>
+          
+          <!-- The detailed profile card -->
+          <ContentControl Content="{Binding FirstStudent}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Margin="0"
+                         IsHitTestVisible="False">
+            <ContentControl.ContentTemplate>
+              <DataTemplate x:DataType="models:Student">
+                <profileCard:ProfileCardLarge Name="{Binding Name}"
+                                             Email="{Binding Email}"
+                                             RoleInfo="{Binding RoleInfo}"
+                                             SecondaryInfo="{Binding SecondaryInfo}"
+                                             EnrollmentDate="{Binding EnrollmentDate, StringFormat='{}{0:MMMM d, yyyy}'}"
+                                             Id="{Binding Id}"
+                                             PictureUrl="{Binding PictureUrl}"
+                                             DataContext="{Binding}"
+                                             ProfileImageClicked="OnDetailedProfileImageClicked"
+                                             ProfileImageUpdated="OnProfileImageUpdated"/>
+              </DataTemplate>
+            </ContentControl.ContentTemplate>
+          </ContentControl>
+        </Grid>
         
         <!-- Spacer to ensure bottom cards are fully visible when details panel is shown -->
         <Border Grid.Row="1"

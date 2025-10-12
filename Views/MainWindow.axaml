@@ -113,11 +113,6 @@
                 <!-- Navigation Tabs -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
                     <ToggleButton Classes="tab"
-                                  IsChecked="{Binding IsHomeActive}"
-                                  Command="{Binding NavigateToHomeCommand}"
-                                  Content="Home"/>
-
-                    <ToggleButton Classes="tab"
                                   IsChecked="{Binding IsStudentGalleryActive}"
                                   Command="{Binding NavigateToStudentGalleryCommand}"
                                   Content="Student Gallery"/>
@@ -156,23 +151,6 @@
                         <classroomDownload:ClassroomDownloadView/>
                     </DataTemplate>
 
-                <!-- Template for HomeViewModel -->
-                    <DataTemplate DataType="vm:HomeViewModel">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
-                            <TextBlock Text="{Binding Title}"
-                                       FontSize="32"
-                                       FontWeight="Bold"
-                                       HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding Message}"
-                                       FontSize="16"
-                                       HorizontalAlignment="Center"
-                                       TextAlignment="Center"/>
-                            <Button Content="Go to Student Gallery"
-                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigateToStudentGalleryCommand}"
-                                    Padding="20,10"
-                                    FontSize="14"/>
-                        </StackPanel>
-                    </DataTemplate>
                 </ContentControl.DataTemplates>
             </ContentControl>
         </Border>

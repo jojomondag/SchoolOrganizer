@@ -18,13 +18,13 @@ public class CardSizeManager
         if (studentCount == 1) return ProfileCardDisplayLevel.Full;
         
         // Determine the best size based on student count
-        if (studentCount <= 3) // 2-3 students = Medium
+        if (studentCount <= 8) // 2-8 students = Medium
         {
             return ProfileCardDisplayLevel.Medium;
         }
         else
         {
-            return ProfileCardDisplayLevel.Small; // 4+ students = Small
+            return ProfileCardDisplayLevel.Small; // 9+ students = Small
         }
     }
     
@@ -36,7 +36,7 @@ public class CardSizeManager
         return studentCount switch
         {
             <= 1 => ProfileCardDisplayLevel.Full,
-            <= 3 => ProfileCardDisplayLevel.Medium,
+            <= 8 => ProfileCardDisplayLevel.Medium,
             _ => ProfileCardDisplayLevel.Small
         };
     }

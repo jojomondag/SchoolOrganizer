@@ -499,6 +499,24 @@ public partial class StudentGalleryView : UserControl
         }
     }
 
+    // Event handler for double-clicking on student cards
+    private void OnStudentCardDoubleTapped(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.CommandParameter is IPerson person && ViewModel != null)
+        {
+            ViewModel.DoubleClickStudentCommand.Execute(person);
+        }
+    }
+
+    // Event handler for double-clicking on background to return to gallery
+    private void OnBackgroundDoubleTapped(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            ViewModel.DeselectStudentCommand.Execute(null);
+        }
+    }
+
         private void ScrollSelectedStudentIntoCenter()
         {
             try
