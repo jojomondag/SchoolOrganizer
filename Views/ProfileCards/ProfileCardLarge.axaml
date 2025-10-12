@@ -79,7 +79,7 @@
           </StackPanel>
 
           <StackPanel>
-            <TextBlock Text="Mentor" FontSize="14" FontWeight="SemiBold"
+            <TextBlock Text="Teacher" FontSize="14" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
             <TextBlock x:Name="SecondaryText" FontSize="18" Foreground="{DynamicResource TextPrimaryBrush}"/>
           </StackPanel>

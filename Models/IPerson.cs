@@ -16,7 +16,7 @@ public interface IPerson
     string RoleInfo { get; }
     
     /// <summary>
-    /// Secondary role information (e.g., "Mentor: John Doe" for students)
+    /// Secondary role information (e.g., "Teacher: John Doe" for students)
     /// </summary>
     string? SecondaryInfo { get; }
     

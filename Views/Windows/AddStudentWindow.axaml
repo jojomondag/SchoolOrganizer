@@ -176,7 +176,7 @@
           
           <!-- Manual Entry Mode -->
           <StackPanel IsVisible="{Binding IsManualMode}">
-            <!-- Photo and Class/Mentor Section -->
+            <!-- Photo and Class/Teacher Section -->
             <Grid ColumnDefinitions="140,20,*">
               <!-- Profile Image -->
               <StackPanel Grid.Column="0" Spacing="8">
@@ -199,7 +199,7 @@
                 <TextBlock Text="Add Photo" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
               </StackPanel>
 
-              <!-- Class and Mentor in 2 rows -->
+              <!-- Class and Teacher in 2 rows -->
               <Grid Grid.Column="2" RowDefinitions="Auto,16,Auto">
                 <StackPanel Grid.Row="0">
                   <TextBlock Text="Class" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
@@ -208,15 +208,15 @@
 
                 <StackPanel Grid.Row="2">
                   <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Grid.Column="0" Text="Mentors" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
-                    <Button Grid.Column="1" Content="+ Add Mentor" 
+                    <TextBlock Grid.Column="0" Text="Teachers" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                    <Button Grid.Column="1" Content="+ Add Teacher" 
                             Classes="secondary" FontSize="11" 
                             Padding="8,4" Margin="0,0,0,6"
-                            Click="OnAddMentorClick"/>
+                            Click="OnAddTeacherClick"/>
                   </Grid>
                   
-                  <!-- Selected Mentors List -->
-                  <ItemsControl Name="SelectedMentorsList" ItemsSource="{Binding SelectedMentors}" Margin="0,0,0,8">
+                  <!-- Selected Teachers List -->
+                  <ItemsControl Name="SelectedTeachersList" ItemsSource="{Binding SelectedTeachers}" Margin="0,0,0,8">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
                         <Border Background="{DynamicResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="8,4" Margin="0,2">
@@ -225,17 +225,17 @@
                             <Button Grid.Column="1" Content="×" FontSize="14" FontWeight="Bold"
                                     Background="{DynamicResource TransparentColor}" BorderThickness="0" 
                                     Foreground="{DynamicResource TextPrimaryBrush}" Padding="4,0"
-                                    Click="OnRemoveMentorClick" Tag="{Binding}"
-                                    ToolTip.Tip="Remove mentor"/>
+                                    Click="OnRemoveTeacherClick" Tag="{Binding}"
+                                    ToolTip.Tip="Remove teacher"/>
                           </Grid>
                         </Border>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
                   
-                  <!-- Mentor Selection ComboBox (initially hidden) -->
-                  <ComboBox Name="MentorBox" ItemsSource="{Binding AvailableMentors}" 
-                            IsVisible="False" SelectionChanged="OnMentorSelected"/>
+                  <!-- Teacher Selection ComboBox (initially hidden) -->
+                  <ComboBox Name="TeacherBox" ItemsSource="{Binding AvailableTeachers}" 
+                            IsVisible="False" SelectionChanged="OnTeacherSelected"/>
                 </StackPanel>
               </Grid>
             </Grid>

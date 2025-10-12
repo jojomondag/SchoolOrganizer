@@ -73,7 +73,7 @@
                    Margin="0,0,0,4"
                    TextTrimming="CharacterEllipsis" />
 
-        <TextBlock x:Name="MentorText"
+        <TextBlock x:Name="TeacherText"
                    Text="Dr. Smith"
                    FontSize="12"
                    Foreground="{DynamicResource TextPrimaryBrush}"

@@ -29,8 +29,8 @@ public partial class AddStudentWindow : Window
     public partial class AddStudentState : ObservableObject
     {
         public ObservableCollection<string> AvailableClasses { get; } = new();
-        public ObservableCollection<string> AvailableMentors { get; } = new();
-        public ObservableCollection<string> SelectedMentors { get; } = new();
+        public ObservableCollection<string> AvailableTeachers { get; } = new();
+        public ObservableCollection<string> SelectedTeachers { get; } = new();
         
         // Mode switching properties
         [ObservableProperty]
@@ -144,7 +144,7 @@ public partial class AddStudentWindow : Window
 
     public string StudentName => NameBox.Text ?? string.Empty;
     public string StudentClass => (ClassBox.SelectedItem as string) ?? string.Empty;
-    public System.Collections.Generic.List<string> StudentMentors => new(state.SelectedMentors);
+    public System.Collections.Generic.List<string> StudentTeachers => new(state.SelectedTeachers);
     public string StudentEmail => EmailBox.Text ?? string.Empty;
     public DateTime? EnrollmentDate => EnrollmentPicker.SelectedDate?.DateTime;
     public string SelectedImagePath => state.SelectedImagePath;
@@ -191,11 +191,11 @@ public partial class AddStudentWindow : Window
         NameBox.Text = student.Name;
         ClassBox.SelectedItem = student.ClassName;
         
-        // Load multiple mentors
-        state.SelectedMentors.Clear();
-        foreach (var mentor in student.Mentors)
+        // Load multiple teachers
+        state.SelectedTeachers.Clear();
+        foreach (var teacher in student.Teachers)
         {
-            state.SelectedMentors.Add(mentor);
+            state.SelectedTeachers.Add(teacher);
         }
         
         EmailBox.Text = student.Email;
@@ -208,18 +208,18 @@ public partial class AddStudentWindow : Window
     public void LoadOptionsFromStudents(System.Collections.Generic.IEnumerable<Models.Student> students)
     {
         state.AvailableClasses.Clear();
-        state.AvailableMentors.Clear();
+        state.AvailableTeachers.Clear();
 
         foreach (var cls in System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(students, s => s.ClassName)))
         {
             if (!string.IsNullOrWhiteSpace(cls)) state.AvailableClasses.Add(cls);
         }
         
-        // Extract all mentors from all students
-        var allMentors = students.SelectMany(s => s.Mentors).Distinct();
-        foreach (var mentor in allMentors)
+        // Extract all teachers from all students
+        var allTeachers = students.SelectMany(s => s.Teachers).Distinct();
+        foreach (var teacher in allTeachers)
         {
-            if (!string.IsNullOrWhiteSpace(mentor)) state.AvailableMentors.Add(mentor);
+            if (!string.IsNullOrWhiteSpace(teacher)) state.AvailableTeachers.Add(teacher);
         }
     }
 
@@ -273,7 +273,7 @@ public partial class AddStudentWindow : Window
             {
                 Name = StudentName,
                 ClassName = StudentClass,
-                Mentors = StudentMentors,
+                Teachers = StudentTeachers,
                 Email = StudentEmail,
                 EnrollmentDate = EnrollmentDate ?? DateTime.Now,
                 PicturePath = SelectedImagePath
@@ -285,30 +285,30 @@ public partial class AddStudentWindow : Window
         }
     }
 
-    private void OnAddMentorClick(object? sender, RoutedEventArgs e)
+    private void OnAddTeacherClick(object? sender, RoutedEventArgs e)
     {
-        MentorBox.IsVisible = true;
-        MentorBox.IsDropDownOpen = true;
+        TeacherBox.IsVisible = true;
+        TeacherBox.IsDropDownOpen = true;
     }
 
-    private void OnMentorSelected(object? sender, SelectionChangedEventArgs e)
+    private void OnTeacherSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (MentorBox.SelectedItem is string selectedMentor && 
-            !string.IsNullOrWhiteSpace(selectedMentor) &&
-            !state.SelectedMentors.Contains(selectedMentor))
+        if (TeacherBox.SelectedItem is string selectedTeacher && 
+            !string.IsNullOrWhiteSpace(selectedTeacher) &&
+            !state.SelectedTeachers.Contains(selectedTeacher))
         {
-            state.SelectedMentors.Add(selectedMentor);
+            state.SelectedTeachers.Add(selectedTeacher);
         }
         
-        MentorBox.SelectedItem = null;
-        MentorBox.IsVisible = false;
+        TeacherBox.SelectedItem = null;
+        TeacherBox.IsVisible = false;
     }
 
-    private void OnRemoveMentorClick(object? sender, RoutedEventArgs e)
+    private void OnRemoveTeacherClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is string mentorToRemove)
+        if (sender is Button button && button.Tag is string teacherToRemove)
         {
-            state.SelectedMentors.Remove(mentorToRemove);
+            state.SelectedTeachers.Remove(teacherToRemove);
         }
     }
 
@@ -418,7 +418,7 @@ public partial class AddStudentWindow : Window
                     ClassName = state.SelectedClassroom.Name ?? "Unknown Class",
                     Email = student.Profile?.EmailAddress ?? string.Empty,
                     EnrollmentDate = DateTime.Now,
-                    Mentors = new List<string> { teacherName },
+                    Teachers = new List<string> { teacherName },
                     PicturePath = string.Empty
                 };
 
@@ -446,7 +446,7 @@ public partial class AddStudentWindow : Window
     {
         public string Name { get; set; } = string.Empty;
         public string ClassName { get; set; } = string.Empty;
-        public System.Collections.Generic.List<string> Mentors { get; set; } = new();
+        public System.Collections.Generic.List<string> Teachers { get; set; } = new();
         public string Email { get; set; } = string.Empty;
         public DateTime EnrollmentDate { get; set; }
         public string PicturePath { get; set; } = string.Empty;

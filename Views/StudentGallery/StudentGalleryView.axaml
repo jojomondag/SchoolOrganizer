@@ -114,7 +114,7 @@
             <TextBox Grid.Column="1" 
                      Name="SearchTextBox"
                      Text="{Binding SearchText, Mode=TwoWay}" 
-                     Watermark="Search students by name, class, or mentor..." 
+                     Watermark="Search students by name, class, or teacher..." 
                      Background="Transparent"
                      BorderThickness="0"
                      BorderBrush="Transparent"
@@ -333,7 +333,7 @@
                           <!-- Medium Card for Medium DisplayLevel -->
                           <profileCard:ProfileCardMedium Name="{Binding Name}"
                                                          Class="{Binding RoleInfo}"
-                                                         Mentor="{Binding SecondaryInfo}"
+                                                         Teacher="{Binding SecondaryInfo}"
                                                          PictureUrl="{Binding PictureUrl}"
                                                          DataContext="{Binding}"
                                                          ProfileImageClicked="OnProfileImageClicked"
@@ -376,7 +376,6 @@
                   BorderThickness="0"
                   HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch"
-                  Command="{Binding DeselectStudentCommand}"
                   Cursor="Arrow"
                   Template="{StaticResource FlatButtonTemplate}"
                   DoubleTapped="OnBackgroundDoubleTapped">
@@ -504,7 +503,7 @@
               <TextBlock Grid.Row="1" Grid.Column="0" Text="Class:" FontWeight="Bold" Margin="0,0,10,0"/>
               <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedStudentClassName}" Margin="0,0,20,0"/>
               
-              <TextBlock Grid.Row="1" Grid.Column="2" Text="Mentors:" FontWeight="Bold" Margin="0,0,10,0"/>
+              <TextBlock Grid.Row="1" Grid.Column="2" Text="Teachers:" FontWeight="Bold" Margin="0,0,10,0"/>
               <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding SelectedStudentSecondaryInfo}"/>
             </Grid>
           </StackPanel>

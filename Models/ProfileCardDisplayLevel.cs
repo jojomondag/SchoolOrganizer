@@ -12,7 +12,7 @@ public enum ProfileCardDisplayLevel
     Small,
     
     /// <summary>
-    /// Medium view - Name, class, mentor name, and image
+    /// Medium view - Name, class, teacher name, and image
     /// Used for normal gallery view
     /// </summary>
     Medium,
@@ -52,10 +52,10 @@ public class ProfileCardDisplayConfig
                 CardHeight = 180,
                 NameFontSize = 13,
                 RoleFontSize = 11, // Class name - show this
-                SecondaryFontSize = 1, // Mentor name - hide this
+                SecondaryFontSize = 1, // Teacher name - hide this
                 ShowEmail = false,
                 ShowEnrollmentDate = false,
-                ShowSecondaryInfo = false // Only show class, not mentor
+                ShowSecondaryInfo = false // Only show class, not teacher
             },
             ProfileCardDisplayLevel.Medium => new()
             {
@@ -65,7 +65,7 @@ public class ProfileCardDisplayConfig
                 CardHeight = 220,
                 NameFontSize = 14,
                 RoleFontSize = 11, // Class name
-                SecondaryFontSize = 10, // Mentor name
+                SecondaryFontSize = 10, // Teacher name
                 ShowEmail = false,
                 ShowEnrollmentDate = false,
                 ShowSecondaryInfo = true
@@ -78,7 +78,7 @@ public class ProfileCardDisplayConfig
                 CardHeight = 400,
                 NameFontSize = 18,
                 RoleFontSize = 14, // Class name
-                SecondaryFontSize = 12, // Mentor name
+                SecondaryFontSize = 12, // Teacher name
                 ShowEmail = true,
                 ShowEnrollmentDate = true,
                 ShowSecondaryInfo = true

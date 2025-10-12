@@ -71,7 +71,7 @@ public partial class StudentGalleryViewModel : ObservableObject
     // Properties for controlling view mode
     public bool ShowSingleStudent => !ForceGridView && Students.Count == 2 && Students.Any(s => s is Student);
     public bool ShowMultipleStudents => ForceGridView || Students.Count != 2 || !Students.Any(s => s is Student);
-    public bool ShowEmptyState => Students.Count == 1 && !Students.Any(s => s is Student);
+    public bool ShowEmptyState => Students.Count == 0; // Only show empty state when there are truly no items
     public Student? FirstStudent => Students.OfType<Student>().FirstOrDefault();
 
     // Events
@@ -186,23 +186,58 @@ public partial class StudentGalleryViewModel : ObservableObject
     [RelayCommand]
     private async Task DeselectStudent() 
     {
+        System.Diagnostics.Debug.WriteLine($"DeselectStudent called - IsDoubleClickMode: {IsDoubleClickMode}, Students.Count: {Students.Count}");
+        
         SelectedStudent = null;
+        
         // Exit double-click mode when deselecting
         if (IsDoubleClickMode)
         {
+            System.Diagnostics.Debug.WriteLine("DeselectStudent - Exiting double-click mode");
             IsDoubleClickMode = false;
             // Cancel any pending debounced searches
             searchCts?.Cancel();
             // Reset search text
             SearchText = string.Empty;
+            // Set ForceGridView BEFORE calling ApplySearchImmediate to ensure view state is correct
+            ForceGridView = true;
+            System.Diagnostics.Debug.WriteLine("DeselectStudent - Set ForceGridView = true");
             // Immediately restore the full student list (not debounced)
             await ApplySearchImmediate();
+            System.Diagnostics.Debug.WriteLine($"DeselectStudent - After ApplySearchImmediate, Students.Count: {Students.Count}");
             // Let automatic sizing determine the optimal display level based on student count
-            // IMPORTANT: Call this BEFORE setting ForceGridView = true, otherwise it returns early
             UpdateDisplayLevelBasedOnItemCount();
-            // Set ForceGridView last to ensure display level is calculated first
-            ForceGridView = true;
+            // Explicitly notify all view properties to ensure UI updates
+            UpdateViewProperties();
+            // Explicitly notify that Students collection changed
+            OnPropertyChanged(nameof(Students));
+            // Force a small delay to ensure all notifications are processed
+            await Task.Delay(50);
         }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("DeselectStudent - Single-click deselection");
+            // For single-click selections, ensure gallery is properly restored
+            // Cancel any pending debounced searches
+            searchCts?.Cancel();
+            // Set ForceGridView BEFORE calling ApplySearchImmediate to ensure view state is correct
+            ForceGridView = true;
+            System.Diagnostics.Debug.WriteLine("DeselectStudent - Set ForceGridView = true");
+            // Re-apply current search to ensure Students collection is correct
+            await ApplySearchImmediate();
+            System.Diagnostics.Debug.WriteLine($"DeselectStudent - After ApplySearchImmediate, Students.Count: {Students.Count}");
+            // Update display level based on current student count
+            UpdateDisplayLevelBasedOnItemCount();
+            // Explicitly notify all view properties to ensure UI updates
+            UpdateViewProperties();
+            // Explicitly notify that Students collection changed
+            OnPropertyChanged(nameof(Students));
+            // Force a small delay to ensure all notifications are processed
+            await Task.Delay(50);
+        }
+        
+        // Debug: Log final state
+        System.Diagnostics.Debug.WriteLine($"DeselectStudent - Final Students.Count: {Students.Count}, ForceGridView: {ForceGridView}, ShowSingleStudent: {ShowSingleStudent}, ShowMultipleStudents: {ShowMultipleStudents}, ShowEmptyState: {ShowEmptyState}");
     }
 
     [RelayCommand]
@@ -293,8 +328,6 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         Dispatcher.UIThread.Post(() =>
         {
-            if (ForceGridView) return;
-            
             var studentCount = Students?.OfType<Student>().Count() ?? 0;
             var newLevel = CalculateOptimalDisplayLevel(studentCount);
             
@@ -325,10 +358,20 @@ public partial class StudentGalleryViewModel : ObservableObject
         {
             var results = searchService.Search(allStudents, SearchText).ToList();
             
+            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - SearchText: '{SearchText}', Found {results.Count} students, AllStudents: {allStudents.Count}");
+            
             Students.Clear();
             foreach (var s in results)
                 Students.Add(s);
             Students.Add(new AddStudentCard());
+            
+            // Defensive check: ensure Students collection is never empty
+            if (Students.Count == 0)
+            {
+                Students.Add(new AddStudentCard());
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - Final Students.Count: {Students.Count}");
             
             UpdateViewProperties();
             UpdateDisplayLevelBasedOnItemCount();
@@ -336,6 +379,11 @@ public partial class StudentGalleryViewModel : ObservableObject
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Search error: {ex.Message}");
+            // Ensure Students collection is never empty even on error
+            if (Students.Count == 0)
+            {
+                Students.Add(new AddStudentCard());
+            }
         }
         return Task.CompletedTask;
     }
@@ -380,7 +428,7 @@ public partial class StudentGalleryViewModel : ObservableObject
         DisplayConfig = ProfileCardDisplayConfig.GetConfig(level);
     }
 
-    public async Task AddNewStudentAsync(string name, string className, List<string> mentors, string email, DateTime enrollmentDate, string picturePath)
+    public async Task AddNewStudentAsync(string name, string className, List<string> teachers, string email, DateTime enrollmentDate, string picturePath)
     {
         try
         {
@@ -401,8 +449,8 @@ public partial class StudentGalleryViewModel : ObservableObject
                 PictureUrl = picturePath ?? string.Empty
             };
 
-            foreach (var mentor in mentors ?? new List<string>())
-                newStudent.AddMentor(mentor);
+            foreach (var teacher in teachers ?? new List<string>())
+                newStudent.AddTeacher(teacher);
 
             allStudents.Add(newStudent);
             await ApplySearchImmediate();
@@ -442,8 +490,8 @@ public partial class StudentGalleryViewModel : ObservableObject
                     PictureUrl = studentData.PicturePath ?? string.Empty
                 };
 
-                foreach (var mentor in studentData.Mentors ?? new List<string>())
-                    newStudent.AddMentor(mentor);
+                foreach (var teacher in studentData.Teachers ?? new List<string>())
+                    newStudent.AddTeacher(teacher);
 
                 newStudents.Add(newStudent);
             }
@@ -467,15 +515,15 @@ public partial class StudentGalleryViewModel : ObservableObject
         }
     }
 
-    public async Task UpdateExistingStudentAsync(Student student, string name, string className, List<string> mentors, string email, DateTime enrollmentDate, string picturePath)
+    public async Task UpdateExistingStudentAsync(Student student, string name, string className, List<string> teachers, string email, DateTime enrollmentDate, string picturePath)
     {
         try
         {
-            UpdateStudentProperties(student, name, className, mentors, email, enrollmentDate, picturePath);
+            UpdateStudentProperties(student, name, className, teachers, email, enrollmentDate, picturePath);
 
             var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
             if (inAll != null && inAll != student)
-                UpdateStudentProperties(inAll, name, className, mentors, email, enrollmentDate, picturePath);
+                UpdateStudentProperties(inAll, name, className, teachers, email, enrollmentDate, picturePath);
 
             await ApplySearchImmediate();
             await SaveAllStudentsToJson();
@@ -486,7 +534,7 @@ public partial class StudentGalleryViewModel : ObservableObject
         }
     }
 
-    private static void UpdateStudentProperties(Student student, string name, string className, List<string> mentors, string email, DateTime enrollmentDate, string picturePath)
+    private static void UpdateStudentProperties(Student student, string name, string className, List<string> teachers, string email, DateTime enrollmentDate, string picturePath)
     {
         student.Name = name;
         student.ClassName = className;
@@ -494,9 +542,9 @@ public partial class StudentGalleryViewModel : ObservableObject
         student.EnrollmentDate = enrollmentDate;
         student.PictureUrl = picturePath ?? string.Empty;
         
-        student.ClearMentors();
-        foreach (var mentor in mentors ?? new List<string>())
-            student.AddMentor(mentor);
+        student.ClearTeachers();
+        foreach (var teacher in teachers ?? new List<string>())
+            student.AddTeacher(teacher);
     }
 
     private async Task<int> GenerateNextStudentIdAsync()

@@ -25,7 +25,7 @@ public partial class Student : ObservableObject, IPerson
     private string className = string.Empty;
 
     [ObservableProperty]
-    private ObservableCollection<string> mentors = new();
+    private ObservableCollection<string> teachers = new();
 
     [ObservableProperty]
     private string email = string.Empty;
@@ -37,25 +37,25 @@ public partial class Student : ObservableObject, IPerson
     private string? cropSettings;
 
     // Backward compatibility property for JSON serialization
-    [JsonPropertyName("Mentor")]
-    public string? LegacyMentor 
+    [JsonPropertyName("Teacher")]
+    public string? LegacyTeacher 
     { 
-        get => Mentors.FirstOrDefault(); 
+        get => Teachers.FirstOrDefault(); 
         set 
         { 
-            if (!string.IsNullOrWhiteSpace(value) && !Mentors.Contains(value))
+            if (!string.IsNullOrWhiteSpace(value) && !Teachers.Contains(value))
             {
-                Mentors.Clear();
-                Mentors.Add(value);
+                Teachers.Clear();
+                Teachers.Add(value);
             }
         } 
     }
 
     // IPerson implementation
     public string RoleInfo => ClassName;
-    public string? SecondaryInfo => Mentors.Count == 0 ? null : 
-        Mentors.Count == 1 ? $"Mentor: {Mentors[0]}" : 
-        $"Mentors:\n{string.Join("\n", Mentors)}";
+    public string? SecondaryInfo => Teachers.Count == 0 ? null : 
+        Teachers.Count == 1 ? $"Teacher: {Teachers[0]}" : 
+        $"Teachers:\n{string.Join("\n", Teachers)}";
     public PersonType PersonType => PersonType.Student;
 
     public Student()
@@ -63,42 +63,42 @@ public partial class Student : ObservableObject, IPerson
         EnrollmentDate = DateTime.Now;
     }
 
-    public Student(int id, string name, string className, IEnumerable<string>? mentors = null, string email = "")
+    public Student(int id, string name, string className, IEnumerable<string>? teachers = null, string email = "")
     {
         Id = id;
         Name = name;
         PictureUrl = string.Empty;
         ClassName = className;
-        if (mentors != null)
+        if (teachers != null)
         {
-            Mentors = new ObservableCollection<string>(mentors.Where(m => !string.IsNullOrWhiteSpace(m)));
+            Teachers = new ObservableCollection<string>(teachers.Where(t => !string.IsNullOrWhiteSpace(t)));
         }
         Email = email;
         EnrollmentDate = DateTime.Now;
     }
 
     // Legacy constructor for backward compatibility
-    public Student(int id, string name, string className, string mentor, string email = "")
-        : this(id, name, className, !string.IsNullOrWhiteSpace(mentor) ? new[] { mentor } : null, email)
+    public Student(int id, string name, string className, string teacher, string email = "")
+        : this(id, name, className, !string.IsNullOrWhiteSpace(teacher) ? new[] { teacher } : null, email)
     {
     }
 
-    // Helper methods for mentor management
-    public void AddMentor(string mentor)
+    // Helper methods for teacher management
+    public void AddTeacher(string teacher)
     {
-        if (!string.IsNullOrWhiteSpace(mentor) && !Mentors.Contains(mentor))
+        if (!string.IsNullOrWhiteSpace(teacher) && !Teachers.Contains(teacher))
         {
-            Mentors.Add(mentor);
+            Teachers.Add(teacher);
         }
     }
 
-    public void RemoveMentor(string mentor)
+    public void RemoveTeacher(string teacher)
     {
-        Mentors.Remove(mentor);
+        Teachers.Remove(teacher);
     }
 
-    public void ClearMentors()
+    public void ClearTeachers()
     {
-        Mentors.Clear();
+        Teachers.Clear();
     }
 }

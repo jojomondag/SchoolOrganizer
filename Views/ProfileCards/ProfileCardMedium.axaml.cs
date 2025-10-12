@@ -10,7 +10,7 @@ namespace SchoolOrganizer.Views.ProfileCards
 
             // Register medium-specific properties so base class will update controls
             MapPropertyToControl(ClassProperty, "ClassText", "No Class");
-            MapPropertyToControl(MentorProperty, "MentorText", "No Mentor");
+            MapPropertyToControl(TeacherProperty, "TeacherText", "No Teacher");
         }
 
         // Properties specific to ProfileCardMedium
@@ -22,12 +22,12 @@ namespace SchoolOrganizer.Views.ProfileCards
         public static readonly Avalonia.StyledProperty<string?> ClassProperty =
             Avalonia.AvaloniaProperty.Register<ProfileCardMedium, string?>("Class");
 
-        public string? Mentor
+        public string? Teacher
         {
-            get => GetValue(MentorProperty);
-            set => SetValue(MentorProperty, value);
+            get => GetValue(TeacherProperty);
+            set => SetValue(TeacherProperty, value);
         }
-        public static readonly Avalonia.StyledProperty<string?> MentorProperty =
-            Avalonia.AvaloniaProperty.Register<ProfileCardMedium, string?>("Mentor");
+        public static readonly Avalonia.StyledProperty<string?> TeacherProperty =
+            Avalonia.AvaloniaProperty.Register<ProfileCardMedium, string?>("Teacher");
     }
 }

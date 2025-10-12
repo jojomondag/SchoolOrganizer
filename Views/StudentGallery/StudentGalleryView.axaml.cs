@@ -36,7 +36,7 @@ public partial class StudentGalleryView : UserControl
     private double _currentImageRadius = 67; // 84 * 0.8
     private double _currentNameFontSize = 13; // 16 * 0.8
     private double _currentClassFontSize = 10; // 12 * 0.8
-    private double _currentMentorFontSize = 8; // 10 * 0.8
+    private double _currentTeacherFontSize = 8; // 10 * 0.8
     private double _currentPlaceholderFontSize = 54; // 67 * 0.8
     private double _currentCardPadding = 14; // 18 * 0.8
     
@@ -136,6 +136,8 @@ public partial class StudentGalleryView : UserControl
 
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine($"ViewModel_PropertyChanged: {e.PropertyName}");
+        
         if (e.PropertyName == "SelectedStudent")
         {
             // Defer scrolling until layout pass completes
@@ -143,13 +145,30 @@ public partial class StudentGalleryView : UserControl
         }
         else if (e.PropertyName == "Students")
         {
-            // Students collection changed - layout will automatically update via bindings
+            // Students collection changed - force ItemsControl refresh
+            System.Diagnostics.Debug.WriteLine($"Students collection changed - Count: {ViewModel?.Students?.Count ?? 0}");
+            Dispatcher.UIThread.Post(async () => await ForceItemsControlRefresh(), DispatcherPriority.Render);
         }
         else if (e.PropertyName == "DisplayConfig")
         {
             // When DisplayConfig changes, update card layout with new dimensions
             // DisplayConfig changed, updating card layout
             Dispatcher.UIThread.Post(() => UpdateCardLayout(), DispatcherPriority.Render);
+        }
+        else if (e.PropertyName == "ShowMultipleStudents" || e.PropertyName == "ShowSingleStudent" || e.PropertyName == "ShowEmptyState")
+        {
+            System.Diagnostics.Debug.WriteLine($"View state changed: {e.PropertyName} - ShowMultipleStudents: {ViewModel?.ShowMultipleStudents}, ShowSingleStudent: {ViewModel?.ShowSingleStudent}, ShowEmptyState: {ViewModel?.ShowEmptyState}");
+            
+            // Force ItemsControl refresh when switching to multiple students view
+            if (e.PropertyName == "ShowMultipleStudents" && ViewModel?.ShowMultipleStudents == true)
+            {
+                // Add a small delay to ensure all property notifications have been processed
+                Dispatcher.UIThread.Post(async () => 
+                {
+                    await Task.Delay(150); // Increased delay to ensure all property changes are processed
+                    await ForceItemsControlRefresh();
+                }, DispatcherPriority.Render);
+            }
         }
     }
 
@@ -265,7 +284,7 @@ public partial class StudentGalleryView : UserControl
                     await ViewModel.AddNewStudentAsync(
                         singleResult.Name,
                         singleResult.ClassName,
-                        singleResult.Mentors,
+                        singleResult.Teachers,
                         singleResult.Email,
                         singleResult.EnrollmentDate,
                         singleResult.PicturePath
@@ -341,7 +360,7 @@ public partial class StudentGalleryView : UserControl
                     student,
                     result.Name,
                     result.ClassName,
-                    result.Mentors,
+                    result.Teachers,
                     result.Email,
                     result.EnrollmentDate,
                     result.PicturePath
@@ -382,7 +401,7 @@ public partial class StudentGalleryView : UserControl
         {
             // Apply styling immediately to prevent flickering
             UpdateCardElements(e.Container, _currentCardWidth, _currentImageSize, _currentImageRadius,
-                             _currentNameFontSize, _currentClassFontSize, _currentMentorFontSize,
+                             _currentNameFontSize, _currentClassFontSize, _currentTeacherFontSize,
                              _currentPlaceholderFontSize, _currentCardPadding);
         }
     }
@@ -416,6 +435,57 @@ public partial class StudentGalleryView : UserControl
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error updating card layout: {ex.Message}");
+        }
+    }
+
+    private async Task ForceItemsControlRefresh()
+    {
+        try
+        {
+            var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
+            var scrollViewer = this.FindControl<ScrollViewer>("StudentsScrollViewer");
+            
+            if (studentsContainer != null && scrollViewer != null)
+            {
+                // Debug: Log current state
+                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - ItemsControl IsVisible: {studentsContainer.IsVisible}, ItemsCount: {studentsContainer.Items?.Count ?? 0}");
+                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - ViewModel state - ShowMultipleStudents: {ViewModel?.ShowMultipleStudents}, IsLoading: {ViewModel?.IsLoading}, ShowEmptyState: {ViewModel?.ShowEmptyState}");
+                
+                // Force the parent ScrollViewer to invalidate (which will re-evaluate child visibility bindings)
+                scrollViewer.InvalidateVisual();
+                scrollViewer.InvalidateMeasure();
+                scrollViewer.InvalidateArrange();
+                
+                // Small delay to allow visibility binding to complete
+                await Task.Delay(50);
+                
+                // Debug: Check if visibility changed
+                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - After ScrollViewer invalidation - ItemsControl IsVisible: {studentsContainer.IsVisible}");
+                
+                // If ItemsControl is still not visible, force it to be visible
+                if (!studentsContainer.IsVisible)
+                {
+                    System.Diagnostics.Debug.WriteLine("ForceItemsControlRefresh - ItemsControl not visible, forcing visibility");
+                    studentsContainer.IsVisible = true;
+                    await Task.Delay(10);
+                }
+                
+                // Instead of clearing ItemsSource, just force a refresh of the existing items
+                studentsContainer.InvalidateVisual();
+                studentsContainer.InvalidateMeasure();
+                studentsContainer.InvalidateArrange();
+                
+                // Force a layout pass
+                studentsContainer.UpdateLayout();
+                
+                // Debug: Final state
+                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - Final state - ItemsControl IsVisible: {studentsContainer.IsVisible}, ItemsCount: {studentsContainer.Items?.Count ?? 0}");
+                System.Diagnostics.Debug.WriteLine("ForceItemsControlRefresh - ItemsControl refreshed without ItemsSource rebinding");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error forcing ItemsControl refresh: {ex.Message}");
         }
     }
 
@@ -457,7 +527,7 @@ public partial class StudentGalleryView : UserControl
     }
 
     private void UpdateCardElements(Control container, double cardWidth, double imageSize, double imageRadius,
-                                  double nameFontSize, double classFontSize, double mentorFontSize, 
+                                  double nameFontSize, double classFontSize, double teacherFontSize, 
                                   double placeholderFontSize, double cardPadding)
     {
         // Disabled dynamic element updates to maintain consistency
@@ -511,9 +581,12 @@ public partial class StudentGalleryView : UserControl
     // Event handler for double-clicking on background to return to gallery
     private void OnBackgroundDoubleTapped(object? sender, RoutedEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine("OnBackgroundDoubleTapped called");
         if (ViewModel != null)
         {
             ViewModel.DeselectStudentCommand.Execute(null);
+            // Reinitialize keyboard handler after returning from detailed view
+            ReinitializeKeyboardHandler();
         }
     }
 

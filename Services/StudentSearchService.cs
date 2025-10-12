@@ -61,12 +61,12 @@ public class StudentSearchService
                     tokenScore = 2;
             }
 
-            // Mentors scoring
+            // Teachers scoring
             if (tokenScore < 2)
             {
-                foreach (var mentor in student.Mentors ?? new())
+                foreach (var teacher in student.Teachers ?? new())
                 {
-                    if (mentor.Contains(token, StringComparison.OrdinalIgnoreCase))
+                    if (teacher.Contains(token, StringComparison.OrdinalIgnoreCase))
                     {
                         tokenScore = 2;
                         break;
