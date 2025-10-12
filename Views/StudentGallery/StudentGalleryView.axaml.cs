@@ -587,8 +587,34 @@ public partial class StudentGalleryView : UserControl
             
             if (string.IsNullOrEmpty(studentFolderPath))
             {
-                await ShowNoAssignmentsDialog(student.Name, "No assignment folder found. Please download assignments from the Classroom Download tab.");
-                return;
+                // Try to download assignments for this student
+                System.Diagnostics.Debug.WriteLine($"No assignment folder found for {student.Name}, attempting to download...");
+                
+                if (string.IsNullOrEmpty(student.Email))
+                {
+                    await ShowNoAssignmentsDialog(student.Name, "Cannot download assignments. Student email not found.");
+                    return;
+                }
+
+                // Attempt to download assignments for this student
+                var downloadSuccess = await DownloadStudentAssignmentsAsync(student);
+                
+                if (downloadSuccess)
+                {
+                    // Retry finding the folder after download
+                    studentFolderPath = await FindStudentAssignmentFolder(student);
+                    
+                    if (string.IsNullOrEmpty(studentFolderPath))
+                    {
+                        await ShowNoAssignmentsDialog(student.Name, "Download completed but no assignment folder was created.");
+                        return;
+                    }
+                }
+                else
+                {
+                    await ShowNoAssignmentsDialog(student.Name, "Failed to download assignments. Please download courses from the Classroom Download tab first.");
+                    return;
+                }
             }
 
             var fileCount = Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length;
@@ -678,6 +704,252 @@ public partial class StudentGalleryView : UserControl
         {
             System.Diagnostics.Debug.WriteLine($"Error getting download folder path: {ex.Message}");
             return null;
+        }
+    }
+
+    // Download assignments for a specific student from all their enrolled courses
+    private async Task<bool> DownloadStudentAssignmentsAsync(SchoolOrganizer.Models.Student student)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"Starting download for student: {student.Name} ({student.Email})");
+            
+            // Get the main window and its ViewModel to access Google services
+            var mainWindow = TopLevel.GetTopLevel(this) as Window;
+            if (mainWindow?.DataContext is not MainWindowViewModel mainViewModel)
+            {
+                System.Diagnostics.Debug.WriteLine("Could not access MainWindowViewModel");
+                return false;
+            }
+
+            // Check if we have Google authentication
+            if (mainViewModel.AuthService == null || !await mainViewModel.AuthService.CheckAndAuthenticateAsync())
+            {
+                System.Diagnostics.Debug.WriteLine("Not authenticated with Google Classroom");
+                return false;
+            }
+
+            // Get download folder path
+            var downloadFolderPath = SettingsService.Instance.LoadDownloadFolderPath();
+            if (string.IsNullOrEmpty(downloadFolderPath) || !Directory.Exists(downloadFolderPath))
+            {
+                System.Diagnostics.Debug.WriteLine("Download folder not found or not set");
+                return false;
+            }
+
+            // We don't need ClassroomDownloadViewModel to be active - just need AuthService
+            // which is already available through mainViewModel.AuthService
+
+            // Get all active courses
+            var classroomService = mainViewModel.AuthService.ClassroomService;
+            if (classroomService == null)
+            {
+                System.Diagnostics.Debug.WriteLine("Classroom service not available");
+                return false;
+            }
+
+            var classroomDataService = new ClassroomDataService(classroomService);
+            var cachedClassroomService = new CachedClassroomDataService(classroomDataService);
+            var courses = await cachedClassroomService.GetActiveClassroomsAsync();
+
+            System.Diagnostics.Debug.WriteLine($"Found {courses.Count} active courses");
+
+            bool anyDownloadsSucceeded = false;
+
+            // For each course, check if the student is enrolled and download their assignments
+            foreach (var course in courses)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine($"Checking course: {course.Name}");
+                    
+                    // Get students in this course
+                    var studentsInCourse = await classroomDataService.GetStudentsInCourseAsync(course.Id);
+                    
+                    // Check if our student is enrolled in this course (match by email)
+                    var matchingStudent = studentsInCourse.FirstOrDefault(s => 
+                        string.Equals(s.Profile?.EmailAddress, student.Email, StringComparison.OrdinalIgnoreCase));
+
+                    if (matchingStudent != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Found {student.Name} in course: {course.Name}");
+                        
+                        // Download assignments for this student from this course
+                        var success = await DownloadStudentForCourseAsync(
+                            cachedClassroomService,
+                            mainViewModel.AuthService.DriveService!,
+                            course,
+                            matchingStudent,
+                            student.Name,
+                            downloadFolderPath,
+                            mainViewModel.AuthService.TeacherName);
+                        if (success)
+                        {
+                            anyDownloadsSucceeded = true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error processing course {course.Name}: {ex.Message}");
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"Download completed for {student.Name}. Success: {anyDownloadsSucceeded}");
+            return anyDownloadsSucceeded;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error downloading assignments for {student.Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    // Download a specific student's assignments from a specific course
+    private async Task<bool> DownloadStudentForCourseAsync(
+        CachedClassroomDataService classroomService,
+        Google.Apis.Drive.v3.DriveService driveService,
+        Google.Apis.Classroom.v1.Data.Course course,
+        Google.Apis.Classroom.v1.Data.Student classroomStudent,
+        string studentName,
+        string downloadFolderPath,
+        string teacherName)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"Downloading assignments for {studentName} from course: {course.Name}");
+            
+            // 1. Get only this student's submissions
+            var allSubmissions = await classroomService.GetStudentSubmissionsAsync(course.Id);
+            var studentSubmissions = allSubmissions
+                .Where(s => s.UserId == classroomStudent.UserId)
+                .ToList();
+            
+            if (!studentSubmissions.Any())
+            {
+                System.Diagnostics.Debug.WriteLine($"No submissions found for {studentName} in course {course.Name}");
+                return false;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"Found {studentSubmissions.Count} submissions for {studentName} in course {course.Name}");
+
+            // 2. Get course work (assignments)
+            var courseWorks = await classroomService.GetCourseWorkAsync(course.Id);
+            var courseWorkDict = courseWorks.ToDictionary(cw => cw.Id ?? "", cw => cw);
+
+            // 3. Create directories
+            var courseDirectory = DirectoryUtil.CreateCourseDirectory(
+                downloadFolderPath,
+                course.Name ?? "Unknown Course",
+                course.Section ?? "No Section",
+                course.Id ?? "Unknown ID",
+                teacherName
+            );
+
+            var studentDirectory = DirectoryUtil.CreateStudentDirectory(courseDirectory, classroomStudent);
+
+            // 4. Download only this student's files
+            var processedAttachments = new HashSet<string>();
+            bool anyFilesDownloaded = false;
+
+            foreach (var submission in studentSubmissions)
+            {
+                if (submission.AssignmentSubmission?.Attachments == null)
+                    continue;
+
+                var courseWork = courseWorkDict.GetValueOrDefault(submission.CourseWorkId);
+                string assignmentName = courseWork?.Title ?? "Unknown Assignment";
+                string assignmentDirectory = DirectoryUtil.CreateAssignmentDirectory(studentDirectory, new Google.Apis.Classroom.v1.Data.CourseWork { Title = assignmentName });
+
+                foreach (var attachment in submission.AssignmentSubmission.Attachments)
+                {
+                    string attachmentId = attachment.DriveFile?.Id ?? attachment.Link?.Url ?? "";
+                    if (!string.IsNullOrEmpty(attachmentId) && !processedAttachments.Contains(attachmentId))
+                    {
+                        processedAttachments.Add(attachmentId);
+                        var success = await DownloadStudentAttachmentAsync(
+                            driveService,
+                            attachment,
+                            assignmentDirectory,
+                            submission.Id,
+                            studentName,
+                            assignmentName);
+                        if (success)
+                        {
+                            anyFilesDownloaded = true;
+                        }
+                    }
+                }
+            }
+
+            // 5. Extract ZIP and RAR files if any were downloaded
+            if (anyFilesDownloaded)
+            {
+                System.Diagnostics.Debug.WriteLine($"Extracting ZIP and RAR files for {studentName}");
+                await FileExtractor.ExtractZipAndRARFilesFromFoldersAsync(studentDirectory);
+            }
+
+            System.Diagnostics.Debug.WriteLine($"Successfully downloaded assignments for {studentName} from course {course.Name}");
+            return anyFilesDownloaded;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error downloading assignments for {studentName} from course {course.Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    // Download a single attachment for a student
+    private async Task<bool> DownloadStudentAttachmentAsync(
+        Google.Apis.Drive.v3.DriveService driveService,
+        Google.Apis.Classroom.v1.Data.Attachment attachment,
+        string assignmentDirectory,
+        string submissionId,
+        string studentName,
+        string assignmentName)
+    {
+        try
+        {
+            if (attachment.DriveFile != null)
+            {
+                var file = await driveService.Files.Get(attachment.DriveFile.Id).ExecuteAsync();
+                string fileName = DirectoryUtil.SanitizeFolderName(attachment.DriveFile.Title ?? "File");
+                string filePath = System.IO.Path.Combine(assignmentDirectory, fileName);
+
+                // Check if the file already exists
+                if (File.Exists(filePath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"File already exists: {filePath}. Skipping download.");
+                    return true;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Downloading: {attachment.DriveFile.Title} for {studentName} - {assignmentName}");
+
+                // Download the file
+                using var stream = new MemoryStream();
+                var request = driveService.Files.Get(attachment.DriveFile.Id);
+                await request.DownloadAsync(stream);
+                
+                // Write to file
+                await File.WriteAllBytesAsync(filePath, stream.ToArray());
+                
+                System.Diagnostics.Debug.WriteLine($"Successfully downloaded: {filePath}");
+                return true;
+            }
+            else if (attachment.Link != null)
+            {
+                // Handle link attachments (URLs)
+                System.Diagnostics.Debug.WriteLine($"Link attachment found for {studentName} - {assignmentName}: {attachment.Link.Url}");
+                // For now, just log the link - could implement URL download later
+                return false;
+            }
+            
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error downloading attachment for {studentName} - {assignmentName}: {ex.Message}");
+            return false;
         }
     }
 

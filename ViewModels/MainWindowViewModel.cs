@@ -45,6 +45,9 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private bool isAuthenticated = false;
 
+    // Public property to access the AuthService
+    public GoogleAuthService AuthService => _authService;
+
     public MainWindowViewModel(GoogleAuthService? authService = null)
     {
         _authService = authService ?? new GoogleAuthService();
