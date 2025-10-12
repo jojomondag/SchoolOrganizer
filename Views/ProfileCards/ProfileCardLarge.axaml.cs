@@ -10,10 +10,19 @@ namespace SchoolOrganizer.Views.ProfileCards
 
             // Register the RoleInfo property to the RoleText control
             MapPropertyToControl(RoleInfoProperty, "RoleText", "No Role");
+            
+            // Handle clicks on the card to prevent them from bubbling up to the background button
+            this.PointerPressed += OnCardPointerPressed;
         }
 
         // Large card opts out of hover scaling/shadow
         protected override bool EnableHover => false;
+
+        private void OnCardPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        {
+            // Mark the event as handled to prevent it from bubbling up to the background button
+            e.Handled = true;
+        }
 
         // RoleInfo is specific to ProfileCardLarge
         public string? RoleInfo

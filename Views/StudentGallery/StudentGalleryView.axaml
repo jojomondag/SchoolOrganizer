@@ -394,8 +394,7 @@
           <ContentControl Content="{Binding FirstStudent}"
                          HorizontalAlignment="Center"
                          VerticalAlignment="Center"
-                         Margin="0"
-                         IsHitTestVisible="False">
+                         Margin="0">
             <ContentControl.ContentTemplate>
               <DataTemplate x:DataType="models:Student">
                 <profileCard:ProfileCardLarge Name="{Binding Name}"

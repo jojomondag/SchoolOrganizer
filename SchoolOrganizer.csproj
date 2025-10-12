@@ -96,4 +96,12 @@
     </PackageReference>
   </ItemGroup>
 
+  <!-- Auto-terminate running process before Debug builds -->
+  <Target Name="TerminateRunningProcess" BeforeTargets="BeforeBuild" Condition="'$(Configuration)' == 'Debug'">
+    <Exec Command="powershell -NoProfile -Command &quot;Get-Process SchoolOrganizer -ErrorAction SilentlyContinue | Stop-Process -Force&quot;" 
+          IgnoreExitCode="true" 
+          ContinueOnError="true" />
+    <Message Text="Terminated any running SchoolOrganizer processes" Importance="high" />
+  </Target>
+
 </Project>

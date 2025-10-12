@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia;
+using Avalonia.Animation;
 using System;
 using Avalonia.Threading;
 using System.Collections.Generic;
@@ -77,6 +78,7 @@ namespace SchoolOrganizer.Views.ProfileCards
                 backButton.Click += (s, e) => BackButtonClicked?.Invoke(this, EventArgs.Empty);
 
             if (this.FindControl<Border>("ProfileImageBorder") is { } profileImageBorder)
+            {
                 profileImageBorder.PointerPressed += (s, e) =>
                 {
                     if (DataContext is Student student)
@@ -85,6 +87,11 @@ namespace SchoolOrganizer.Views.ProfileCards
                         e.Handled = true; // Prevent event bubbling
                     }
                 };
+
+                // Always add hover effects for profile image, regardless of card hover setting
+                profileImageBorder.PointerEntered += OnProfileImagePointerEntered;
+                profileImageBorder.PointerExited += OnProfileImagePointerExited;
+            }
 
             if (this.FindControl<Border>("CardBorder") is { } cardBorder)
             {
@@ -125,6 +132,58 @@ namespace SchoolOrganizer.Views.ProfileCards
 
                 if (this.FindResource("ShadowLight") is BoxShadows normalShadow)
                     cardBorder.BoxShadow = normalShadow;
+            }
+        }
+
+        protected virtual void OnProfileImagePointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+        {
+            if (sender is Border profileImageBorder)
+            {
+                // Create a stronger shadow for profile image hover
+                var shadow = new BoxShadows(
+                    new BoxShadow
+                    {
+                        Color = Color.FromArgb(120, 0, 0, 0), // Much more opaque shadow
+                        Blur = 20,
+                        OffsetX = 0,
+                        OffsetY = 8,
+                        Spread = 2
+                    }
+                );
+                
+                // Add smooth transition
+                var transition = new Transitions
+                {
+                    new BoxShadowsTransition
+                    {
+                        Property = Border.BoxShadowProperty,
+                        Duration = TimeSpan.FromMilliseconds(200),
+                        Easing = new Avalonia.Animation.Easings.CubicEaseOut()
+                    }
+                };
+                
+                profileImageBorder.Transitions = transition;
+                profileImageBorder.BoxShadow = shadow;
+            }
+        }
+
+        protected virtual void OnProfileImagePointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+        {
+            if (sender is Border profileImageBorder)
+            {
+                // Add smooth transition for exit
+                var transition = new Transitions
+                {
+                    new BoxShadowsTransition
+                    {
+                        Property = Border.BoxShadowProperty,
+                        Duration = TimeSpan.FromMilliseconds(200),
+                        Easing = new Avalonia.Animation.Easings.CubicEaseOut()
+                    }
+                };
+                
+                profileImageBorder.Transitions = transition;
+                profileImageBorder.BoxShadow = new BoxShadows(); // Transparent shadow
             }
         }
 
