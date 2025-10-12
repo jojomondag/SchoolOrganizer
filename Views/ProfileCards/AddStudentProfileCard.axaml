@@ -6,15 +6,15 @@
              x:DataType="local:AddStudentProfileCard"
 >
 
-  <Grid Margin="30" ClipToBounds="False">
+  <Grid Margin="20,40,20,40" ClipToBounds="False">
     <Border x:Name="CardBorder"
             Background="{DynamicResource BackgroundPrimaryBrush}"
-            CornerRadius="12"
+            CornerRadius="16"
             BorderBrush="{DynamicResource BlackBrush}"
             BorderThickness="1"
-            Padding="8"
-            Width="180"
-            Height="180"
+            Padding="12"
+            Width="240"
+            Height="240"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Cursor="Hand"
@@ -26,20 +26,20 @@
         <!-- Plus Icon Circle -->
         <Border x:Name="AddIconBorder"
                 Background="{DynamicResource BackgroundTertiaryBrush}"
-                CornerRadius="30"
+                CornerRadius="45"
                 BorderThickness="2"
                 BorderBrush="{DynamicResource BlackBrush}"
                 Padding="0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Width="60"
-                Height="60"
-                Margin="0,0,0,8"
+                Width="90"
+                Height="90"
+                Margin="0,0,0,12"
                 Cursor="Hand">
 
           <Viewbox HorizontalAlignment="Center" 
                    VerticalAlignment="Center"
-                   Width="24" Height="24">
+                   Width="36" Height="36">
             <materialIcons:MaterialIcon Kind="Plus" 
                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
           </Viewbox>
@@ -48,16 +48,16 @@
         <!-- Add Student Text -->
         <TextBlock x:Name="AddStudentText"
                    Text="Add Student"
-                   FontSize="16"
+                   FontSize="20"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    TextAlignment="Center"
-                   Margin="0,0,0,4"
+                   Margin="0,0,0,8"
                    TextTrimming="CharacterEllipsis" />
 
         <!-- Subtitle Text -->
         <TextBlock x:Name="SubtitleText"
                    Text="Click to add a new student"
-                   FontSize="10"
+                   FontSize="12"
                    Foreground="{DynamicResource TextSecondaryBrush}"
                    TextAlignment="Center"
                    TextTrimming="CharacterEllipsis" />

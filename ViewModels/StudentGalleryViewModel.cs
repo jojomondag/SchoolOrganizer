@@ -291,17 +291,21 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     private void UpdateDisplayLevelBasedOnItemCount()
     {
-        if (ForceGridView) return;
-
-        var studentCount = Students?.OfType<Student>().Count() ?? 0;
-        var newLevel = CalculateOptimalDisplayLevel(studentCount);
-
-        if (newLevel != CurrentDisplayLevel)
+        Dispatcher.UIThread.Post(() =>
         {
-            CurrentDisplayLevel = newLevel;
-            DisplayConfig = ProfileCardDisplayConfig.GetConfig(newLevel);
-            OnPropertyChanged(nameof(DisplayConfig));
-        }
+            if (ForceGridView) return;
+            
+            var studentCount = Students?.OfType<Student>().Count() ?? 0;
+            var newLevel = CalculateOptimalDisplayLevel(studentCount);
+            
+            if (newLevel != CurrentDisplayLevel)
+            {
+                CurrentDisplayLevel = newLevel;
+                DisplayConfig = ProfileCardDisplayConfig.GetConfig(newLevel);
+                OnPropertyChanged(nameof(DisplayConfig));
+                OnPropertyChanged(nameof(CurrentDisplayLevel));
+            }
+        }, DispatcherPriority.Render);
     }
 
     private ProfileCardDisplayLevel CalculateOptimalDisplayLevel(int studentCount)
@@ -327,6 +331,7 @@ public partial class StudentGalleryViewModel : ObservableObject
             Students.Add(new AddStudentCard());
             
             UpdateViewProperties();
+            UpdateDisplayLevelBasedOnItemCount();
         }
         catch (Exception ex)
         {
