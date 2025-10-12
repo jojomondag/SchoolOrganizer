@@ -60,6 +60,28 @@ public partial class ClassroomDownloadViewModel : ObservableObject
         IsShowingContent = false;
         CurrentContentViewModel = null;
         StatusText = "Select a course to download or view content.";
+        
+        // Refresh course status when returning to classroom list
+        RefreshAllCourseFolderStatus();
+    }
+
+    /// <summary>
+    /// Refreshes the folder status for all courses to update the UI
+    /// </summary>
+    private void RefreshAllCourseFolderStatus()
+    {
+        foreach (var course in Classrooms)
+        {
+            course.UpdateFolderStatus();
+        }
+    }
+
+    /// <summary>
+    /// Public method to refresh all course folder status - useful for external calls
+    /// </summary>
+    public void RefreshCourseStatus()
+    {
+        RefreshAllCourseFolderStatus();
     }
 
 
@@ -131,6 +153,9 @@ public partial class ClassroomDownloadViewModel : ObservableObject
 
             // Reinitialize download manager with new folder path
             InitializeDownloadManager();
+            
+            // Refresh folder status for all courses since the folder path changed
+            RefreshAllCourseFolderStatus();
         }
     }
 
@@ -214,6 +239,9 @@ public partial class ClassroomDownloadViewModel : ObservableObject
                 courseWrapper.UpdateDownloadStatus(true);
                 courseWrapper.UpdateFolderStatus();
                 StatusText = $"Download completed for {courseWrapper.Course.Name}.";
+                
+                // Refresh folder status for all courses to update UI
+                RefreshAllCourseFolderStatus();
             });
             Log.Information($"Successfully completed download for {courseWrapper.Course.Name}");
         }

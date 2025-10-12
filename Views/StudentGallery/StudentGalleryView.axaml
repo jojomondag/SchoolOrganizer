@@ -405,7 +405,8 @@
                                              PictureUrl="{Binding PictureUrl}"
                                              DataContext="{Binding}"
                                              ProfileImageClicked="OnDetailedProfileImageClicked"
-                                             ProfileImageUpdated="OnProfileImageUpdated"/>
+                                             ProfileImageUpdated="OnProfileImageUpdated"
+                                             ViewAssignmentsClicked="OnViewAssignmentsClicked"/>
               </DataTemplate>
             </ContentControl.ContentTemplate>
           </ContentControl>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using SchoolOrganizer.ViewModels;
@@ -16,6 +17,7 @@ using SchoolOrganizer.Views.ProfileCards;
 using SchoolOrganizer.Views.Windows;
 using SchoolOrganizer.Views.Windows.ImageCrop;
 using SchoolOrganizer.Services;
+using SchoolOrganizer.Services.Utilities;
 using SchoolOrganizer.Models;
 
 
@@ -568,6 +570,159 @@ public partial class StudentGalleryView : UserControl
             await ViewModel.UpdateStudentImage(args.student, args.imagePath, args.student.CropSettings, args.student.OriginalImagePath);
         }
     }
+
+    // Event handler for View Assignments button click
+    private async void OnViewAssignmentsClicked(object? sender, SchoolOrganizer.Views.ProfileCards.ViewAssignmentsClickedEventArgs e)
+    {
+        await HandleViewAssignments(e.Student);
+    }
+
+    // Handle opening the AssignmentViewer for a student
+    private async Task HandleViewAssignments(SchoolOrganizer.Models.Student student)
+    {
+        try
+        {
+            // Find the student's assignment folder by searching through existing course folders
+            var studentFolderPath = await FindStudentAssignmentFolder(student);
+            
+            if (string.IsNullOrEmpty(studentFolderPath))
+            {
+                await ShowNoAssignmentsDialog(student.Name, "No assignment folder found. Please download assignments from the Classroom Download tab.");
+                return;
+            }
+
+            var fileCount = Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length;
+            if (fileCount == 0)
+            {
+                await ShowNoAssignmentsDialog(student.Name, "No assignment files found");
+                return;
+            }
+
+            // Create and show AssignmentViewer
+            var detailViewModel = new SchoolOrganizer.ViewModels.StudentDetailViewModel();
+            var detailWindow = new SchoolOrganizer.Views.AssignmentManagement.AssignmentViewer(detailViewModel);
+            
+            // Load the student files asynchronously
+            await detailViewModel.LoadStudentFilesAsync(student.Name, student.ClassName, studentFolderPath);
+            
+            detailWindow.Show();
+            System.Diagnostics.Debug.WriteLine($"Opened AssignmentViewer for {student.Name} with {fileCount} files");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error opening assignments for {student.Name}: {ex.Message}");
+            await ShowNoAssignmentsDialog(student.Name, $"Error: {ex.Message}");
+        }
+    }
+
+    // Find the student's assignment folder by searching through existing course folders
+    private async Task<string?> FindStudentAssignmentFolder(SchoolOrganizer.Models.Student student)
+    {
+        try
+        {
+            // Get the download folder path from the Classroom Download ViewModel
+            var downloadFolderPath = GetDownloadFolderPath();
+            if (string.IsNullOrEmpty(downloadFolderPath) || !Directory.Exists(downloadFolderPath))
+            {
+                System.Diagnostics.Debug.WriteLine("Download folder not found or not set");
+                return null;
+            }
+
+            var sanitizedStudentName = DirectoryUtil.SanitizeFolderName(student.Name);
+            System.Diagnostics.Debug.WriteLine($"Looking for student folder: {sanitizedStudentName} in {downloadFolderPath}");
+
+            // Search through all course folders
+            var courseFolders = Directory.GetDirectories(downloadFolderPath);
+            foreach (var courseFolder in courseFolders)
+            {
+                var studentFolderPath = System.IO.Path.Combine(courseFolder, sanitizedStudentName);
+                if (Directory.Exists(studentFolderPath))
+                {
+                    var fileCount = Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length;
+                    if (fileCount > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Found student folder with {fileCount} files: {studentFolderPath}");
+                        return studentFolderPath;
+                    }
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"No student folder found for {student.Name}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error finding student folder: {ex.Message}");
+            return null;
+        }
+    }
+
+    // Get the download folder path from SettingsService (same as Classroom Download ViewModel)
+    private string? GetDownloadFolderPath()
+    {
+        try
+        {
+            // Use the same method as Classroom Download ViewModel to get the download folder path
+            var downloadFolderPath = SettingsService.Instance.LoadDownloadFolderPath();
+            
+            if (!string.IsNullOrEmpty(downloadFolderPath) && Directory.Exists(downloadFolderPath))
+            {
+                System.Diagnostics.Debug.WriteLine($"Found download folder: {downloadFolderPath}");
+                return downloadFolderPath;
+            }
+
+            System.Diagnostics.Debug.WriteLine("Download folder not found or not set");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error getting download folder path: {ex.Message}");
+            return null;
+        }
+    }
+
+    // Show dialog when no assignments are found
+    private async Task ShowNoAssignmentsDialog(string studentName, string reason)
+    {
+        var parentWindow = TopLevel.GetTopLevel(this) as Window;
+        if (parentWindow == null) return;
+
+        var message = $"No assignments found for {studentName}.\n\n{reason}\n\nPlease download assignments from the Classroom Download tab.";
+        
+        // Create a simple dialog window
+        var dialog = new Window
+        {
+            Title = "No Assignments Found",
+            Width = 400,
+            Height = 200,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Content = new StackPanel
+            {
+                Margin = new Thickness(20),
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = message,
+                        TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                        Margin = new Thickness(0, 0, 0, 20)
+                    },
+                    new Button
+                    {
+                        Content = "OK",
+                        HorizontalAlignment = HorizontalAlignment.Center
+                    }
+                }
+            }
+        };
+        
+        // Set up the button click handler
+        var okButton = (Button)((StackPanel)dialog.Content).Children[1];
+        okButton.Click += (s, e) => dialog.Close();
+        
+        await dialog.ShowDialog(parentWindow);
+    }
+
 
     // Event handler for double-clicking on student cards
     private void OnStudentCardDoubleTapped(object? sender, RoutedEventArgs e)
