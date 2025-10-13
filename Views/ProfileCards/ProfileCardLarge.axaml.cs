@@ -1,7 +1,10 @@
 using System;
+using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using SchoolOrganizer.Models;
+using Material.Icons;
+using Material.Icons.Avalonia;
 
 namespace SchoolOrganizer.Views.ProfileCards
 {
@@ -53,6 +56,41 @@ namespace SchoolOrganizer.Views.ProfileCards
             {
                 var args = new ViewAssignmentsClickedEventArgs(ViewAssignmentsClickedEvent, student);
                 RaiseEvent(args);
+            }
+        }
+
+        private void OnEmailClicked(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        {
+            if (DataContext is Student student && !string.IsNullOrWhiteSpace(student.Email))
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = $"mailto:{student.Email}",
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error opening email client: {ex.Message}");
+                }
+            }
+        }
+
+        private void OnEmailPointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+        {
+            if (this.FindControl<MaterialIcon>("EmailIcon") is { } emailIcon)
+            {
+                emailIcon.Kind = MaterialIconKind.EmailArrowRightOutline;
+            }
+        }
+
+        private void OnEmailPointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+        {
+            if (this.FindControl<MaterialIcon>("EmailIcon") is { } emailIcon)
+            {
+                emailIcon.Kind = MaterialIconKind.Email;
             }
         }
     }

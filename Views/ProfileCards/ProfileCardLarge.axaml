@@ -3,6 +3,7 @@
              xmlns:local="clr-namespace:SchoolOrganizer.Views.ProfileCards"
              xmlns:views="using:SchoolOrganizer.Views.Converters"
              xmlns:models="using:SchoolOrganizer.Models"
+             xmlns:material="using:Material.Icons.Avalonia"
              x:Class="SchoolOrganizer.Views.ProfileCards.ProfileCardLarge"
              x:DataType="models:Student">
 
@@ -75,7 +76,21 @@
           <StackPanel>
             <TextBlock Text="Email Address" FontSize="14" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,5"/>
-            <TextBlock x:Name="EmailText" FontSize="18" Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" Cursor="Hand" 
+                        PointerPressed="OnEmailClicked" 
+                        PointerEntered="OnEmailPointerEntered" 
+                        PointerExited="OnEmailPointerExited">
+              <material:MaterialIcon x:Name="EmailIcon" 
+                                     Kind="Email" 
+                                     Width="20" 
+                                     Height="20" 
+                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                     IsHitTestVisible="False"/>
+              <TextBlock x:Name="EmailText" 
+                         FontSize="18" 
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         VerticalAlignment="Center"/>
+            </StackPanel>
           </StackPanel>
 
           <StackPanel>

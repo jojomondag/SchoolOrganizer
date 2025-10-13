@@ -68,6 +68,12 @@ public partial class StudentGalleryViewModel : ObservableObject
     [ObservableProperty]
     private bool isDoubleClickMode = false;
 
+    [ObservableProperty]
+    private bool isDownloadingAssignments = false;
+
+    [ObservableProperty]
+    private string downloadStatusText = string.Empty;
+
     // Properties for controlling view mode
     public bool ShowSingleStudent => !ForceGridView && Students.Count == 2 && Students.Any(s => s is Student);
     public bool ShowMultipleStudents => ForceGridView || Students.Count != 2 || !Students.Any(s => s is Student);

@@ -430,11 +430,44 @@
     </ScrollViewer>
   </Border>
 
+    <!-- Download Progress -->
+    <Border Grid.Row="2" x:Name="DownloadProgressHost"
+            Background="{DynamicResource BackgroundPrimaryBrush}" 
+            BorderBrush="{DynamicResource CardBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="20"
+            Margin="20"
+            BoxShadow="{DynamicResource ShadowMedium}">
+      <Border.IsVisible>
+        <Binding Path="IsDownloadingAssignments"/>
+      </Border.IsVisible>
+      <StackPanel Spacing="12">
+        <TextBlock Text="Downloading Assignments..." 
+                   FontSize="16" 
+                   FontWeight="Bold"
+                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+        <TextBlock Text="{Binding DownloadStatusText}"
+                   FontSize="14"
+                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+        <ProgressBar IsIndeterminate="True"
+                    Height="4"
+                    Background="{DynamicResource BackgroundTertiaryBrush}"
+                    Foreground="{DynamicResource AccentButtonBackground}"/>
+      </StackPanel>
+    </Border>
+
     <!-- Selected Student Details -->
     <Border Grid.Row="2" x:Name="SelectedDetailsHost"
             Background="{DynamicResource TransparentColor}" 
-            Padding="20"
-            IsVisible="{Binding SelectedStudent, Converter={x:Static ObjectConverters.IsNotNull}}">
+            Padding="20">
+      <Border.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="SelectedStudent" Converter="{x:Static ObjectConverters.IsNotNull}"/>
+          <Binding Path="ShowSingleStudent" Converter="{x:Static BoolConverters.Not}"/>
+          <Binding Path="IsDownloadingAssignments" Converter="{x:Static BoolConverters.Not}"/>
+        </MultiBinding>
+      </Border.IsVisible>
       <Border Background="{DynamicResource BackgroundPrimaryBrush}"
               BorderBrush="{DynamicResource CardBorderBrush}"
               BorderThickness="1"

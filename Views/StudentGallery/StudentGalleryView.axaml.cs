@@ -596,6 +596,13 @@ public partial class StudentGalleryView : UserControl
                     return;
                 }
 
+                // Set download status
+                if (ViewModel != null)
+                {
+                    ViewModel.IsDownloadingAssignments = true;
+                    ViewModel.DownloadStatusText = "Preparing to download assignments...";
+                }
+
                 // Attempt to download assignments for this student
                 var downloadSuccess = await DownloadStudentAssignmentsAsync(student);
                 
@@ -638,6 +645,15 @@ public partial class StudentGalleryView : UserControl
         {
             System.Diagnostics.Debug.WriteLine($"Error opening assignments for {student.Name}: {ex.Message}");
             await ShowNoAssignmentsDialog(student.Name, $"Error: {ex.Message}");
+        }
+        finally
+        {
+            // Clear download status
+            if (ViewModel != null)
+            {
+                ViewModel.IsDownloadingAssignments = false;
+                ViewModel.DownloadStatusText = string.Empty;
+            }
         }
     }
 
@@ -754,49 +770,76 @@ public partial class StudentGalleryView : UserControl
 
             System.Diagnostics.Debug.WriteLine($"Found {courses.Count} active courses");
 
-            bool anyDownloadsSucceeded = false;
+            // Find the course that matches the student's class name
+            var matchingCourse = courses.FirstOrDefault(c => 
+                c.Name?.Equals(student.ClassName, StringComparison.OrdinalIgnoreCase) == true);
 
-            // For each course, check if the student is enrolled and download their assignments
-            foreach (var course in courses)
+            if (matchingCourse == null)
             {
-                try
+                System.Diagnostics.Debug.WriteLine($"No matching course found for student class: {student.ClassName}");
+                if (ViewModel != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Checking course: {course.Name}");
-                    
-                    // Get students in this course
-                    var studentsInCourse = await classroomDataService.GetStudentsInCourseAsync(course.Id);
-                    
-                    // Check if our student is enrolled in this course (match by email)
-                    var matchingStudent = studentsInCourse.FirstOrDefault(s => 
-                        string.Equals(s.Profile?.EmailAddress, student.Email, StringComparison.OrdinalIgnoreCase));
-
-                    if (matchingStudent != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Found {student.Name} in course: {course.Name}");
-                        
-                        // Download assignments for this student from this course
-                        var success = await DownloadStudentForCourseAsync(
-                            cachedClassroomService,
-                            mainViewModel.AuthService.DriveService!,
-                            course,
-                            matchingStudent,
-                            student.Name,
-                            downloadFolderPath,
-                            mainViewModel.AuthService.TeacherName);
-                        if (success)
-                        {
-                            anyDownloadsSucceeded = true;
-                        }
-                    }
+                    ViewModel.DownloadStatusText = $"No course found matching '{student.ClassName}'";
                 }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error processing course {course.Name}: {ex.Message}");
-                }
+                return false;
             }
 
-            System.Diagnostics.Debug.WriteLine($"Download completed for {student.Name}. Success: {anyDownloadsSucceeded}");
-            return anyDownloadsSucceeded;
+            System.Diagnostics.Debug.WriteLine($"Found matching course: {matchingCourse.Name} for student class: {student.ClassName}");
+
+            // Update status
+            if (ViewModel != null)
+            {
+                ViewModel.DownloadStatusText = $"Downloading from course: {matchingCourse.Name}";
+            }
+
+            try
+            {
+                // Get students in this course
+                var studentsInCourse = await classroomDataService.GetStudentsInCourseAsync(matchingCourse.Id);
+                
+                // Check if our student is enrolled in this course (match by email)
+                var matchingStudent = studentsInCourse.FirstOrDefault(s => 
+                    string.Equals(s.Profile?.EmailAddress, student.Email, StringComparison.OrdinalIgnoreCase));
+
+                if (matchingStudent == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Student {student.Name} not found in course {matchingCourse.Name}");
+                    if (ViewModel != null)
+                    {
+                        ViewModel.DownloadStatusText = $"Student not enrolled in course: {matchingCourse.Name}";
+                    }
+                    return false;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Found {student.Name} in course: {matchingCourse.Name}");
+                
+                // Update status
+                if (ViewModel != null)
+                {
+                    ViewModel.DownloadStatusText = $"Downloading assignments for {student.Name}...";
+                }
+                
+                // Download assignments for this student from this course
+                var success = await DownloadStudentForCourseAsync(
+                    cachedClassroomService,
+                    mainViewModel.AuthService.DriveService!,
+                    matchingCourse,
+                    matchingStudent,
+                    student.Name,
+                    downloadFolderPath,
+                    mainViewModel.AuthService.TeacherName);
+                
+                return success;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error processing course {matchingCourse.Name}: {ex.Message}");
+                if (ViewModel != null)
+                {
+                    ViewModel.DownloadStatusText = $"Error downloading from {matchingCourse.Name}: {ex.Message}";
+                }
+                return false;
+            }
         }
         catch (Exception ex)
         {
