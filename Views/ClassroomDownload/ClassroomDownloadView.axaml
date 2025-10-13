@@ -183,7 +183,7 @@
                                         <Button Command="{Binding OpenCourseDataCommand}"
                                                 IsVisible="{Binding HasFolder}"
                                                 Padding="12,6"
-                                                Content="View Content"
+                                                Content="View Assignments"
                                                 Background="{DynamicResource AccentButtonBackground}"
                                                 Foreground="White"
                                                 BorderThickness="0"

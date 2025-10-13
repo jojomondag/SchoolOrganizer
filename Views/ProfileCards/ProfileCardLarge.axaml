@@ -117,18 +117,16 @@
                     Content="View Assignments"
                     FontSize="16"
                     FontWeight="SemiBold"
-                    Padding="20,12"
-                    Background="{DynamicResource BackgroundSecondaryBrush}"
-                    Foreground="{DynamicResource TextPrimaryBrush}"
-                    BorderBrush="{DynamicResource BlackBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
+                    Padding="12,6"
+                    Background="{DynamicResource AccentButtonBackground}"
+                    Foreground="White"
+                    BorderThickness="0"
+                    CornerRadius="4"
                     Cursor="Hand"
                     Click="OnViewAssignmentsButtonClicked">
               <Button.Styles>
                 <Style Selector="Button:pointerover">
-                  <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryBrush}"/>
-                  <Setter Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}"/>
+                  <Setter Property="Background" Value="{DynamicResource AccentButtonBackgroundHover}"/>
                 </Style>
               </Button.Styles>
             </Button>

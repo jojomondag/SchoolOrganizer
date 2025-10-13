@@ -55,7 +55,7 @@ public class StudentDetailViewModel : ReactiveObject
         }
     }
 
-    public string WindowTitle => $"{StudentName} - {CourseName}";
+    public string WindowTitle => "View Assignments";
 
     private void UpdateWindowTitle()
     {
