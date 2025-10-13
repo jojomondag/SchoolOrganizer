@@ -15,7 +15,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         SetWindowIcon();
-        SetupNativeMenu();
 
         // Intercept window closing to hide instead
         Closing += OnWindowClosing;
@@ -64,11 +63,14 @@ public partial class MainWindow : Window
         NavigateToClassroomDownload();
     }
 
-    private void SetupNativeMenu()
+    private void StudentGallery_Native_Click(object? sender, EventArgs e)
     {
-        // NativeMenu setup moved to Application level for macOS
-        // This method is now only used for Windows (which uses Menu control in XAML)
-        // For macOS, the menu is set up in App.axaml.cs to appear in system menu bar
+        NavigateToStudentGallery();
+    }
+
+    private void ClassroomDownload_Native_Click(object? sender, EventArgs e)
+    {
+        NavigateToClassroomDownload();
     }
 
     private void NavigateToStudentGallery()

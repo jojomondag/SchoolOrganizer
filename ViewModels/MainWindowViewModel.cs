@@ -46,9 +46,6 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private bool isAuthenticated = false;
 
-    [ObservableProperty]
-    private bool isWindowsMenuVisible = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
     // Public property to access the AuthService
     public GoogleAuthService AuthService => _authService;
 
