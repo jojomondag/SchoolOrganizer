@@ -2,9 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:SchoolOrganizer.Views.ProfileCards"
              xmlns:materialIcons="using:Material.Icons.Avalonia"
-             x:Class="SchoolOrganizer.Views.ProfileCards.AddStudentProfileCard"
-             x:DataType="local:AddStudentProfileCard"
->
+             x:Class="SchoolOrganizer.Views.ProfileCards.AddStudentProfileCardMedium"
+             x:DataType="local:AddStudentProfileCardMedium"
+             Width="320" Height="320">
 
   <Grid Margin="20,40,20,40" ClipToBounds="False">
     <Border x:Name="CardBorder"
@@ -13,12 +13,13 @@
             BorderBrush="{DynamicResource BlackBrush}"
             BorderThickness="1"
             Padding="12"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
+            Width="240"
+            Height="240"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
             Cursor="Hand"
             BoxShadow="{DynamicResource ShadowLight}"
             RenderTransformOrigin="0.5,0.5">
-
 
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
         <!-- Plus Icon Circle -->

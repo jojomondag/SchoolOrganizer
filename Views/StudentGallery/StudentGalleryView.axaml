@@ -344,14 +344,12 @@
                         <!-- Add Student Card Template -->
                         <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsAddCardConverter}}">
                           <!-- Add Student Card for Small DisplayLevel -->
-                          <profileCard:AddStudentProfileCard Name="AddStudentCardSmall"
-                                                           Width="240" Height="240"
-                                                           IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
+                          <profileCard:AddStudentProfileCardSmall Name="AddStudentCardSmall"
+                                                                 IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
 
                           <!-- Add Student Card for Medium DisplayLevel -->
-                          <profileCard:AddStudentProfileCard Name="AddStudentCardMedium"
-                                                           Width="320" Height="320"
-                                                           IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
+                          <profileCard:AddStudentProfileCardMedium Name="AddStudentCardMedium"
+                                                                 IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
                         </Panel>
                       </Grid>
                     </DataTemplate>
