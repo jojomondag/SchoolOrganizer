@@ -476,8 +476,7 @@
               BoxShadow="{DynamicResource ShadowMedium}">
         <Grid>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Spacing="8">
-            <Button Content="✎"
-                    Width="24" Height="24"
+            <Button Width="24" Height="24"
                     Background="{DynamicResource ActionBlueLightBrush}" 
                     BorderBrush="{DynamicResource ActionBlueBrush}"
                     BorderThickness="1"
@@ -486,6 +485,10 @@
                     Command="{Binding EditStudentCommand}"
                     CommandParameter="{Binding SelectedStudent}"
                     Template="{StaticResource FlatButtonTemplate}">
+              <materialIcons:MaterialIcon Kind="AccountEdit" 
+                                         Width="18" 
+                                         Height="18"
+                                         Foreground="{DynamicResource ActionBlueBrush}"/>
               <Button.Styles>
                 <Style Selector="Button:pointerover">
                   <Setter Property="Background" Value="{DynamicResource ActionBlueBrush}"/>
@@ -493,8 +496,7 @@
                 </Style>
               </Button.Styles>
             </Button>
-            <Button Content="🗑"
-                    Width="24" Height="24"
+            <Button Width="24" Height="24"
                     Background="{DynamicResource ActionRedLightBrush}" 
                     BorderBrush="{DynamicResource ActionRedBrush}"
                     BorderThickness="1"
@@ -503,6 +505,10 @@
                     Command="{Binding DeleteStudentCommand}"
                     CommandParameter="{Binding SelectedStudent}"
                     Template="{StaticResource FlatButtonTemplate}">
+              <materialIcons:MaterialIcon Kind="AccountRemove" 
+                                         Width="18" 
+                                         Height="18"
+                                         Foreground="{DynamicResource ActionRedBrush}"/>
               <Button.Styles>
                 <Style Selector="Button:pointerover">
                   <Setter Property="Background" Value="{DynamicResource ActionRedBrush}"/>
