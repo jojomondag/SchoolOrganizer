@@ -3,9 +3,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
+using Avalonia.Native;
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
@@ -47,6 +49,9 @@ public partial class App : Application
             desktop.MainWindow = mainWindow;
             mainWindow.Show();
             Log.Information("Opened MainWindow - authentication handled in Student Gallery.");
+
+            // Setup macOS system menu bar (only on macOS)
+            SetupMacOsMenu(mainWindow);
 
             // Auto-open StudentDetailView with first real classroom - DISABLED to show StudentGallery first
             // await OpenFirstRealClassroom();
@@ -241,6 +246,45 @@ public partial class App : Application
         foreach (var plugin in dataValidationPluginsToRemove)
         {
             BindingPlugins.DataValidators.Remove(plugin);
+        }
+    }
+
+    private void SetupMacOsMenu(MainWindow mainWindow)
+    {
+        // Only setup NativeMenu for macOS
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            var menu = new NativeMenu();
+            
+            var studentGalleryItem = new NativeMenuItem("Student Gallery");
+            studentGalleryItem.Click += (sender, e) => NavigateToStudentGallery(mainWindow);
+            menu.Add(studentGalleryItem);
+            
+            var classroomDownloadItem = new NativeMenuItem("Classroom Downloads");
+            classroomDownloadItem.Click += (sender, e) => NavigateToClassroomDownload(mainWindow);
+            menu.Add(classroomDownloadItem);
+            
+            // Set menu on Application level to appear in macOS system menu bar
+            if (Application.Current != null)
+            {
+                NativeMenu.SetMenu(Application.Current, menu);
+            }
+        }
+    }
+
+    private void NavigateToStudentGallery(MainWindow mainWindow)
+    {
+        if (mainWindow.DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.NavigateToStudentGalleryCommand.Execute(null);
+        }
+    }
+
+    private void NavigateToClassroomDownload(MainWindow mainWindow)
+    {
+        if (mainWindow.DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.NavigateToClassroomDownloadCommand.Execute(null);
         }
     }
 

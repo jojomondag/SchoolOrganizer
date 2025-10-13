@@ -66,22 +66,9 @@ public partial class MainWindow : Window
 
     private void SetupNativeMenu()
     {
-        // Only setup NativeMenu for macOS
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            var menu = new NativeMenu();
-            
-            var studentGalleryItem = new NativeMenuItem("Student Gallery");
-            studentGalleryItem.Click += (sender, e) => NavigateToStudentGallery();
-            menu.Add(studentGalleryItem);
-            
-            var classroomDownloadItem = new NativeMenuItem("Classroom Downloads");
-            classroomDownloadItem.Click += (sender, e) => NavigateToClassroomDownload();
-            menu.Add(classroomDownloadItem);
-            
-            NativeMenu.SetMenu(this, menu);
-        }
-        // For Windows, the Menu control in XAML will be used
+        // NativeMenu setup moved to Application level for macOS
+        // This method is now only used for Windows (which uses Menu control in XAML)
+        // For macOS, the menu is set up in App.axaml.cs to appear in system menu bar
     }
 
     private void NavigateToStudentGallery()
