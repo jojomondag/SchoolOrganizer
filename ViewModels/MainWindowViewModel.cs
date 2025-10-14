@@ -46,6 +46,9 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private bool isAuthenticated = false;
 
+    [ObservableProperty]
+    private bool isMenuOpen = true;
+
     // Public property to access the AuthService
     public GoogleAuthService AuthService => _authService;
 
@@ -97,6 +100,9 @@ public partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private async Task Login() => await AuthenticateAsync("Authenticating with Google...", false);
+
+    [RelayCommand]
+    private void ToggleMenu() => IsMenuOpen = !IsMenuOpen;
 
     [RelayCommand]
     private void Logout()

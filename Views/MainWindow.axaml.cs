@@ -53,39 +53,4 @@ public partial class MainWindow : Window
 
     // Test window functionality removed - explorer toggle now available in main StudentDetail window
 
-    private void StudentGallery_Click(object? sender, RoutedEventArgs e)
-    {
-        NavigateToStudentGallery();
-    }
-
-    private void ClassroomDownload_Click(object? sender, RoutedEventArgs e)
-    {
-        NavigateToClassroomDownload();
-    }
-
-    private void StudentGallery_Native_Click(object? sender, EventArgs e)
-    {
-        NavigateToStudentGallery();
-    }
-
-    private void ClassroomDownload_Native_Click(object? sender, EventArgs e)
-    {
-        NavigateToClassroomDownload();
-    }
-
-    private void NavigateToStudentGallery()
-    {
-        if (DataContext is MainWindowViewModel viewModel)
-        {
-            viewModel.NavigateToStudentGalleryCommand.Execute(null);
-        }
-    }
-
-    private void NavigateToClassroomDownload()
-    {
-        if (DataContext is MainWindowViewModel viewModel)
-        {
-            viewModel.NavigateToClassroomDownloadCommand.Execute(null);
-        }
-    }
 }

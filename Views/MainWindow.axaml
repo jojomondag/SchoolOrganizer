@@ -4,6 +4,7 @@
         xmlns:views="using:SchoolOrganizer.Views"
         xmlns:studentGallery="using:SchoolOrganizer.Views.StudentGallery"
         xmlns:classroomDownload="using:SchoolOrganizer.Views.ClassroomDownload"
+        xmlns:materialIcons="using:Material.Icons.Avalonia"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -31,68 +32,136 @@
         </Style>
     </Window.Styles>
 
-    <NativeMenu.Menu>
-        <NativeMenu>
-            <NativeMenuItem Header="Student Gallery" Click="StudentGallery_Native_Click" />
-            <NativeMenuItem Header="Classroom Downloads" Click="ClassroomDownload_Native_Click" />
-        </NativeMenu>
-    </NativeMenu.Menu>
+    <SplitView IsPaneOpen="{Binding IsMenuOpen}" 
+               DisplayMode="CompactInline" 
+               OpenPaneLength="200" 
+               CompactPaneLength="56">
+        <SplitView.Pane>
+            <!-- Navigation Menu -->
+            <Border Background="{DynamicResource BackgroundSecondaryColor}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/> <!-- Header -->
+                        <RowDefinition Height="*"/>    <!-- Navigation items -->
+                        <RowDefinition Height="Auto"/> <!-- Profile at bottom -->
+                    </Grid.RowDefinitions>
 
+                    <!-- Header with hamburger button and title -->
+                    <Border Grid.Row="0" Background="{DynamicResource HeaderBackgroundBrush}" Padding="16,10,16,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+                            <!-- Hamburger Menu Button -->
+                            <Button Grid.Column="0" Command="{Binding ToggleMenuCommand}" 
+                                    Width="32" Height="32" Margin="0,0,8,0"
+                                    Background="Transparent" BorderThickness="0">
+                                <materialIcons:MaterialIcon Kind="Menu" Width="20" Height="20"/>
+                            </Button>
 
-        <!-- Header with NativeMenuBar and Profile Image -->
-        <Border Grid.Row="0" Background="{DynamicResource HeaderBackgroundBrush}" Padding="16,10,16,10">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                            <!-- App Title (when menu is open) -->
+                            <TextBlock Grid.Column="1" Text="School Organizer" 
+                                      VerticalAlignment="Center" FontWeight="Bold"
+                                      IsVisible="{Binding IsMenuOpen}"/>
+                        </Grid>
+                    </Border>
 
-                <!-- NativeMenuBar for Windows (automatically picks from NativeMenu.Menu) -->
-                <NativeMenuBar Grid.Column="0" VerticalAlignment="Center" />
+                    <!-- Navigation Items -->
+                    <StackPanel Grid.Row="1" Margin="8,16,8,8" Spacing="4">
+                        <!-- Student Gallery -->
+                        <Button Command="{Binding NavigateToStudentGalleryCommand}"
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Left"
+                                Padding="12,8"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                CornerRadius="4">
+                            <Button.Content>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <materialIcons:MaterialIcon Kind="AccountGroupOutline" Width="20" Height="20"/>
+                                    <TextBlock Text="Student Gallery" VerticalAlignment="Center" 
+                                              IsVisible="{Binding IsMenuOpen}"/>
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
 
-                <!-- Profile Image/Classroom Icon Display -->
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <!-- Profile Picture Button (Logout when authenticated) -->
-                    <Button Command="{Binding LogoutCommand}"
-                            Width="48" Height="48"
-                            Padding="0" BorderThickness="0" Background="Transparent"
-                            IsVisible="{Binding IsAuthenticated}">
-                        <Button.Content>
-                            <Border CornerRadius="8" ClipToBounds="True" Width="48" Height="48">
-                                <Image Source="{Binding ProfileImage}" Stretch="UniformToFill" Width="48" Height="48" IsHitTestVisible="False"/>
-                            </Border>
-                        </Button.Content>
-                        <ToolTip.Tip>
-                            <ToolTip Content="Log out" />
-                        </ToolTip.Tip>
-                    </Button>
+                        <!-- Classroom Downloads -->
+                        <Button Command="{Binding NavigateToClassroomDownloadCommand}"
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Left"
+                                Padding="12,8"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                CornerRadius="4">
+                            <Button.Content>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <materialIcons:MaterialIcon Kind="Download" Width="20" Height="20"/>
+                                    <TextBlock Text="Classroom Downloads" VerticalAlignment="Center" 
+                                              IsVisible="{Binding IsMenuOpen}"/>
+                                </StackPanel>
+                            </Button.Content>
+                        </Button>
+                    </StackPanel>
 
-                    <!-- Login Button (when not authenticated) -->
-                    <Button Command="{Binding LoginCommand}"
-                            Width="48" Height="48"
-                            Padding="0" BorderThickness="0" Background="Transparent"
-                            IsVisible="{Binding !IsAuthenticated}">
-                        <Button.Content>
-                            <Border CornerRadius="8" ClipToBounds="True" Width="48" Height="48" Background="{DynamicResource BackgroundTertiaryBrush}">
-                                <Image Source="{SvgImage avares://SchoolOrganizer/Assets/ClassroomIcon.svg}" Width="32" Height="32" Stretch="Uniform" IsHitTestVisible="False"/>
-                            </Border>
-                        </Button.Content>
-                        <ToolTip.Tip>
-                            <ToolTip Content="Login with Google to access your profile" />
-                        </ToolTip.Tip>
-                    </Button>
-                </StackPanel>
-            </Grid>
-        </Border>
+                    <!-- Profile/Login at Bottom -->
+                    <Border Grid.Row="2" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,1,0,0" Padding="8">
+                        <StackPanel Spacing="4">
+                            <!-- Profile Picture Button (Logout when authenticated) -->
+                            <Button Command="{Binding LogoutCommand}"
+                                    HorizontalAlignment="Stretch" 
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,8"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    CornerRadius="4"
+                                    IsVisible="{Binding IsAuthenticated}">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <Border CornerRadius="4" ClipToBounds="True" Width="40" Height="40">
+                                            <Image Source="{Binding ProfileImage}" Stretch="UniformToFill" Width="40" Height="40" IsHitTestVisible="False"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding TeacherName}" VerticalAlignment="Center" 
+                                                  IsVisible="{Binding IsMenuOpen}"/>
+                                    </StackPanel>
+                                </Button.Content>
+                                <ToolTip.Tip>
+                                    <ToolTip Content="Log out" />
+                                </ToolTip.Tip>
+                            </Button>
 
-        <!-- Content Area with blended background -->
-        <Border Grid.Row="1" Background="White">
+                            <!-- Login Button (when not authenticated) -->
+                            <Button Command="{Binding LoginCommand}"
+                                    HorizontalAlignment="Stretch" 
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,8"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    CornerRadius="4"
+                                    IsVisible="{Binding !IsAuthenticated}">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <Border CornerRadius="4" ClipToBounds="True" Width="20" Height="20" Background="{DynamicResource BackgroundTertiaryBrush}">
+                                            <Image Source="{SvgImage avares://SchoolOrganizer/Assets/ClassroomIcon.svg}" Width="16" Height="16" Stretch="Uniform" IsHitTestVisible="False"/>
+                                        </Border>
+                                        <TextBlock Text="Login" VerticalAlignment="Center" 
+                                                  IsVisible="{Binding IsMenuOpen}"/>
+                                    </StackPanel>
+                                </Button.Content>
+                                <ToolTip.Tip>
+                                    <ToolTip Content="Login with Google to access your profile" />
+                                </ToolTip.Tip>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </SplitView.Pane>
+
+        <SplitView.Content>
+            <!-- Main Content Area -->
+            <Border Background="White">
             <ContentControl Content="{Binding CurrentViewModel}">
                 <ContentControl.DataTemplates>
                 <!-- Template for StudentGalleryViewModel -->
@@ -107,7 +176,8 @@
 
                 </ContentControl.DataTemplates>
             </ContentControl>
-        </Border>
-    </Grid>
+            </Border>
+        </SplitView.Content>
+    </SplitView>
 
 </Window>

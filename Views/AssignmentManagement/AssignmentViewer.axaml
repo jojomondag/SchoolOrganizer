@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:SchoolOrganizer.ViewModels"
         xmlns:components="using:SchoolOrganizer.Views.Components"
+        xmlns:materialIcons="using:Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
         x:Class="SchoolOrganizer.Views.AssignmentManagement.AssignmentViewer"
         x:DataType="vm:StudentDetailViewModel"
@@ -16,98 +17,169 @@
     <vm:StudentDetailViewModel/>
   </Design.DataContext>
 
-  <Grid Name="MainGrid">
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="300" MinWidth="250"/>
-      <ColumnDefinition Width="12"/>
-      <ColumnDefinition Width="*"/>
-    </Grid.ColumnDefinitions>
+  <SplitView IsPaneOpen="{Binding IsNavigationOpen}" 
+             DisplayMode="CompactInline" 
+             OpenPaneLength="250" 
+             CompactPaneLength="56">
+    <SplitView.Pane>
+      <!-- Navigation Menu -->
+      <Border Background="{DynamicResource BackgroundSecondaryBrush}" Padding="0">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="*"/>    <!-- Navigation items -->
+          </Grid.RowDefinitions>
 
-    <!-- File Explorer (Left Panel) -->
-    <Border Grid.Column="0" 
-            Name="ExplorerPanel"
-            Background="{DynamicResource BackgroundSecondaryBrush}" 
-            RenderTransformOrigin="0,0">
-      <Border.RenderTransform>
-        <TranslateTransform X="0"/>
-      </Border.RenderTransform>
-      
-      <TreeView ItemsSource="{Binding FileTree}"
-                SelectionChanged="OnTreeViewSelectionChanged"
-                Margin="5">
-        <TreeView.ItemTemplate>
-          <TreeDataTemplate ItemsSource="{Binding Children}">
-            <TextBlock Text="{Binding Name}" Margin="2"/>
-          </TreeDataTemplate>
-        </TreeView.ItemTemplate>
-      </TreeView>
-    </Border>
+          <!-- Header with hamburger button and title -->
+          <Border Grid.Row="0" Background="{DynamicResource HeaderBackgroundBrush}" Padding="16,10,16,10">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
 
-    <!-- Main Content Panel -->
-    <Border Grid.Column="2" 
-            Name="MainContentPanel" 
-            Background="{DynamicResource BackgroundPrimaryBrush}">
-      <ScrollViewer Name="MainScrollViewer"
-                    VerticalScrollBarVisibility="Auto" 
-                    HorizontalScrollBarVisibility="Disabled">
-        <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Border Background="{DynamicResource BackgroundTertiaryBrush}" 
-                      Margin="0,0,0,0">
-                <Grid>
-                  <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                  </Grid.RowDefinitions>
-                  
-                  <!-- Assignment Header -->
-                  <Border Grid.Row="0" 
-                          x:Name="AssignmentHeaderBorder"
-                          Background="{DynamicResource BackgroundSecondaryBrush}" 
-                          Padding="15">
-                    <TextBlock Text="{Binding AssignmentName}" 
-                               FontWeight="Bold" 
-                               FontSize="18"
-                               Foreground="{DynamicResource TextPrimaryBrush}"
-                               HorizontalAlignment="Center"/>
-                  </Border>
-                  
-                  <!-- Assignment Files -->
-                  <ItemsControl Grid.Row="1" ItemsSource="{Binding Files}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                        <components:FilePreviewControl/>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </Grid>
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </ScrollViewer>
-    </Border>
+              <!-- Hamburger Menu Button -->
+              <Button Grid.Column="0" Click="OnToggleNavigationClick"
+                      Width="32" Height="32" Margin="0,0,8,0"
+                      Background="Transparent" BorderThickness="0">
+                <materialIcons:MaterialIcon Kind="Menu" Width="20" Height="20"/>
+              </Button>
 
-    <!-- Custom Fold Button Separator -->
-    <Border Grid.Column="1" 
-            Name="SeparatorPanel"
-            Background="{DynamicResource BackgroundSecondaryBrush}">
-      <Button Name="SeparatorToggleButton"
-              Click="OnToggleExplorerClick"
-              Background="White"
-              Padding="0"
-              Margin="0"
-              VerticalAlignment="Stretch"
-              HorizontalAlignment="Stretch"
-              CornerRadius="0">
-        <TextBlock Text="‹" 
-                   FontSize="10" 
-                   FontWeight="Bold" 
-                   Foreground="Black" 
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
-      </Button>
-    </Border>
-  </Grid>
+              <!-- App Title (when menu is open) -->
+              <TextBlock Grid.Column="1" Text="Assignments" 
+                        VerticalAlignment="Center" FontWeight="Bold"
+                        IsVisible="{Binding IsNavigationOpen}"/>
+            </Grid>
+          </Border>
+
+          <!-- Navigation Items -->
+          <ScrollViewer Grid.Row="1" Margin="8,16,8,8">
+            <StackPanel Spacing="4">
+              <!-- View Modes Section -->
+              <TextBlock Text="Views" 
+                        FontWeight="Bold" 
+                        FontSize="12" 
+                        Foreground="{DynamicResource TextSecondaryBrush}"
+                        Margin="0,0,0,8"
+                        IsVisible="{Binding IsNavigationOpen}"/>
+              
+              <!-- All Files View -->
+              <Button HorizontalAlignment="Stretch" 
+                      HorizontalContentAlignment="Left"
+                      Padding="12,8"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      CornerRadius="4"
+                      Click="OnViewModeClick"
+                      Tag="AllFiles">
+                <Button.Content>
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <materialIcons:MaterialIcon Kind="ViewGrid" Width="20" Height="20"/>
+                    <TextBlock Text="All Files" VerticalAlignment="Center" 
+                              IsVisible="{Binding IsNavigationOpen}"/>
+                  </StackPanel>
+                </Button.Content>
+              </Button>
+
+              <!-- File Explorer View -->
+              <Button HorizontalAlignment="Stretch" 
+                      HorizontalContentAlignment="Left"
+                      Padding="12,8"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      CornerRadius="4"
+                      Click="OnViewModeClick"
+                      Tag="FileExplorer">
+                <Button.Content>
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <materialIcons:MaterialIcon Kind="FileTree" Width="20" Height="20"/>
+                    <TextBlock Text="File Explorer" VerticalAlignment="Center" 
+                              IsVisible="{Binding IsNavigationOpen}"/>
+                  </StackPanel>
+                </Button.Content>
+              </Button>
+
+              <!-- Assignments Section -->
+              <TextBlock Text="Assignments" 
+                        FontWeight="Bold" 
+                        FontSize="12" 
+                        Foreground="{DynamicResource TextSecondaryBrush}"
+                        Margin="0,16,0,8"
+                        IsVisible="{Binding IsNavigationOpen}"/>
+
+              <!-- Dynamic Assignment Items -->
+              <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Button HorizontalAlignment="Stretch" 
+                            HorizontalContentAlignment="Left"
+                            Padding="12,8"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            CornerRadius="4"
+                            Click="OnAssignmentClick"
+                            Tag="{Binding AssignmentName}">
+                      <Button.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                          <materialIcons:MaterialIcon Kind="FileDocument" Width="20" Height="20"/>
+                          <TextBlock Text="{Binding AssignmentName}" VerticalAlignment="Center" 
+                                    IsVisible="{Binding $parent[ItemsControl].((vm:StudentDetailViewModel)DataContext).IsNavigationOpen}"/>
+                        </StackPanel>
+                      </Button.Content>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+    </SplitView.Pane>
+
+    <SplitView.Content>
+      <!-- Main Content Area -->
+      <Border Background="{DynamicResource BackgroundPrimaryBrush}">
+        <ScrollViewer Name="MainScrollViewer"
+                      VerticalScrollBarVisibility="Auto" 
+                      HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Background="{DynamicResource BackgroundTertiaryBrush}" 
+                        Margin="0,0,0,0">
+                  <Grid>
+                    <Grid.RowDefinitions>
+                      <RowDefinition Height="Auto"/>
+                      <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Assignment Header -->
+                    <Border Grid.Row="0" 
+                            x:Name="AssignmentHeaderBorder"
+                            Background="{DynamicResource BackgroundSecondaryBrush}" 
+                            Padding="15">
+                      <TextBlock Text="{Binding AssignmentName}" 
+                                 FontWeight="Bold" 
+                                 FontSize="18"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 HorizontalAlignment="Center"/>
+                    </Border>
+                    
+                    <!-- Assignment Files -->
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding Files}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <components:FilePreviewControl/>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Border>
+    </SplitView.Content>
+  </SplitView>
 </Window>

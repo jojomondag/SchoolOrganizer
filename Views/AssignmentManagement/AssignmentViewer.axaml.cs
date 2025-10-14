@@ -22,13 +22,11 @@ namespace SchoolOrganizer.Views.AssignmentManagement;
 public partial class AssignmentViewer : Window
 {
     private FileViewerScrollService? _scrollService;
-    private readonly PanelManagementService _panelManagementService;
     private DateTime _lastScrollTime = DateTime.MinValue;
 
     public AssignmentViewer()
     {
         InitializeComponent();
-        _panelManagementService = new PanelManagementService();
         InitializeScrollService();
     }
 
@@ -36,7 +34,6 @@ public partial class AssignmentViewer : Window
     {
         DataContext = viewModel;
         ConnectScrollServiceToViewModel();
-        InitializeToggleButtonState();
         SubscribeToFilePreviewEvents();
     }
 
@@ -63,21 +60,6 @@ public partial class AssignmentViewer : Window
         Log.Information("Successfully subscribed to MaximizeClickedEvent");
     }
     
-    private void InitializeToggleButtonState()
-    {
-        // Initialize the separator button state
-        var separatorToggleButton = this.FindControl<Button>("SeparatorToggleButton");
-        
-        if (separatorToggleButton != null)
-        {
-            // Set initial chevron direction (left-pointing since explorer starts open)
-            var textBlock = separatorToggleButton.Content as TextBlock;
-            if (textBlock != null)
-            {
-                textBlock.Text = "‹"; // Left-pointing chevron for collapse
-            }
-        }
-    }
 
     /// <summary>
     /// Initializes the scroll service after the UI components are loaded
@@ -123,62 +105,90 @@ public partial class AssignmentViewer : Window
 
     // Removed unused event handlers - no DataGrid in current UI
 
-    private void OnTreeViewSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is StudentDetailViewModel viewModel && 
-            sender is TreeView treeView &&
-            treeView.SelectedItem is FileTreeNode selectedNode)
-        {
-            viewModel.SelectedFile = selectedNode;
-            
-            // Load content when a file is selected
-            if (!selectedNode.IsDirectory)
-            {
-                _ = selectedNode.LoadContentAsync();
-            }
 
-            // Scroll to the assignment header when a folder is clicked (same behavior as maximize button)
-            if (selectedNode.IsDirectory)
+
+
+    /// <summary>
+    /// Handles assignment navigation button clicks
+    /// </summary>
+    private async void OnAssignmentClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Log.Information("OnAssignmentClick called - Sender: {SenderType}, Tag: {Tag}", 
+                sender?.GetType().Name, (sender as Button)?.Tag);
+            
+            if (sender is Button button && button.Tag is string assignmentName && 
+                DataContext is StudentDetailViewModel viewModel)
             {
-                var assignmentName = GetAssignmentNameFromNode(selectedNode);
-                var filePreviewControl = FindFilePreviewControlForAssignment(assignmentName);
-                
-                if (filePreviewControl != null)
-                {
-                    // Debounce rapid clicks - only scroll if it's been more than 200ms since last scroll
-                    var now = DateTime.Now;
-                    if ((now - _lastScrollTime).TotalMilliseconds > 200)
-                    {
-                        _lastScrollTime = now;
-                        
-                        // Use a small delay to allow UI to settle
-                        _ = Task.Delay(50).ContinueWith(_ => 
-                        {
-                            Dispatcher.UIThread.InvokeAsync(() => 
-                            {
-                                ScrollToAssignmentHeader(filePreviewControl);
-                            });
-                        });
-                    }
-                }
+                Log.Information("Executing assignment navigation for: {AssignmentName}", assignmentName);
+                await viewModel.ScrollToAssignmentAsync(assignmentName);
+                Log.Information("Assignment navigation completed for: {AssignmentName}", assignmentName);
             }
+            else
+            {
+                Log.Warning("OnAssignmentClick - Invalid sender or DataContext. Sender: {SenderType}, DataContext: {DataContextType}", 
+                    sender?.GetType().Name, DataContext?.GetType().Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error handling assignment click - Sender: {SenderType}", sender?.GetType().Name);
         }
     }
 
-
-    private void OnToggleExplorerClick(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// Handles view mode button clicks
+    /// </summary>
+    private void OnViewModeClick(object sender, RoutedEventArgs e)
     {
-        var mainGrid = this.FindControl<Grid>("MainGrid");
-        var explorerPanel = this.FindControl<Border>("ExplorerPanel");
-        var mainContentPanel = this.FindControl<Border>("MainContentPanel");
-        var separatorPanel = this.FindControl<Border>("SeparatorPanel");
-        var separatorToggleButton = this.FindControl<Button>("SeparatorToggleButton");
-        
-        if (mainGrid != null && explorerPanel != null && mainContentPanel != null && 
-            separatorPanel != null && separatorToggleButton != null)
+        try
         {
-            _panelManagementService.ToggleExplorerPanel(mainGrid, explorerPanel, mainContentPanel, 
-                separatorPanel, separatorToggleButton);
+            Log.Information("OnViewModeClick called - Sender: {SenderType}, Tag: {Tag}", 
+                sender?.GetType().Name, (sender as Button)?.Tag);
+            
+            if (sender is Button button && button.Tag is string viewMode && 
+                DataContext is StudentDetailViewModel viewModel)
+            {
+                Log.Information("Changing view mode to: {ViewMode}", viewMode);
+                viewModel.SelectedViewMode = viewMode;
+                Log.Information("View mode changed to: {ViewMode}", viewMode);
+            }
+            else
+            {
+                Log.Warning("OnViewModeClick - Invalid sender or DataContext. Sender: {SenderType}, DataContext: {DataContextType}", 
+                    sender?.GetType().Name, DataContext?.GetType().Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error handling view mode click - Sender: {SenderType}", sender?.GetType().Name);
+        }
+    }
+
+    /// <summary>
+    /// Handles toggle navigation button clicks
+    /// </summary>
+    private void OnToggleNavigationClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Log.Information("OnToggleNavigationClick called - Sender: {SenderType}", sender?.GetType().Name);
+            
+            if (DataContext is StudentDetailViewModel viewModel)
+            {
+                Log.Information("Toggling navigation - Current state: {IsOpen}", viewModel.IsNavigationOpen);
+                viewModel.IsNavigationOpen = !viewModel.IsNavigationOpen;
+                Log.Information("Navigation toggled - New state: {IsOpen}", viewModel.IsNavigationOpen);
+            }
+            else
+            {
+                Log.Warning("OnToggleNavigationClick - Invalid DataContext: {DataContextType}", DataContext?.GetType().Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error handling toggle navigation click - Sender: {SenderType}", sender?.GetType().Name);
         }
     }
 

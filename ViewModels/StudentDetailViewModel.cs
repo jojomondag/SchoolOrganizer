@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using Serilog;
 using System.Reactive;
+using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
 using System.Text;
 using Avalonia.Controls;
@@ -15,6 +16,7 @@ using Avalonia.VisualTree;
 using Avalonia.Threading;
 using SchoolOrganizer.Services;
 using SchoolOrganizer.Models;
+using Avalonia.ReactiveUI;
 
 namespace SchoolOrganizer.ViewModels;
 
@@ -34,6 +36,11 @@ public class StudentDetailViewModel : ReactiveObject
     private ObservableCollection<FileTreeNode> _folderFiles = new();
     private ObservableCollection<AssignmentGroup> _allFilesGrouped = new();
     private FileViewerScrollService? _scrollService;
+    
+    // Navigation properties
+    private string _selectedAssignment = string.Empty;
+    private string _selectedViewMode = "AllFiles";
+    private bool _isNavigationOpen = true;
 
     public string StudentName
     {
@@ -117,10 +124,31 @@ public class StudentDetailViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _allFilesGrouped, value);
     }
 
+    // Navigation properties
+    public string SelectedAssignment
+    {
+        get => _selectedAssignment;
+        set => this.RaiseAndSetIfChanged(ref _selectedAssignment, value);
+    }
+
+    public string SelectedViewMode
+    {
+        get => _selectedViewMode;
+        set => this.RaiseAndSetIfChanged(ref _selectedViewMode, value);
+    }
+
+    public bool IsNavigationOpen
+    {
+        get => _isNavigationOpen;
+        set => this.RaiseAndSetIfChanged(ref _isNavigationOpen, value);
+    }
+
 
     public ReactiveCommand<StudentFile, Unit> OpenFileCommand { get; }
     public ReactiveCommand<Unit, Unit> CloseCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenSelectedFileCommand { get; }
+    
+    // Navigation commands - removed to avoid threading issues, using event handlers instead
 
     /// <summary>
     /// Sets the scroll service for this view model
@@ -205,6 +233,8 @@ public class StudentDetailViewModel : ReactiveObject
         });
         CloseCommand = ReactiveCommand.Create(() => { });
         OpenSelectedFileCommand = ReactiveCommand.Create(OpenSelectedFile);
+        
+        // Navigation commands removed - using event handlers in code-behind to avoid threading issues
     }
 
     /// <summary>
