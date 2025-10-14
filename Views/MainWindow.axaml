@@ -111,15 +111,15 @@
                             <!-- Profile Picture Button (Logout when authenticated) -->
                             <Button Command="{Binding LogoutCommand}"
                                     HorizontalAlignment="Stretch" 
-                                    HorizontalContentAlignment="Left"
-                                    Padding="12,8"
+                                    HorizontalContentAlignment="Stretch"
+                                    Padding="0"
                                     Background="Transparent"
                                     BorderThickness="0"
-                                    CornerRadius="4"
+                                    CornerRadius="0"
                                     IsVisible="{Binding IsAuthenticated}">
                                 <Button.Content>
                                     <StackPanel Orientation="Horizontal" Spacing="12">
-                                        <Border CornerRadius="4" ClipToBounds="True" Width="40" Height="40">
+                                        <Border CornerRadius="20" ClipToBounds="True" Width="40" Height="40">
                                             <Image Source="{Binding ProfileImage}" Stretch="UniformToFill" Width="40" Height="40" IsHitTestVisible="False"/>
                                         </Border>
                                         <TextBlock Text="{Binding TeacherName}" VerticalAlignment="Center" 
@@ -134,16 +134,16 @@
                             <!-- Login Button (when not authenticated) -->
                             <Button Command="{Binding LoginCommand}"
                                     HorizontalAlignment="Stretch" 
-                                    HorizontalContentAlignment="Left"
-                                    Padding="12,8"
+                                    HorizontalContentAlignment="Stretch"
+                                    Padding="0"
                                     Background="Transparent"
                                     BorderThickness="0"
-                                    CornerRadius="4"
+                                    CornerRadius="0"
                                     IsVisible="{Binding !IsAuthenticated}">
                                 <Button.Content>
                                     <StackPanel Orientation="Horizontal" Spacing="12">
-                                        <Border CornerRadius="4" ClipToBounds="True" Width="20" Height="20" Background="{DynamicResource BackgroundTertiaryBrush}">
-                                            <Image Source="{SvgImage avares://SchoolOrganizer/Assets/ClassroomIcon.svg}" Width="16" Height="16" Stretch="Uniform" IsHitTestVisible="False"/>
+                                        <Border CornerRadius="8" ClipToBounds="True" Width="40" Height="40" Background="{DynamicResource BackgroundTertiaryBrush}">
+                                            <Image Source="{SvgImage avares://SchoolOrganizer/Assets/ClassroomIcon.svg}" Width="40" Height="40" Stretch="Uniform" IsHitTestVisible="False"/>
                                         </Border>
                                         <TextBlock Text="Login" VerticalAlignment="Center" 
                                                   IsVisible="{Binding IsMenuOpen}"/>
