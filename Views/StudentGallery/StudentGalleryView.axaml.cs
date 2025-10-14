@@ -138,8 +138,6 @@ public partial class StudentGalleryView : UserControl
 
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine($"ViewModel_PropertyChanged: {e.PropertyName}");
-        
         if (e.PropertyName == "SelectedStudent")
         {
             // Defer scrolling until layout pass completes
@@ -148,20 +146,16 @@ public partial class StudentGalleryView : UserControl
         else if (e.PropertyName == "Students")
         {
             // Students collection changed - force ItemsControl refresh
-            System.Diagnostics.Debug.WriteLine($"Students collection changed - Count: {ViewModel?.Students?.Count ?? 0}");
             Dispatcher.UIThread.Post(async () => await ForceItemsControlRefresh(), DispatcherPriority.Render);
         }
         else if (e.PropertyName == "DisplayConfig")
         {
             // When DisplayConfig changes, update card layout with new dimensions
-            // DisplayConfig changed, updating card layout
             Dispatcher.UIThread.Post(() => UpdateCardLayout(), DispatcherPriority.Render);
         }
         else if (e.PropertyName == "ShowMultipleStudents" || e.PropertyName == "ShowSingleStudent" || e.PropertyName == "ShowEmptyState")
         {
-            System.Diagnostics.Debug.WriteLine($"View state changed: {e.PropertyName} - ShowMultipleStudents: {ViewModel?.ShowMultipleStudents}, ShowSingleStudent: {ViewModel?.ShowSingleStudent}, ShowEmptyState: {ViewModel?.ShowEmptyState}");
-            
-            // Removed ForceItemsControlRefresh call to prevent unnecessary card updates during deselection
+            // View state changed - no action needed for deselection
         }
     }
 
@@ -440,27 +434,19 @@ public partial class StudentGalleryView : UserControl
             
             if (studentsContainer != null && scrollViewer != null)
             {
-                // Debug: Log current state
-                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - ItemsControl IsVisible: {studentsContainer.IsVisible}, ItemsCount: {studentsContainer.Items?.Count ?? 0}");
-                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - ViewModel state - ShowMultipleStudents: {ViewModel?.ShowMultipleStudents}, IsLoading: {ViewModel?.IsLoading}, ShowEmptyState: {ViewModel?.ShowEmptyState}");
+                // Force refresh of ItemsControl
                 
                 // Force the parent ScrollViewer to invalidate (which will re-evaluate child visibility bindings)
                 scrollViewer.InvalidateVisual();
                 scrollViewer.InvalidateMeasure();
                 scrollViewer.InvalidateArrange();
                 
-                // Small delay to allow visibility binding to complete
-                await Task.Delay(50);
-                
-                // Debug: Check if visibility changed
-                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - After ScrollViewer invalidation - ItemsControl IsVisible: {studentsContainer.IsVisible}");
+                // Visibility binding completes synchronously
                 
                 // If ItemsControl is still not visible, force it to be visible
                 if (!studentsContainer.IsVisible)
                 {
-                    System.Diagnostics.Debug.WriteLine("ForceItemsControlRefresh - ItemsControl not visible, forcing visibility");
                     studentsContainer.IsVisible = true;
-                    await Task.Delay(10);
                 }
                 
                 // Instead of clearing ItemsSource, just force a refresh of the existing items
@@ -471,9 +457,7 @@ public partial class StudentGalleryView : UserControl
                 // Force a layout pass
                 studentsContainer.UpdateLayout();
                 
-                // Debug: Final state
-                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - Final state - ItemsControl IsVisible: {studentsContainer.IsVisible}, ItemsCount: {studentsContainer.Items?.Count ?? 0}");
-                System.Diagnostics.Debug.WriteLine("ForceItemsControlRefresh - ItemsControl refreshed without ItemsSource rebinding");
+                // ItemsControl refresh completed
             }
         }
         catch (Exception ex)
@@ -1057,7 +1041,6 @@ public partial class StudentGalleryView : UserControl
     // Event handler for double-clicking on background to return to gallery
     private void OnBackgroundDoubleTapped(object? sender, RoutedEventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("OnBackgroundDoubleTapped called");
         if (ViewModel != null)
         {
             ViewModel.DeselectStudentCommand.Execute(null);

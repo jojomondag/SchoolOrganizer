@@ -192,14 +192,11 @@ public partial class StudentGalleryViewModel : ObservableObject
     [RelayCommand]
     private async Task DeselectStudent() 
     {
-        System.Diagnostics.Debug.WriteLine($"DeselectStudent called - IsDoubleClickMode: {IsDoubleClickMode}, Students.Count: {Students.Count}");
-        
         SelectedStudent = null;
         
         // Exit double-click mode when deselecting
         if (IsDoubleClickMode)
         {
-            System.Diagnostics.Debug.WriteLine("DeselectStudent - Exiting double-click mode");
             IsDoubleClickMode = false;
             // Cancel any pending debounced searches
             searchCts?.Cancel();
@@ -207,35 +204,25 @@ public partial class StudentGalleryViewModel : ObservableObject
             SearchText = string.Empty;
             // Set ForceGridView BEFORE calling ApplySearchImmediate to ensure view state is correct
             ForceGridView = true;
-            System.Diagnostics.Debug.WriteLine("DeselectStudent - Set ForceGridView = true");
             // Immediately restore the full student list (not debounced)
             await ApplySearchImmediate();
-            System.Diagnostics.Debug.WriteLine($"DeselectStudent - After ApplySearchImmediate, Students.Count: {Students.Count}");
             // Let automatic sizing determine the optimal display level based on student count
             UpdateDisplayLevelBasedOnItemCount();
             // Explicitly notify all view properties to ensure UI updates
             UpdateViewProperties();
             // Explicitly notify that Students collection changed
             OnPropertyChanged(nameof(Students));
-            // Force a small delay to ensure all notifications are processed
-            await Task.Delay(50);
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine("DeselectStudent - Single-click deselection");
             // For single-click deselection, only clear selection without refreshing cards
             // Cancel any pending debounced searches
             searchCts?.Cancel();
             // Set ForceGridView to ensure we don't show single-student view
             ForceGridView = true;
-            System.Diagnostics.Debug.WriteLine("DeselectStudent - Set ForceGridView = true");
             // Update view properties to update visibility bindings
             UpdateViewProperties();
-            System.Diagnostics.Debug.WriteLine("DeselectStudent - Single-click deselection completed without refresh");
         }
-        
-        // Debug: Log final state
-        System.Diagnostics.Debug.WriteLine($"DeselectStudent - Final Students.Count: {Students.Count}, ForceGridView: {ForceGridView}, ShowSingleStudent: {ShowSingleStudent}, ShowMultipleStudents: {ShowMultipleStudents}, ShowEmptyState: {ShowEmptyState}");
     }
 
     [RelayCommand]
