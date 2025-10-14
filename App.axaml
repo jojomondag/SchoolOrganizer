@@ -29,6 +29,8 @@
                       Clicked="TrayIcon_Clicked">
                 <TrayIcon.Menu>
                     <NativeMenu>
+                        <NativeMenuItem Header="Show" Click="TrayIcon_Clicked" />
+                        <NativeMenuItemSeparator />
                         <NativeMenuItem Header="Dark Mode" Click="DarkMode_Click" />
                         <NativeMenuItem Header="Light Mode" Click="LightMode_Click" />
                         <NativeMenuItemSeparator />

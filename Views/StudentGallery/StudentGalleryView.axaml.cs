@@ -161,16 +161,7 @@ public partial class StudentGalleryView : UserControl
         {
             System.Diagnostics.Debug.WriteLine($"View state changed: {e.PropertyName} - ShowMultipleStudents: {ViewModel?.ShowMultipleStudents}, ShowSingleStudent: {ViewModel?.ShowSingleStudent}, ShowEmptyState: {ViewModel?.ShowEmptyState}");
             
-            // Force ItemsControl refresh when switching to multiple students view
-            if (e.PropertyName == "ShowMultipleStudents" && ViewModel?.ShowMultipleStudents == true)
-            {
-                // Add a small delay to ensure all property notifications have been processed
-                Dispatcher.UIThread.Post(async () => 
-                {
-                    await Task.Delay(150); // Increased delay to ensure all property changes are processed
-                    await ForceItemsControlRefresh();
-                }, DispatcherPriority.Render);
-            }
+            // Removed ForceItemsControlRefresh call to prevent unnecessary card updates during deselection
         }
     }
 
@@ -1039,13 +1030,28 @@ public partial class StudentGalleryView : UserControl
     }
 
 
-    // Event handler for double-clicking on student cards
-    private void OnStudentCardDoubleTapped(object? sender, RoutedEventArgs e)
+    // Event handler for clicking on student cards
+    private void OnStudentCardClicked(object? sender, IPerson person)
     {
-        if (sender is Button button && button.CommandParameter is IPerson person && ViewModel != null)
+        if (ViewModel != null)
+        {
+            ViewModel.SelectStudentCommand.Execute(person);
+        }
+    }
+
+    // Event handler for double-clicking on student cards
+    private void OnStudentCardDoubleClicked(object? sender, IPerson person)
+    {
+        if (ViewModel != null)
         {
             ViewModel.DoubleClickStudentCommand.Execute(person);
         }
+    }
+
+    // Event handler for clicking on add student cards
+    private async void OnAddStudentCardClicked(object? sender, IPerson person)
+    {
+        await HandleAddStudent();
     }
 
     // Event handler for double-clicking on background to return to gallery

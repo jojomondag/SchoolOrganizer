@@ -22,6 +22,8 @@ namespace SchoolOrganizer.Views.ProfileCards
         public event EventHandler? BackButtonClicked;
         public event EventHandler<Student>? ProfileImageClicked;
         public event EventHandler<(Student student, string imagePath)>? ProfileImageUpdated;
+        public event EventHandler<IPerson>? CardClicked;
+        public event EventHandler<IPerson>? CardDoubleClicked;
 
         public BaseProfileCard()
         {
@@ -95,6 +97,10 @@ namespace SchoolOrganizer.Views.ProfileCards
 
             if (this.FindControl<Border>("CardBorder") is { } cardBorder)
             {
+                // Add click and double-click handlers to CardBorder
+                cardBorder.PointerPressed += OnCardPointerPressed;
+                cardBorder.DoubleTapped += OnCardDoubleTapped;
+                
                 // Attach hover handlers only when enabled
                 if (EnableHover)
                 {
@@ -108,6 +114,24 @@ namespace SchoolOrganizer.Views.ProfileCards
                         cardBorder.BoxShadow = normalShadow;
                     cardBorder.RenderTransform = null;
                 }
+            }
+        }
+
+        protected virtual void OnCardPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        {
+            if (DataContext is IPerson person)
+            {
+                CardClicked?.Invoke(this, person);
+                e.Handled = true; // Prevent event bubbling to background deselection
+            }
+        }
+
+        protected virtual void OnCardDoubleTapped(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            if (DataContext is IPerson person)
+            {
+                CardDoubleClicked?.Invoke(this, person);
+                e.Handled = true; // Prevent event bubbling to background deselection
             }
         }
 

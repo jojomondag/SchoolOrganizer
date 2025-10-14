@@ -253,76 +253,53 @@
 
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="models:IPerson">
-              <!-- Wrap Card with selection functionality -->
-              <Button Command="{Binding $parent[ItemsControl].((vm:StudentGalleryViewModel)DataContext).SelectStudentCommand}"
-                      CommandParameter="{Binding}"
-                      Background="{DynamicResource TransparentColor}"
-                      BorderThickness="0"
-                      Padding="0"
-                      Margin="0"
-                      ClipToBounds="False"
-                      Template="{StaticResource FlatButtonTemplate}"
-                      DoubleTapped="OnStudentCardDoubleTapped">
-                <Button.Styles>
-                  <Style Selector="Button">
-                    <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                  </Style>
-                  <Style Selector="Button:pointerover">
-                    <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                  </Style>
-                  <Style Selector="Button:pressed">
-                    <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource TransparentColor}"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                  </Style>
-                </Button.Styles>
+              <!-- Card Content - Switch between Student and AddStudentProfileCard -->
+              <ContentControl Content="{Binding}">
+                <ContentControl.ContentTemplate>
+                  <DataTemplate x:DataType="models:IPerson">
+                    <Grid>
+                      <!-- Student Card Template -->
+                      <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsStudentCardConverter}}">
+                        <!-- Small Card for Small DisplayLevel -->
+                        <profileCard:ProfileCardSmall Name="{Binding Name}"
+                                                     RoleInfo="{Binding RoleInfo}"
+                                                     PictureUrl="{Binding PictureUrl}"
+                                                     DataContext="{Binding}"
+                                                     ProfileImageClicked="OnProfileImageClicked"
+                                                     ProfileImageUpdated="OnProfileImageUpdated"
+                                                     CardClicked="OnStudentCardClicked"
+                                                     CardDoubleClicked="OnStudentCardDoubleClicked"
+                                                     IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
 
-                <!-- Card Content - Switch between Student and AddStudentProfileCard -->
-                <ContentControl Content="{Binding}">
-                  <ContentControl.ContentTemplate>
-                    <DataTemplate x:DataType="models:IPerson">
-                      <Grid>
-                        <!-- Student Card Template -->
-                        <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsStudentCardConverter}}">
-                          <!-- Small Card for Small DisplayLevel -->
-                          <profileCard:ProfileCardSmall Name="{Binding Name}"
-                                                       RoleInfo="{Binding RoleInfo}"
+                        <!-- Medium Card for Medium DisplayLevel -->
+                        <profileCard:ProfileCardMedium Name="{Binding Name}"
+                                                       Class="{Binding RoleInfo}"
+                                                       Teacher="{Binding SecondaryInfo}"
                                                        PictureUrl="{Binding PictureUrl}"
                                                        DataContext="{Binding}"
                                                        ProfileImageClicked="OnProfileImageClicked"
                                                        ProfileImageUpdated="OnProfileImageUpdated"
-                                                       IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
+                                                       CardClicked="OnStudentCardClicked"
+                                                       CardDoubleClicked="OnStudentCardDoubleClicked"
+                                                       IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
+                      </Panel>
+                      
+                      <!-- Add Student Card Template -->
+                      <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsAddCardConverter}}">
+                        <!-- Add Student Card for Small DisplayLevel -->
+                        <profileCard:AddStudentProfileCardSmall Name="AddStudentCardSmall"
+                                                               CardClicked="OnAddStudentCardClicked"
+                                                               IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
 
-                          <!-- Medium Card for Medium DisplayLevel -->
-                          <profileCard:ProfileCardMedium Name="{Binding Name}"
-                                                         Class="{Binding RoleInfo}"
-                                                         Teacher="{Binding SecondaryInfo}"
-                                                         PictureUrl="{Binding PictureUrl}"
-                                                         DataContext="{Binding}"
-                                                         ProfileImageClicked="OnProfileImageClicked"
-                                                         ProfileImageUpdated="OnProfileImageUpdated"
-                                                         IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
-                        </Panel>
-                        
-                        <!-- Add Student Card Template -->
-                        <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsAddCardConverter}}">
-                          <!-- Add Student Card for Small DisplayLevel -->
-                          <profileCard:AddStudentProfileCardSmall Name="AddStudentCardSmall"
-                                                                 IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
-
-                          <!-- Add Student Card for Medium DisplayLevel -->
-                          <profileCard:AddStudentProfileCardMedium Name="AddStudentCardMedium"
-                                                                 IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
-                        </Panel>
-                      </Grid>
-                    </DataTemplate>
-                  </ContentControl.ContentTemplate>
-                </ContentControl>
-              </Button>
+                        <!-- Add Student Card for Medium DisplayLevel -->
+                        <profileCard:AddStudentProfileCardMedium Name="AddStudentCardMedium"
+                                                               CardClicked="OnAddStudentCardClicked"
+                                                               IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
+                      </Panel>
+                    </Grid>
+                  </DataTemplate>
+                </ContentControl.ContentTemplate>
+              </ContentControl>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>

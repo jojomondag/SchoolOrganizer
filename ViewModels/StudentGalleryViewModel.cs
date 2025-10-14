@@ -223,23 +223,15 @@ public partial class StudentGalleryViewModel : ObservableObject
         else
         {
             System.Diagnostics.Debug.WriteLine("DeselectStudent - Single-click deselection");
-            // For single-click selections, ensure gallery is properly restored
+            // For single-click deselection, only clear selection without refreshing cards
             // Cancel any pending debounced searches
             searchCts?.Cancel();
-            // Set ForceGridView BEFORE calling ApplySearchImmediate to ensure view state is correct
+            // Set ForceGridView to ensure we don't show single-student view
             ForceGridView = true;
             System.Diagnostics.Debug.WriteLine("DeselectStudent - Set ForceGridView = true");
-            // Re-apply current search to ensure Students collection is correct
-            await ApplySearchImmediate();
-            System.Diagnostics.Debug.WriteLine($"DeselectStudent - After ApplySearchImmediate, Students.Count: {Students.Count}");
-            // Update display level based on current student count
-            UpdateDisplayLevelBasedOnItemCount();
-            // Explicitly notify all view properties to ensure UI updates
+            // Update view properties to update visibility bindings
             UpdateViewProperties();
-            // Explicitly notify that Students collection changed
-            OnPropertyChanged(nameof(Students));
-            // Force a small delay to ensure all notifications are processed
-            await Task.Delay(50);
+            System.Diagnostics.Debug.WriteLine("DeselectStudent - Single-click deselection completed without refresh");
         }
         
         // Debug: Log final state

@@ -24,7 +24,7 @@ namespace SchoolOrganizer.Views.ProfileCards
         // Large card opts out of hover scaling/shadow
         protected override bool EnableHover => false;
 
-        private void OnCardPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        protected override void OnCardPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
         {
             // Mark the event as handled to prevent it from bubbling up to the background button
             e.Handled = true;

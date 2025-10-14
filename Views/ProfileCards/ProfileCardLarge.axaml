@@ -17,7 +17,8 @@
           BoxShadow="{DynamicResource ShadowLight}"
           Margin="40,20"
           BorderBrush="{DynamicResource BlackBrush}"
-          BorderThickness="1">
+          BorderThickness="1"
+          IsHitTestVisible="True">
 
     <Grid Margin="40">
       <Grid.ColumnDefinitions>
