@@ -1,0 +1,67 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SchoolOrganizer.Src.Views.ProfileCards"
+             xmlns:materialIcons="using:Material.Icons.Avalonia"
+             x:Class="SchoolOrganizer.Src.Views.ProfileCards.AddStudentProfileCardSmall"
+             x:DataType="local:AddStudentProfileCardSmall"
+             Width="240" Height="240">
+
+  <Grid Margin="20,30,20,30" ClipToBounds="False">
+    <Border x:Name="CardBorder"
+            Background="{DynamicResource BackgroundPrimaryBrush}"
+            CornerRadius="12"
+            BorderBrush="{DynamicResource BlackBrush}"
+            BorderThickness="1"
+            Padding="8"
+            Width="180"
+            Height="180"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Cursor="Hand"
+            BoxShadow="{DynamicResource ShadowLight}"
+            RenderTransformOrigin="0.5,0.5"
+            IsHitTestVisible="True">
+
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <!-- Plus Icon Circle -->
+        <Border x:Name="AddIconBorder"
+                Background="{DynamicResource BackgroundTertiaryBrush}"
+                CornerRadius="35"
+                BorderThickness="2"
+                BorderBrush="{DynamicResource BlackBrush}"
+                Padding="0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Width="70"
+                Height="70"
+                Margin="0,0,0,8"
+                Cursor="Hand">
+
+          <Viewbox HorizontalAlignment="Center" 
+                   VerticalAlignment="Center"
+                   Width="28" Height="28">
+            <materialIcons:MaterialIcon Kind="Plus" 
+                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
+          </Viewbox>
+        </Border>
+
+        <!-- Add Student Text -->
+        <TextBlock x:Name="AddStudentText"
+                   Text="Add Student"
+                   FontSize="16"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   TextAlignment="Center"
+                   Margin="0,0,0,4"
+                   TextTrimming="CharacterEllipsis" />
+
+        <!-- Subtitle Text -->
+        <TextBlock x:Name="SubtitleText"
+                   Text="Click to add"
+                   FontSize="11"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

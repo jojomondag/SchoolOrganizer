@@ -1,0 +1,262 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:SchoolOrganizer.Src.Converters"
+             xmlns:vm="using:SchoolOrganizer.Src.ViewModels"
+             xmlns:components="using:SchoolOrganizer.Src.Views.Components"
+             x:Class="SchoolOrganizer.Src.Views.StudentGallery.AddStudentView"
+             x:DataType="vm:AddStudentViewModel">
+
+  <UserControl.Resources>
+    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+
+    <Style Selector="TextBox">
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
+      <Setter Property="FocusAdorner" Value="{x:Null}"/>
+    </Style>
+    
+    <Style Selector="TextBox:focus">
+      <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="FocusAdorner" Value="{x:Null}"/>
+    </Style>
+    
+    <Style Selector="TextBox:focus /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
+      <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+    
+    <Style Selector="ComboBox">
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
+    </Style>
+    
+    <Style Selector="DatePicker">
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
+    </Style>
+    
+    <Style Selector="ComboBox:focus">
+      <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
+      <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+    
+    <Style Selector="DatePicker:focus">
+      <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
+      <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+    
+    <Style Selector="Button.secondary">
+      <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+      <Setter Property="Padding" Value="20,8"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    
+    <Style Selector="Button.secondary:pointerover">
+      <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
+    </Style>
+    
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="24,8"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    
+    <Style Selector="Button.primary:pointerover">
+      <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
+    </Style>
+    
+    <!-- Tab Styles -->
+    <Style Selector="ToggleButton.tab">
+      <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+      <Setter Property="BorderThickness" Value="1,1,0,1"/>
+      <Setter Property="Padding" Value="20,8"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+    
+    <Style Selector="ToggleButton.tab:first-child">
+      <Setter Property="CornerRadius" Value="6,0,0,6"/>
+    </Style>
+    
+    <Style Selector="ToggleButton.tab:last-child">
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="0,6,6,0"/>
+    </Style>
+    
+    <Style Selector="ToggleButton.tab:checked">
+      <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+    </Style>
+    
+    <Style Selector="ToggleButton.tab:pointerover">
+      <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Background="{DynamicResource BackgroundTertiaryBrush}" Padding="24">
+    <Grid RowDefinitions="Auto,*,Auto">
+      <!-- Header -->
+      <StackPanel Grid.Row="0" Margin="0,0,0,16">
+        <TextBlock Text="Add Student" FontSize="24" FontWeight="Light" Foreground="{DynamicResource TextPrimaryBrush}"/>
+        <Rectangle Height="1" Fill="{DynamicResource BlackBrush}" Margin="0,8,0,0"/>
+      </StackPanel>
+
+      <!-- Content -->
+      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,-4,0">
+        <StackPanel Spacing="20" Margin="0,0,20,0">
+          
+          <!-- Manual Entry Form -->
+          <StackPanel IsVisible="{Binding IsManualMode}">
+            <!-- Photo and Form Fields Section -->
+            <Grid ColumnDefinitions="140,20,*">
+              <!-- Profile Image -->
+              <StackPanel Grid.Column="0" Spacing="8">
+                <components:ProfileImageControl Width="100" 
+                                                Height="100" 
+                                                ImagePath="{Binding SelectedImagePath}"
+                                                IsImageMissing="{Binding IsImageMissing}"
+                                                PlaceholderText="+"
+                                                PlaceholderFontSize="28"
+                                                ToolTipText="Add photo"
+                                                ImageClicked="OnProfileImageControlClicked"/>
+                <TextBlock Text="Add Photo" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+              </StackPanel>
+
+              <!-- All Form Fields -->
+              <StackPanel Grid.Column="2" Spacing="16">
+                <!-- Name Field -->
+                <StackPanel>
+                  <TextBlock Text="Name *" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                  <TextBox Text="{Binding StudentName}" Watermark="Enter full name"/>
+                </StackPanel>
+
+                <!-- Email Field -->
+                <StackPanel>
+                  <TextBlock Text="Email" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                  <TextBox Text="{Binding StudentEmail}" Watermark="student@example.com"/>
+                </StackPanel>
+
+                <!-- Class and Enrollment Date (side by side) -->
+                <Grid ColumnDefinitions="*,16,*">
+                  <StackPanel Grid.Column="0">
+                    <TextBlock Text="Class" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                    <ComboBox ItemsSource="{Binding AvailableClasses}" SelectedItem="{Binding SelectedClassName}"/>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2">
+                    <TextBlock Text="Enrollment Date" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                    <DatePicker SelectedDate="{Binding EnrollmentDate}"/>
+                  </StackPanel>
+                </Grid>
+
+                <!-- Teachers Section -->
+                <StackPanel>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="Teachers" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                    <Button Grid.Column="1" Content="+ Add Teacher" 
+                            Classes="secondary" FontSize="11" 
+                            Padding="8,4" Margin="0,0,0,6"
+                            Click="OnAddTeacherClick"/>
+                  </Grid>
+                  
+                  <!-- Selected Teachers List -->
+                  <ItemsControl ItemsSource="{Binding SelectedTeachers}" Margin="0,0,0,8">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="{DynamicResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="8,4" Margin="0,2">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <Button Grid.Column="1" Content="×" FontSize="14" FontWeight="Bold"
+                                    Background="{DynamicResource TransparentColor}" BorderThickness="0" 
+                                    Foreground="{DynamicResource TextPrimaryBrush}" Padding="4,0"
+                                    Click="OnRemoveTeacherClick" Tag="{Binding}"
+                                    ToolTip.Tip="Remove teacher"/>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  
+                  <!-- Teacher Selection ComboBox (initially hidden) -->
+                  <ComboBox Name="TeacherBox" ItemsSource="{Binding AvailableTeachers}" 
+                            IsVisible="False" SelectionChanged="OnTeacherSelected"/>
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+
+          <!-- Classroom Import Form -->
+          <StackPanel IsVisible="{Binding IsClassroomMode}">
+            <TextBlock Text="Import from Google Classroom" FontSize="18" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+            
+            <!-- Classroom Selection -->
+            <StackPanel Margin="0,0,0,16">
+              <TextBlock Text="Select Classroom" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+              <ComboBox ItemsSource="{Binding AvailableClassrooms}" 
+                        SelectedItem="{Binding SelectedClassroom}"
+                        DisplayMemberBinding="{Binding Name}"
+                        IsEnabled="{Binding !IsLoadingClassrooms}"/>
+            </StackPanel>
+
+            <!-- Students List -->
+            <StackPanel IsVisible="{Binding SelectedClassroom, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
+                <TextBlock Grid.Column="0" Text="Select Students to Import" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Content="Select All" Classes="secondary" FontSize="11" Padding="8,4" Margin="0,0,8,0" Command="{Binding SelectAllClassroomStudentsCommand}"/>
+                <Button Grid.Column="2" Content="Deselect All" Classes="secondary" FontSize="11" Padding="8,4" Command="{Binding DeselectAllClassroomStudentsCommand}"/>
+              </Grid>
+              
+              <!-- Students List -->
+              <Border Background="{DynamicResource BackgroundPrimaryBrush}" 
+                      BorderBrush="{DynamicResource BlackBrush}" 
+                      BorderThickness="1" 
+                      CornerRadius="6" 
+                      MaxHeight="300">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
+                  <ItemsControl ItemsSource="{Binding ClassroomStudents}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <CheckBox Content="{Binding ClassroomStudent.Profile.Name.FullName}" 
+                                  IsChecked="{Binding IsSelected}" 
+                                  Margin="4,2"/>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Footer -->
+      <StackPanel Grid.Row="2" Margin="0,24,0,0">
+        <Rectangle Height="1" Fill="{DynamicResource BlackBrush}" Margin="0,0,0,16"/>
+        <Grid ColumnDefinitions="*,Auto,Auto">
+          <TextBlock Grid.Column="0" Text="{Binding ValidationText}" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" FontSize="13"/>
+          <Button Grid.Column="1" Content="Cancel" Classes="secondary" Command="{Binding CancelCommand}" Margin="0,0,12,0"/>
+          <Button Grid.Column="2" Content="{Binding PrimaryButtonText}" Classes="primary" Command="{Binding AddStudentCommand}"/>
+        </Grid>
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:SchoolOrganizer.Src.Converters"
+             x:Class="SchoolOrganizer.Src.Views.Components.ProfileImageControl"
+             x:Name="Root">
+
+  <UserControl.Resources>
+    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
+    <views:MathConverter x:Key="SubtractConverter"/>
+  </UserControl.Resources>
+
+  <Border x:Name="ProfileImageBorder"
+          Width="{Binding Width, ElementName=Root}"
+          Height="{Binding Height, ElementName=Root}"
+          CornerRadius="50"
+          BorderBrush="{DynamicResource BlackBrush}"
+          BorderThickness="3"
+          BoxShadow="{DynamicResource ShadowLight}"
+          Cursor="Hand"
+          ClipToBounds="True">
+    
+    <Grid>
+      <!-- Background circle -->
+      <Ellipse Fill="{DynamicResource BackgroundTertiaryBrush}"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"/>
+      
+      <!-- Profile image -->
+      <Ellipse Width="{Binding Width, ElementName=Root, Converter={StaticResource SubtractConverter}, ConverterParameter='Subtract,6'}"
+               Height="{Binding Height, ElementName=Root, Converter={StaticResource SubtractConverter}, ConverterParameter='Subtract,6'}"
+               ClipToBounds="True"
+               IsVisible="{Binding !IsImageMissing, ElementName=Root}">
+        <Ellipse.Fill>
+          <ImageBrush Source="{Binding ImagePath, ElementName=Root, Converter={StaticResource UniversalImageConverter}}" 
+                      Stretch="UniformToFill"/>
+        </Ellipse.Fill>
+      </Ellipse>
+      
+      <!-- Placeholder content when no image -->
+      <Ellipse Width="{Binding Width, ElementName=Root, Converter={StaticResource SubtractConverter}, ConverterParameter='Subtract,6'}"
+               Height="{Binding Height, ElementName=Root, Converter={StaticResource SubtractConverter}, ConverterParameter='Subtract,6'}"
+               Fill="{DynamicResource BackgroundTertiaryBrush}"
+               IsVisible="{Binding IsImageMissing, ElementName=Root}">
+        <Ellipse.OpacityMask>
+          <VisualBrush>
+            <VisualBrush.Visual>
+              <TextBlock Text="{Binding PlaceholderText, ElementName=Root}" 
+                         FontSize="{Binding PlaceholderFontSize, ElementName=Root}"
+                         FontWeight="Light" 
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+            </VisualBrush.Visual>
+          </VisualBrush>
+        </Ellipse.OpacityMask>
+      </Ellipse>
+      
+      <!-- Transparent clickable overlay -->
+      <Button Background="{DynamicResource TransparentColor}"
+              BorderThickness="0"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch"
+              Cursor="Hand"
+              Click="OnImageClick"
+              ToolTip.Tip="{Binding ToolTipText, ElementName=Root}"/>
+    </Grid>
+  </Border>
+</UserControl>

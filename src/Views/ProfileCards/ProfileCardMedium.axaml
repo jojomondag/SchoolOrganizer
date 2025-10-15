@@ -1,0 +1,83 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SchoolOrganizer.Src.Views.ProfileCards"
+             xmlns:views="using:SchoolOrganizer.Src.Converters"
+             x:Class="SchoolOrganizer.Src.Views.ProfileCards.ProfileCardMedium"
+             x:DataType="local:ProfileCardMedium"
+             Width="320" Height="320">
+
+  <UserControl.Resources>
+    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
+  </UserControl.Resources>
+
+  <Grid Margin="20,40,20,40" ClipToBounds="False">
+    <Border x:Name="CardBorder"
+            Background="{DynamicResource BackgroundPrimaryBrush}"
+            CornerRadius="16"
+            BorderBrush="{DynamicResource BlackBrush}"
+            BorderThickness="1"
+            Padding="12"
+            Width="240"
+            Height="240"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Cursor="Hand"
+            BoxShadow="{DynamicResource ShadowLight}"
+            RenderTransformOrigin="0.5,0.5"
+            IsHitTestVisible="True">
+
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Border x:Name="ProfileImageBorder"
+                Background="{DynamicResource TransparentColor}"
+                CornerRadius="45"
+                BorderThickness="2"
+                BorderBrush="{DynamicResource BlackBrush}"
+                Padding="0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Width="90"
+                Height="90"
+                Margin="0,0,0,12"
+                Cursor="Hand">
+
+          <Grid>
+            <!-- Background circle -->
+            <Ellipse Fill="{DynamicResource BackgroundTertiaryBrush}"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"/>
+
+            <!-- Profile image -->
+            <Ellipse x:Name="ProfileImageEllipse"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch"
+                     Cursor="Hand">
+              <Ellipse.Fill>
+                <ImageBrush Stretch="UniformToFill"/>
+              </Ellipse.Fill>
+            </Ellipse>
+          </Grid>
+        </Border>
+
+        <TextBlock x:Name="NameText"
+                   FontSize="20"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   TextAlignment="Center"
+                   Margin="0,0,0,8"
+                   TextTrimming="CharacterEllipsis" />
+
+        <TextBlock x:Name="ClassText"
+                   FontSize="14"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   TextAlignment="Center"
+                   Margin="0,0,0,4"
+                   TextTrimming="CharacterEllipsis" />
+
+        <TextBlock x:Name="TeacherText"
+                   FontSize="12"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   TextAlignment="Center"
+                   TextTrimming="CharacterEllipsis" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

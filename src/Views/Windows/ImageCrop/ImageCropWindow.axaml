@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="using:SchoolOrganizer.Src.Views.Windows.ImageCrop"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        x:Class="SchoolOrganizer.Src.Views.Windows.ImageCrop.ImageCropWindow"
+        Width="1000" Height="700"
+        MinWidth="600" MinHeight="520"
+        MaxWidth="1400" MaxHeight="1200"
+        Title="Crop Profile Image"
+        Background="{DynamicResource BackgroundTertiaryBrush}">
+
+    <Window.Styles>
+    </Window.Styles>
+
+    <Grid Name="ContentGrid" Margin="20" RowSpacing="10" ColumnSpacing="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="260" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <!-- Let the crop preview size to its content so the history can move up when the preview is empty -->
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Main Image Display Area -->
+        <views:MainImageDisplay Grid.Column="0" 
+                                Grid.Row="0"
+                                Grid.RowSpan="2"
+                                Name="MainImageDisplayControl"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch" />
+
+        <!-- Crop Preview -->
+    <views:CropPreview Grid.Row="0"
+               Grid.Column="1"
+               Name="CropPreviewControl"
+               VerticalAlignment="Top"
+               MinHeight="120" />
+
+        <!-- Image History -->
+        <views:ImageHistory Grid.Row="1" 
+                            Grid.Column="1" 
+                            Name="ImageHistoryControl"
+                            VerticalAlignment="Stretch" />
+    </Grid>
+</Window>

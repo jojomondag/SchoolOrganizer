@@ -10,9 +10,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using SchoolOrganizer.ViewModels;
-using SchoolOrganizer.Views;
-using SchoolOrganizer.Services;
+using SchoolOrganizer.Src.ViewModels;
+using SchoolOrganizer.Src.Views;
+using SchoolOrganizer.Src.Services;
 using Serilog;
 
 namespace SchoolOrganizer;
@@ -33,7 +33,7 @@ public partial class App : Application
         ThemeManager.Initialize();
     }
 
-    public override async void OnFrameworkInitializationCompleted()
+    public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -196,7 +196,7 @@ public partial class App : Application
             
             // Create StudentDetailView for the found student with real files
             var detailViewModel = new StudentDetailViewModel();
-            var detailWindow = new Views.AssignmentManagement.AssignmentViewer(detailViewModel);
+            var detailWindow = new Src.Views.AssignmentManagement.AssignmentViewer(detailViewModel);
             
             // Load the real student files using the same method as normal flow
             await detailViewModel.LoadStudentFilesAsync(foundStudentName!, firstClassroom.Name ?? "Unknown Course", foundStudentFolder);

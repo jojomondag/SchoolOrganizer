@@ -29,7 +29,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
 
     <Content Include="Data\**">
@@ -41,7 +40,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AvaloniaResource Include="Views/Styles/Colors.axaml" />
+      <AvaloniaResource Include="src/Views/Styles/Colors.axaml" />
+      <AvaloniaResource Include="src/Views/Styles/LightTheme.axaml" />
+      <AvaloniaResource Include="src/Views/Styles/DarkTheme.axaml" />
   </ItemGroup>
 
   <!-- Application icons -->
@@ -50,16 +51,6 @@
     <AvaloniaResource Include="Assets\Logo.png" />
   </ItemGroup>
 
-  <!-- Exclude external project sources from main app compilation -->
-  <ItemGroup>
-    <Compile Remove="External/**" />
-    <EmbeddedResource Remove="External/**" />
-    <None Remove="External/**" />
-    <Page Remove="External/**" />
-    <AvaloniaXaml Remove="External/**" />
-    <AvaloniaResource Remove="External/**" />
-    <AvaloniaResource Remove="External/ImageSelector/App.axaml" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.6" />
