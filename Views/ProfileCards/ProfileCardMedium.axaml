@@ -59,7 +59,6 @@
         </Border>
 
         <TextBlock x:Name="NameText"
-                   Text="John Doe"
                    FontSize="20"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    TextAlignment="Center"
@@ -67,7 +66,6 @@
                    TextTrimming="CharacterEllipsis" />
 
         <TextBlock x:Name="ClassText"
-                   Text="Computer Science 101"
                    FontSize="14"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    TextAlignment="Center"
@@ -75,7 +73,6 @@
                    TextTrimming="CharacterEllipsis" />
 
         <TextBlock x:Name="TeacherText"
-                   Text="Dr. Smith"
                    FontSize="12"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    TextAlignment="Center"

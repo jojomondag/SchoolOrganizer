@@ -54,8 +54,8 @@ namespace SchoolOrganizer.Views.ProfileCards
         {
             if (DataContext is Student student)
             {
-                var args = new ViewAssignmentsClickedEventArgs(ViewAssignmentsClickedEvent, student);
-                RaiseEvent(args);
+                // Use StudentCoordinatorService to publish the view assignments request
+                Services.StudentCoordinatorService.Instance.PublishViewAssignmentsRequested(student);
             }
         }
 

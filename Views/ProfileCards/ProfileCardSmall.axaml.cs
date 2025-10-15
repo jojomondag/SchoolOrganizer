@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using SchoolOrganizer.Models;
 
 namespace SchoolOrganizer.Views.ProfileCards
 {
@@ -20,5 +21,18 @@ namespace SchoolOrganizer.Views.ProfileCards
         }
         public static readonly Avalonia.StyledProperty<string?> RoleInfoProperty =
             Avalonia.AvaloniaProperty.Register<ProfileCardSmall, string?>("RoleInfo");
+
+        protected override void UpdateAllControls()
+        {
+            // Call base implementation first to update common controls
+            base.UpdateAllControls();
+            
+            // Update small-specific controls from DataContext
+            if (DataContext is IPerson person)
+            {
+                if (this.FindControl<TextBlock>("RoleText") is { } roleText)
+                    roleText.Text = person.RoleInfo ?? "No Role";
+            }
+        }
     }
 }

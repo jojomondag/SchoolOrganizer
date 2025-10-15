@@ -23,7 +23,7 @@
            Margin="0,0,0,12" />
 
       <TextBlock
-                 Text="{Binding Name, FallbackValue='John Doe'}"
+                 Text="{Binding Name, FallbackValue=''}"
                  FontSize="20"
                  Foreground="{DynamicResource TextPrimaryBrush}"
                  TextAlignment="Center"

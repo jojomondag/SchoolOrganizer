@@ -19,6 +19,7 @@ using SchoolOrganizer.Views.Windows.ImageCrop;
 using SchoolOrganizer.Services;
 using SchoolOrganizer.Services.Utilities;
 using SchoolOrganizer.Models;
+using Serilog;
 
 
 namespace SchoolOrganizer.Views.StudentGallery;
@@ -49,17 +50,28 @@ public partial class StudentGalleryView : UserControl
     
     public StudentGalleryView()
     {
+        Log.Information("StudentGalleryView constructor started");
         InitializeComponent();
+        Log.Information("StudentGalleryView InitializeComponent completed");
+        
         DataContextChanged += OnDataContextChanged;
         SizeChanged += OnSizeChanged;
         Loaded += OnLoaded;
+        Log.Information("StudentGalleryView event handlers subscribed");
         
         // Subscribe to container prepared events for newly created cards
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
         if (studentsContainer != null)
         {
             studentsContainer.ContainerPrepared += OnContainerPrepared;
+            Log.Information("StudentsContainer found and ContainerPrepared event subscribed");
         }
+        else
+        {
+            Log.Warning("StudentsContainer not found during constructor");
+        }
+        
+        Log.Information("StudentGalleryView constructor completed");
     }
 
     private DispatcherTimer? _scrollAnimationTimer;
@@ -150,9 +162,8 @@ public partial class StudentGalleryView : UserControl
         }
         else if (e.PropertyName == "Students")
         {
-            System.Diagnostics.Debug.WriteLine($"Students collection changed - forcing ItemsControl refresh");
-            // Students collection changed - force ItemsControl refresh
-            Dispatcher.UIThread.Post(async () => await ForceItemsControlRefresh(), DispatcherPriority.Render);
+            System.Diagnostics.Debug.WriteLine($"Students collection changed");
+            // XAML bindings will handle visibility automatically
         }
         else if (e.PropertyName == "DisplayConfig")
         {
@@ -172,40 +183,19 @@ public partial class StudentGalleryView : UserControl
         else if (e.PropertyName == "ShowMultipleStudents" || e.PropertyName == "ShowSingleStudent" || e.PropertyName == "ShowEmptyState")
         {
             System.Diagnostics.Debug.WriteLine($"View state changed: {e.PropertyName}");
-            // Check ItemsControl visibility
-            var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
-            if (studentsContainer != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"ItemsControl IsVisible: {studentsContainer.IsVisible}");
-                
-                // Force visibility if it should be visible
-                if (ViewModel != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Binding check - IsLoading: {ViewModel.IsLoading}, ShowMultipleStudents: {ViewModel.ShowMultipleStudents}, ShowEmptyState: {ViewModel.ShowEmptyState}");
-                    if (!ViewModel.IsLoading && ViewModel.ShowMultipleStudents && !ViewModel.ShowEmptyState)
-                    {
-                        if (!studentsContainer.IsVisible)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Forcing ItemsControl to be visible");
-                            studentsContainer.IsVisible = true;
-                        }
-                    }
-                }
-            }
+            // XAML bindings will handle visibility automatically
         }
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
-        // DataContext changed
+        Log.Information("StudentGalleryView OnDataContextChanged triggered");
+        Log.Information("New DataContext type: {DataType}", DataContext?.GetType().Name ?? "null");
         
         // Unsubscribe from previous ViewModel if any
         if (sender is StudentGalleryView view && view.Tag is StudentGalleryViewModel oldViewModel)
         {
-            // Unsubscribing from old ViewModel
-            oldViewModel.AddStudentRequested -= HandleAddStudentRequested;
-            oldViewModel.StudentImageChangeRequested -= HandleStudentImageChangeRequested;
-            oldViewModel.EditStudentRequested -= HandleEditStudentRequested;
+            Log.Information("Unsubscribing from previous StudentGalleryViewModel");
             UnsubscribeFromViewModelSelections(oldViewModel);
             
             // Clean up keyboard handler
@@ -216,22 +206,22 @@ public partial class StudentGalleryView : UserControl
         // Unsubscribe from previous MainWindowViewModel if any
         if (_mainWindowViewModel != null)
         {
-            _mainWindowViewModel.ManualEntryRequested -= OnManualEntryRequested;
-            _mainWindowViewModel.ClassroomImportRequested -= OnClassroomImportRequested;
             _mainWindowViewModel = null;
         }
+        
+        // Unsubscribe from StudentCoordinatorService events
+        var coordinator = Services.StudentCoordinatorService.Instance;
+        coordinator.StudentImageChangeRequested -= OnStudentImageChangeRequestedFromCoordinator;
         
         // Subscribe to new ViewModel
         if (DataContext is StudentGalleryViewModel viewModel)
         {
-            // Subscribing to ViewModel events
-            viewModel.AddStudentRequested += HandleAddStudentRequested;
-            viewModel.StudentImageChangeRequested += HandleStudentImageChangeRequested;
-            viewModel.EditStudentRequested += HandleEditStudentRequested;
+            Log.Information("New StudentGalleryViewModel received - setting up event handlers");
             
             // Store reference for cleanup
             Tag = viewModel;
             SubscribeToViewModelSelections(viewModel);
+            Log.Information("Subscribed to ViewModel property changes");
             
             // Initialize keyboard handler
             var searchTextBox = this.FindControl<TextBox>("SearchTextBox");
@@ -239,11 +229,11 @@ public partial class StudentGalleryView : UserControl
             {
                 _keyboardHandler?.Dispose(); // Clean up previous handler
                 _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox, this);
-                // GlobalKeyboardHandler initialized
+                Log.Information("GlobalKeyboardHandler initialized");
             }
             else
             {
-                // SearchTextBox not found, keyboard handler not initialized
+                Log.Warning("SearchTextBox not found, keyboard handler not initialized");
             }
             
             // Ensure ItemsControl container events are properly subscribed
@@ -252,14 +242,24 @@ public partial class StudentGalleryView : UserControl
             {
                 studentsContainer.ContainerPrepared -= OnContainerPrepared;
                 studentsContainer.ContainerPrepared += OnContainerPrepared;
+                Log.Information("StudentsContainer ContainerPrepared event re-subscribed");
+            }
+            else
+            {
+                Log.Warning("StudentsContainer not found during DataContext change");
             }
 
             // Set up AddStudentView when it becomes visible
             SetupAddStudentView(viewModel);
+            Log.Information("AddStudentView setup completed");
+            
+            // Subscribe to StudentCoordinatorService events for image changes
+            coordinator.StudentImageChangeRequested += OnStudentImageChangeRequestedFromCoordinator;
+            Log.Information("Subscribed to StudentCoordinatorService.StudentImageChangeRequested");
         }
         else
         {
-            // DataContext is not StudentGalleryViewModel
+            Log.Warning("DataContext is not StudentGalleryViewModel: {DataType}", DataContext?.GetType().Name ?? "null");
         }
     }
 
@@ -270,8 +270,6 @@ public partial class StudentGalleryView : UserControl
         if (mainWindow?.DataContext is MainWindowViewModel mainViewModel)
         {
             _mainWindowViewModel = mainViewModel;
-            mainViewModel.ManualEntryRequested += OnManualEntryRequested;
-            mainViewModel.ClassroomImportRequested += OnClassroomImportRequested;
         }
     }
 
@@ -291,44 +289,6 @@ public partial class StudentGalleryView : UserControl
         };
     }
 
-    private void OnManualEntryRequested(object? sender, EventArgs e)
-    {
-        // Switch AddStudentView to manual mode
-        var addStudentView = this.FindControl<AddStudentView>("AddStudentView");
-        if (addStudentView?.DataContext is AddStudentViewModel addStudentViewModel)
-        {
-            addStudentViewModel.SwitchToManualModeCommand.Execute(null);
-            _pendingManualModeRequest = false;
-            _pendingClassroomModeRequest = false;
-        }
-        else
-        {
-            // If AddStudentView is not ready yet, set pending flag to apply mode when it becomes available
-            _pendingManualModeRequest = true;
-            _pendingClassroomModeRequest = false;
-            System.Diagnostics.Debug.WriteLine("AddStudentView not ready for manual mode switch - setting pending flag");
-        }
-    }
-
-    private void OnClassroomImportRequested(object? sender, EventArgs e)
-    {
-        // Switch AddStudentView to classroom mode
-        var addStudentView = this.FindControl<AddStudentView>("AddStudentView");
-        if (addStudentView?.DataContext is AddStudentViewModel addStudentViewModel)
-        {
-            addStudentViewModel.SwitchToClassroomModeCommand.Execute(null);
-            _pendingManualModeRequest = false;
-            _pendingClassroomModeRequest = false;
-        }
-        else
-        {
-            // If AddStudentView is not ready yet, set pending flag to apply mode when it becomes available
-            _pendingClassroomModeRequest = true;
-            _pendingManualModeRequest = false;
-            System.Diagnostics.Debug.WriteLine("AddStudentView not ready for classroom mode switch - setting pending flag");
-        }
-    }
-
     private void SetupAddStudentViewDataContext(StudentGalleryViewModel viewModel)
     {
         System.Diagnostics.Debug.WriteLine("SetupAddStudentViewDataContext called");
@@ -345,34 +305,12 @@ public partial class StudentGalleryView : UserControl
                 var addStudentViewModel = new AddStudentViewModel(viewModel.AuthService);
                 addStudentViewModel.LoadOptionsFromStudents(viewModel.AllStudents);
                 
-                // Wire up completion events
-                addStudentViewModel.StudentAdded += HandleAddStudentCompleted;
-                addStudentViewModel.MultipleStudentsAdded += HandleMultipleStudentsAdded;
-                addStudentViewModel.Cancelled += HandleAddStudentCancelled;
-                
                 addStudentView.DataContext = addStudentViewModel;
                 System.Diagnostics.Debug.WriteLine($"AddStudentView DataContext set to: {addStudentView.DataContext?.GetType().Name ?? "null"}");
             }
             else
             {
                 System.Diagnostics.Debug.WriteLine("AddStudentView already has correct DataContext");
-            }
-            
-            // Apply any pending mode requests
-            if (addStudentView.DataContext is AddStudentViewModel existingViewModel)
-            {
-                if (_pendingManualModeRequest)
-                {
-                    existingViewModel.SwitchToManualModeCommand.Execute(null);
-                    _pendingManualModeRequest = false;
-                    System.Diagnostics.Debug.WriteLine("Applied pending manual mode request");
-                }
-                else if (_pendingClassroomModeRequest)
-                {
-                    existingViewModel.SwitchToClassroomModeCommand.Execute(null);
-                    _pendingClassroomModeRequest = false;
-                    System.Diagnostics.Debug.WriteLine("Applied pending classroom mode request");
-                }
             }
         }
         else
@@ -407,129 +345,11 @@ public partial class StudentGalleryView : UserControl
         }
     }
 
-    private async void HandleAddStudentRequested(object? sender, EventArgs e)
-    {
-        // This is now handled by the ViewModel directly
-        // The event is kept for backward compatibility but the actual logic is in the ViewModel
-    }
-
-    private async void HandleAddStudentCompleted(object? sender, AddStudentViewModel.AddedStudentResult result)
-    {
-        if (ViewModel != null)
-        {
-            await ViewModel.AddNewStudentAsync(
-                result.Name,
-                result.ClassName,
-                result.Teachers,
-                result.Email,
-                result.EnrollmentDate.DateTime,
-                result.PicturePath
-            );
-            ViewModel.CompleteAddStudentCommand.Execute(null);
-        }
-    }
-
-    private async void HandleMultipleStudentsAdded(object? sender, List<AddStudentViewModel.AddedStudentResult> results)
-    {
-        if (ViewModel != null)
-        {
-            // Convert to the expected type
-            var convertedResults = results.Select(r => new AddStudentWindow.AddedStudentResult
-            {
-                Name = r.Name,
-                ClassName = r.ClassName,
-                Teachers = r.Teachers,
-                Email = r.Email,
-                EnrollmentDate = r.EnrollmentDate.DateTime,
-                PicturePath = r.PicturePath
-            }).ToList();
-            
-            await ViewModel.AddMultipleStudentsAsync(convertedResults);
-            ViewModel.CompleteAddStudentCommand.Execute(null);
-        }
-    }
-
-    private void HandleAddStudentCancelled(object? sender, EventArgs e)
-    {
-        if (ViewModel != null)
-        {
-            ViewModel.CancelAddStudentCommand.Execute(null);
-        }
-    }
-
-    private async void HandleStudentImageChangeRequested(object? sender, SchoolOrganizer.Models.Student student)
-    {
-        await HandleStudentImageChange(student);
-    }
-
-    private async Task HandleStudentImageChange(SchoolOrganizer.Models.Student student)
-    {
-        try
-        {
-            System.Diagnostics.Debug.WriteLine($"HandleStudentImageChange called for student {student.Id} ({student.Name})");
-            var parentWindow = TopLevel.GetTopLevel(this) as Window;
-            if (parentWindow == null) return;
-
-            // Pass existing ORIGINAL image and crop settings to the cropper
-            var result = await ImageCropWindow.ShowForStudentAsync(
-                parentWindow,
-                student.Id,
-                student.OriginalImagePath,  // Load the original, not the cropped result
-                student.CropSettings);
-
-            System.Diagnostics.Debug.WriteLine($"ImageCropWindow returned path: {result.imagePath}, settings: {(result.cropSettings != null ? "present" : "null")}, original: {result.originalImagePath}");
-
-            if (!string.IsNullOrEmpty(result.imagePath) && DataContext is StudentGalleryViewModel vm)
-            {
-                System.Diagnostics.Debug.WriteLine("Calling UpdateStudentImage on ViewModel");
-                await vm.UpdateStudentImage(student, result.imagePath, result.cropSettings, result.originalImagePath);
-                System.Diagnostics.Debug.WriteLine("UpdateStudentImage completed");
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error changing image: {ex.Message}");
-        }
-    }
-
-    private async void HandleEditStudentRequested(object? sender, SchoolOrganizer.Models.Student student)
-    {
-        await HandleEditStudent(student);
-    }
-
-    private async Task HandleEditStudent(SchoolOrganizer.Models.Student student)
-    {
-        try
-        {
-            var parentWindow = TopLevel.GetTopLevel(this) as Window;
-            if (parentWindow == null || ViewModel == null) return;
-
-            var editWindow = new AddStudentWindow();
-            editWindow.LoadOptionsFromStudents(ViewModel.AllStudents);
-            editWindow.InitializeForEdit(student);
-            var result = await editWindow.ShowDialog<AddStudentWindow.AddedStudentResult?>(parentWindow);
-            if (result != null)
-            {
-                await ViewModel.UpdateExistingStudentAsync(
-                    student,
-                    result.Name,
-                    result.ClassName,
-                    result.Teachers,
-                    result.Email,
-                    result.EnrollmentDate,
-                    result.PicturePath
-                );
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error editing student: {ex.Message}");
-        }
-    }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        // StudentGalleryView loaded
+        Log.Information("StudentGalleryView OnLoaded triggered");
+        Log.Information("ViewModel type: {ViewModelType}", ViewModel?.GetType().Name ?? "null");
         
         // Ensure we have the container prepared event subscribed after loading
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
@@ -537,15 +357,25 @@ public partial class StudentGalleryView : UserControl
         {
             studentsContainer.ContainerPrepared -= OnContainerPrepared; // Avoid double subscription
             studentsContainer.ContainerPrepared += OnContainerPrepared;
+            Log.Information("StudentsContainer found and ContainerPrepared event subscribed in OnLoaded");
+        }
+        else
+        {
+            Log.Error("StudentsContainer not found in OnLoaded - this will cause issues!");
         }
         
+        Log.Information("Calling UpdateCardLayout...");
         UpdateCardLayout();
 
         // Subscribe to ViewModel selection changes
+        Log.Information("Subscribing to ViewModel selection changes...");
         SubscribeToViewModelSelections(ViewModel);
         
         // Subscribe to MainWindowViewModel events for mode switching (after visual tree is ready)
+        Log.Information("Subscribing to MainWindowViewModel events...");
         SubscribeToMainWindowViewModel();
+        
+        Log.Information("StudentGalleryView OnLoaded completed");
     }
 
     private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
@@ -595,53 +425,6 @@ public partial class StudentGalleryView : UserControl
         }
     }
 
-    private async Task ForceItemsControlRefresh()
-    {
-        try
-        {
-            var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
-            var scrollViewer = this.FindControl<ScrollViewer>("StudentsScrollViewer");
-            
-            System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - studentsContainer: {studentsContainer != null}, scrollViewer: {scrollViewer != null}");
-            
-            if (studentsContainer != null && scrollViewer != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - Before: ItemsControl.IsVisible={studentsContainer.IsVisible}, ItemsCount={studentsContainer.Items?.Count ?? 0}");
-                
-                // Force refresh of ItemsControl
-                
-                // Force the parent ScrollViewer to invalidate (which will re-evaluate child visibility bindings)
-                scrollViewer.InvalidateVisual();
-                scrollViewer.InvalidateMeasure();
-                scrollViewer.InvalidateArrange();
-                
-                // Visibility binding completes synchronously
-                
-                // If ItemsControl is still not visible, force it to be visible
-                if (!studentsContainer.IsVisible)
-                {
-                    System.Diagnostics.Debug.WriteLine("ForceItemsControlRefresh - ItemsControl not visible, forcing to visible");
-                    studentsContainer.IsVisible = true;
-                }
-                
-                // Instead of clearing ItemsSource, just force a refresh of the existing items
-                studentsContainer.InvalidateVisual();
-                studentsContainer.InvalidateMeasure();
-                studentsContainer.InvalidateArrange();
-                
-                // Force a layout pass
-                studentsContainer.UpdateLayout();
-                
-                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - After: ItemsControl.IsVisible={studentsContainer.IsVisible}, ItemsCount={studentsContainer.Items?.Count ?? 0}");
-                
-                // ItemsControl refresh completed
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error forcing ItemsControl refresh: {ex.Message}");
-        }
-    }
 
     private (double cardWidth, int columns) CalculateOptimalLayout(double usableWidth)
     {
@@ -704,22 +487,73 @@ public partial class StudentGalleryView : UserControl
     // Event handler for when profile image is clicked (opens ImageCropWindow)
     private async void OnProfileImageClicked(object? sender, SchoolOrganizer.Models.Student student)
     {
-        await HandleStudentImageChange(student);
+        Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
     }
 
     // Event handler for detailed view profile image clicks
     private async void OnDetailedProfileImageClicked(object? sender, SchoolOrganizer.Models.Student student)
     {
-        await HandleStudentImageChange(student);
+        Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
     }
 
     // Event handler for when a profile image has been updated via ImageCropWindow
     private async void OnProfileImageUpdated(object? sender, (SchoolOrganizer.Models.Student student, string imagePath) args)
     {
-        if (args.student != null && !string.IsNullOrEmpty(args.imagePath) && ViewModel != null)
+        Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(args.student, args.imagePath, args.student.CropSettings, args.student.OriginalImagePath);
+    }
+
+    // Event handler for when StudentCoordinatorService requests an image change
+    private async void OnStudentImageChangeRequestedFromCoordinator(object? sender, SchoolOrganizer.Models.Student student)
+    {
+        await OpenImageCropperForStudent(student);
+    }
+
+    /// <summary>
+    /// Opens the ImageCropper window for editing the profile image.
+    /// </summary>
+    private async Task OpenImageCropperForStudent(Student student)
+    {
+        try
         {
-            System.Diagnostics.Debug.WriteLine($"OnProfileImageUpdated: Updating student {args.student.Id} with new image: {args.imagePath}, cropSettings: {args.student.CropSettings ?? "NULL"}, original: {args.student.OriginalImagePath ?? "NULL"}");
-            await ViewModel.UpdateStudentImage(args.student, args.imagePath, args.student.CropSettings, args.student.OriginalImagePath);
+            // Get the parent window
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
+            if (parentWindow == null)
+            {
+                System.Diagnostics.Debug.WriteLine("StudentGalleryView: Could not find parent window");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Opening ImageCropper for student: {student.Name} (ID: {student.Id})");
+
+            // Open the ImageCrop window with student context, passing existing ORIGINAL image and crop settings
+            var result = await ImageCropWindow.ShowForStudentAsync(
+                parentWindow,
+                student.Id,
+                student.OriginalImagePath,  // Load the original, not the cropped result
+                student.CropSettings);
+
+            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: ImageCropper returned: imagePath={result.imagePath ?? "NULL"}, cropSettings={result.cropSettings ?? "NULL"}, original={result.originalImagePath ?? "NULL"}");
+
+            if (!string.IsNullOrEmpty(result.imagePath))
+            {
+                System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Image saved to: {result.imagePath}");
+                System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Raising ProfileImageUpdated event for student {student.Id}");
+
+                // Use StudentCoordinatorService to publish the image update with all the crop data
+                // The ViewModel will handle updating the student objects properly
+                Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(student, result.imagePath, result.cropSettings, result.originalImagePath);
+
+                System.Diagnostics.Debug.WriteLine($"StudentGalleryView: StudentCoordinatorService.PublishStudentImageUpdated called successfully");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("StudentGalleryView: ImageCropper closed without saving (result was null or empty)");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Error opening ImageCropper: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Stack trace: {ex.StackTrace}");
         }
     }
 
@@ -732,504 +566,43 @@ public partial class StudentGalleryView : UserControl
     // Handle opening the AssignmentViewer for a student
     private async Task HandleViewAssignments(SchoolOrganizer.Models.Student student)
     {
-        try
-        {
-            // Find the student's assignment folder by searching through existing course folders
-            var studentFolderPath = await FindStudentAssignmentFolder(student);
-            
-            if (string.IsNullOrEmpty(studentFolderPath))
-            {
-                // Try to download assignments for this student
-                System.Diagnostics.Debug.WriteLine($"No assignment folder found for {student.Name}, attempting to download...");
-                
-                if (string.IsNullOrEmpty(student.Email))
-                {
-                    await ShowNoAssignmentsDialog(student.Name, "Cannot download assignments. Student email not found.");
-                    return;
-                }
-
-                // Set download status
-                if (ViewModel != null)
-                {
-                    ViewModel.IsDownloadingAssignments = true;
-                    ViewModel.DownloadStatusText = "Preparing to download assignments...";
-                }
-
-                // Attempt to download assignments for this student
-                var downloadSuccess = await DownloadStudentAssignmentsAsync(student);
-                
-                if (downloadSuccess)
-                {
-                    // Retry finding the folder after download
-                    studentFolderPath = await FindStudentAssignmentFolder(student);
-                    
-                    if (string.IsNullOrEmpty(studentFolderPath))
-                    {
-                        await ShowNoAssignmentsDialog(student.Name, "Download completed but no assignment folder was created.");
-                        return;
-                    }
-                }
-                else
-                {
-                    await ShowNoAssignmentsDialog(student.Name, "Failed to download assignments. Please download courses from the Classroom Download tab first.");
-                    return;
-                }
-            }
-
-            var fileCount = Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length;
-            if (fileCount == 0)
-            {
-                await ShowNoAssignmentsDialog(student.Name, "No assignment files found");
-                return;
-            }
-
-            // Create and show AssignmentViewer
-            var detailViewModel = new SchoolOrganizer.ViewModels.StudentDetailViewModel();
-            var detailWindow = new SchoolOrganizer.Views.AssignmentManagement.AssignmentViewer(detailViewModel);
-            
-            // Load the student files asynchronously
-            await detailViewModel.LoadStudentFilesAsync(student.Name, student.ClassName, studentFolderPath);
-            
-            detailWindow.Show();
-            System.Diagnostics.Debug.WriteLine($"Opened AssignmentViewer for {student.Name} with {fileCount} files");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error opening assignments for {student.Name}: {ex.Message}");
-            await ShowNoAssignmentsDialog(student.Name, $"Error: {ex.Message}");
-        }
-        finally
-        {
-            // Clear download status
-            if (ViewModel != null)
-            {
-                ViewModel.IsDownloadingAssignments = false;
-                ViewModel.DownloadStatusText = string.Empty;
-            }
-        }
+        // Delegate to StudentCoordinatorService
+        Services.StudentCoordinatorService.Instance.PublishViewAssignmentsRequested(student);
     }
 
-    // Find the student's assignment folder by searching through existing course folders
-    private async Task<string?> FindStudentAssignmentFolder(SchoolOrganizer.Models.Student student)
-    {
-        try
-        {
-            // Get the download folder path from the Classroom Download ViewModel
-            var downloadFolderPath = GetDownloadFolderPath();
-            if (string.IsNullOrEmpty(downloadFolderPath) || !Directory.Exists(downloadFolderPath))
-            {
-                System.Diagnostics.Debug.WriteLine("Download folder not found or not set");
-                return null;
-            }
-
-            var sanitizedStudentName = DirectoryUtil.SanitizeFolderName(student.Name);
-            System.Diagnostics.Debug.WriteLine($"Looking for student folder: {sanitizedStudentName} in {downloadFolderPath}");
-
-            // Search through all course folders
-            var courseFolders = Directory.GetDirectories(downloadFolderPath);
-            foreach (var courseFolder in courseFolders)
-            {
-                var studentFolderPath = System.IO.Path.Combine(courseFolder, sanitizedStudentName);
-                if (Directory.Exists(studentFolderPath))
-                {
-                    var fileCount = Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length;
-                    if (fileCount > 0)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Found student folder with {fileCount} files: {studentFolderPath}");
-                        return studentFolderPath;
-                    }
-                }
-            }
-
-            System.Diagnostics.Debug.WriteLine($"No student folder found for {student.Name}");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error finding student folder: {ex.Message}");
-            return null;
-        }
-    }
-
-    // Get the download folder path from SettingsService (same as Classroom Download ViewModel)
-    private string? GetDownloadFolderPath()
-    {
-        try
-        {
-            // Use the same method as Classroom Download ViewModel to get the download folder path
-            var downloadFolderPath = SettingsService.Instance.LoadDownloadFolderPath();
-            
-            if (!string.IsNullOrEmpty(downloadFolderPath) && Directory.Exists(downloadFolderPath))
-            {
-                System.Diagnostics.Debug.WriteLine($"Found download folder: {downloadFolderPath}");
-                return downloadFolderPath;
-            }
-
-            System.Diagnostics.Debug.WriteLine("Download folder not found or not set");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error getting download folder path: {ex.Message}");
-            return null;
-        }
-    }
-
-    // Download assignments for a specific student from all their enrolled courses
-    private async Task<bool> DownloadStudentAssignmentsAsync(SchoolOrganizer.Models.Student student)
-    {
-        try
-        {
-            System.Diagnostics.Debug.WriteLine($"Starting download for student: {student.Name} ({student.Email})");
-            
-            // Get the main window and its ViewModel to access Google services
-            var mainWindow = TopLevel.GetTopLevel(this) as Window;
-            if (mainWindow?.DataContext is not MainWindowViewModel mainViewModel)
-            {
-                System.Diagnostics.Debug.WriteLine("Could not access MainWindowViewModel");
-                return false;
-            }
-
-            // Check if we have Google authentication
-            if (mainViewModel.AuthService == null || !await mainViewModel.AuthService.CheckAndAuthenticateAsync())
-            {
-                System.Diagnostics.Debug.WriteLine("Not authenticated with Google Classroom");
-                return false;
-            }
-
-            // Get download folder path
-            var downloadFolderPath = SettingsService.Instance.LoadDownloadFolderPath();
-            if (string.IsNullOrEmpty(downloadFolderPath) || !Directory.Exists(downloadFolderPath))
-            {
-                System.Diagnostics.Debug.WriteLine("Download folder not found or not set");
-                return false;
-            }
-
-            // We don't need ClassroomDownloadViewModel to be active - just need AuthService
-            // which is already available through mainViewModel.AuthService
-
-            // Get all active courses
-            var classroomService = mainViewModel.AuthService.ClassroomService;
-            if (classroomService == null)
-            {
-                System.Diagnostics.Debug.WriteLine("Classroom service not available");
-                return false;
-            }
-
-            var classroomDataService = new ClassroomDataService(classroomService);
-            var cachedClassroomService = new CachedClassroomDataService(classroomDataService);
-            var courses = await cachedClassroomService.GetActiveClassroomsAsync();
-
-            System.Diagnostics.Debug.WriteLine($"Found {courses.Count} active courses");
-
-            // Find the course that matches the student's class name
-            var matchingCourse = courses.FirstOrDefault(c => 
-                c.Name?.Equals(student.ClassName, StringComparison.OrdinalIgnoreCase) == true);
-
-            if (matchingCourse == null)
-            {
-                System.Diagnostics.Debug.WriteLine($"No matching course found for student class: {student.ClassName}");
-                if (ViewModel != null)
-                {
-                    ViewModel.DownloadStatusText = $"No course found matching '{student.ClassName}'";
-                }
-                return false;
-            }
-
-            System.Diagnostics.Debug.WriteLine($"Found matching course: {matchingCourse.Name} for student class: {student.ClassName}");
-
-            // Update status
-            if (ViewModel != null)
-            {
-                ViewModel.DownloadStatusText = $"Downloading from course: {matchingCourse.Name}";
-            }
-
-            try
-            {
-                // Get students in this course
-                var studentsInCourse = await classroomDataService.GetStudentsInCourseAsync(matchingCourse.Id);
-                
-                // Check if our student is enrolled in this course (match by email)
-                var matchingStudent = studentsInCourse.FirstOrDefault(s => 
-                    string.Equals(s.Profile?.EmailAddress, student.Email, StringComparison.OrdinalIgnoreCase));
-
-                if (matchingStudent == null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Student {student.Name} not found in course {matchingCourse.Name}");
-                    if (ViewModel != null)
-                    {
-                        ViewModel.DownloadStatusText = $"Student not enrolled in course: {matchingCourse.Name}";
-                    }
-                    return false;
-                }
-
-                System.Diagnostics.Debug.WriteLine($"Found {student.Name} in course: {matchingCourse.Name}");
-                
-                // Update status
-                if (ViewModel != null)
-                {
-                    ViewModel.DownloadStatusText = $"Downloading assignments for {student.Name}...";
-                }
-                
-                // Download assignments for this student from this course
-                var success = await DownloadStudentForCourseAsync(
-                    cachedClassroomService,
-                    mainViewModel.AuthService.DriveService!,
-                    matchingCourse,
-                    matchingStudent,
-                    student.Name,
-                    downloadFolderPath,
-                    mainViewModel.AuthService.TeacherName);
-                
-                return success;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error processing course {matchingCourse.Name}: {ex.Message}");
-                if (ViewModel != null)
-                {
-                    ViewModel.DownloadStatusText = $"Error downloading from {matchingCourse.Name}: {ex.Message}";
-                }
-                return false;
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error downloading assignments for {student.Name}: {ex.Message}");
-            return false;
-        }
-    }
-
-    // Download a specific student's assignments from a specific course
-    private async Task<bool> DownloadStudentForCourseAsync(
-        CachedClassroomDataService classroomService,
-        Google.Apis.Drive.v3.DriveService driveService,
-        Google.Apis.Classroom.v1.Data.Course course,
-        Google.Apis.Classroom.v1.Data.Student classroomStudent,
-        string studentName,
-        string downloadFolderPath,
-        string teacherName)
-    {
-        try
-        {
-            System.Diagnostics.Debug.WriteLine($"Downloading assignments for {studentName} from course: {course.Name}");
-            
-            // 1. Get only this student's submissions
-            var allSubmissions = await classroomService.GetStudentSubmissionsAsync(course.Id);
-            var studentSubmissions = allSubmissions
-                .Where(s => s.UserId == classroomStudent.UserId)
-                .ToList();
-            
-            if (!studentSubmissions.Any())
-            {
-                System.Diagnostics.Debug.WriteLine($"No submissions found for {studentName} in course {course.Name}");
-                return false;
-            }
-
-            System.Diagnostics.Debug.WriteLine($"Found {studentSubmissions.Count} submissions for {studentName} in course {course.Name}");
-
-            // 2. Get course work (assignments)
-            var courseWorks = await classroomService.GetCourseWorkAsync(course.Id);
-            var courseWorkDict = courseWorks.ToDictionary(cw => cw.Id ?? "", cw => cw);
-
-            // 3. Create directories
-            var courseDirectory = DirectoryUtil.CreateCourseDirectory(
-                downloadFolderPath,
-                course.Name ?? "Unknown Course",
-                course.Section ?? "No Section",
-                course.Id ?? "Unknown ID",
-                teacherName
-            );
-
-            var studentDirectory = DirectoryUtil.CreateStudentDirectory(courseDirectory, classroomStudent);
-
-            // 4. Download only this student's files
-            var processedAttachments = new HashSet<string>();
-            bool anyFilesDownloaded = false;
-
-            foreach (var submission in studentSubmissions)
-            {
-                if (submission.AssignmentSubmission?.Attachments == null)
-                    continue;
-
-                var courseWork = courseWorkDict.GetValueOrDefault(submission.CourseWorkId);
-                string assignmentName = courseWork?.Title ?? "Unknown Assignment";
-                string assignmentDirectory = DirectoryUtil.CreateAssignmentDirectory(studentDirectory, new Google.Apis.Classroom.v1.Data.CourseWork { Title = assignmentName });
-
-                foreach (var attachment in submission.AssignmentSubmission.Attachments)
-                {
-                    string attachmentId = attachment.DriveFile?.Id ?? attachment.Link?.Url ?? "";
-                    if (!string.IsNullOrEmpty(attachmentId) && !processedAttachments.Contains(attachmentId))
-                    {
-                        processedAttachments.Add(attachmentId);
-                        var success = await DownloadStudentAttachmentAsync(
-                            driveService,
-                            attachment,
-                            assignmentDirectory,
-                            submission.Id,
-                            studentName,
-                            assignmentName);
-                        if (success)
-                        {
-                            anyFilesDownloaded = true;
-                        }
-                    }
-                }
-            }
-
-            // 5. Extract ZIP and RAR files if any were downloaded
-            if (anyFilesDownloaded)
-            {
-                System.Diagnostics.Debug.WriteLine($"Extracting ZIP and RAR files for {studentName}");
-                await FileExtractor.ExtractZipAndRARFilesFromFoldersAsync(studentDirectory);
-            }
-
-            System.Diagnostics.Debug.WriteLine($"Successfully downloaded assignments for {studentName} from course {course.Name}");
-            return anyFilesDownloaded;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error downloading assignments for {studentName} from course {course.Name}: {ex.Message}");
-            return false;
-        }
-    }
-
-    // Download a single attachment for a student
-    private async Task<bool> DownloadStudentAttachmentAsync(
-        Google.Apis.Drive.v3.DriveService driveService,
-        Google.Apis.Classroom.v1.Data.Attachment attachment,
-        string assignmentDirectory,
-        string submissionId,
-        string studentName,
-        string assignmentName)
-    {
-        try
-        {
-            if (attachment.DriveFile != null)
-            {
-                var file = await driveService.Files.Get(attachment.DriveFile.Id).ExecuteAsync();
-                string fileName = DirectoryUtil.SanitizeFolderName(attachment.DriveFile.Title ?? "File");
-                string filePath = System.IO.Path.Combine(assignmentDirectory, fileName);
-
-                // Check if the file already exists
-                if (File.Exists(filePath))
-                {
-                    System.Diagnostics.Debug.WriteLine($"File already exists: {filePath}. Skipping download.");
-                    return true;
-                }
-
-                System.Diagnostics.Debug.WriteLine($"Downloading: {attachment.DriveFile.Title} for {studentName} - {assignmentName}");
-
-                // Download the file
-                using var stream = new MemoryStream();
-                var request = driveService.Files.Get(attachment.DriveFile.Id);
-                await request.DownloadAsync(stream);
-                
-                // Write to file
-                await File.WriteAllBytesAsync(filePath, stream.ToArray());
-                
-                System.Diagnostics.Debug.WriteLine($"Successfully downloaded: {filePath}");
-                return true;
-            }
-            else if (attachment.Link != null)
-            {
-                // Handle link attachments (URLs)
-                System.Diagnostics.Debug.WriteLine($"Link attachment found for {studentName} - {assignmentName}: {attachment.Link.Url}");
-                // For now, just log the link - could implement URL download later
-                return false;
-            }
-            
-            return false;
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error downloading attachment for {studentName} - {assignmentName}: {ex.Message}");
-            return false;
-        }
-    }
-
-    // Show dialog when no assignments are found
-    private async Task ShowNoAssignmentsDialog(string studentName, string reason)
-    {
-        var parentWindow = TopLevel.GetTopLevel(this) as Window;
-        if (parentWindow == null) return;
-
-        var message = $"No assignments found for {studentName}.\n\n{reason}\n\nPlease download assignments from the Classroom Download tab.";
-        
-        // Create a simple dialog window
-        var dialog = new Window
-        {
-            Title = "No Assignments Found",
-            Width = 400,
-            Height = 200,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = new StackPanel
-            {
-                Margin = new Thickness(20),
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = message,
-                        TextWrapping = Avalonia.Media.TextWrapping.Wrap,
-                        Margin = new Thickness(0, 0, 0, 20)
-                    },
-                    new Button
-                    {
-                        Content = "OK",
-                        HorizontalAlignment = HorizontalAlignment.Center
-                    }
-                }
-            }
-        };
-        
-        // Set up the button click handler
-        var okButton = (Button)((StackPanel)dialog.Content).Children[1];
-        okButton.Click += (s, e) => dialog.Close();
-        
-        await dialog.ShowDialog(parentWindow);
-    }
 
 
     // Event handler for clicking on student cards
     private void OnStudentCardClicked(object? sender, IPerson person)
     {
-        if (ViewModel != null)
+        if (person is Student student)
         {
-            ViewModel.SelectStudentCommand.Execute(person);
+            Services.StudentCoordinatorService.Instance.PublishStudentSelected(student);
         }
     }
 
     // Event handler for double-clicking on student cards
     private void OnStudentCardDoubleClicked(object? sender, IPerson person)
     {
-        if (ViewModel != null)
+        if (person is Student student && ViewModel != null)
         {
-            ViewModel.DoubleClickStudentCommand.Execute(person);
+            // Call the double-click method directly on the ViewModel
+            ViewModel.DoubleClickStudentCommand.Execute(student);
         }
     }
 
     // Event handler for clicking on add student cards
     private async void OnAddStudentCardClicked(object? sender, IPerson person)
     {
-        if (ViewModel != null)
-        {
-            System.Diagnostics.Debug.WriteLine("OnAddStudentCardClicked - Before: IsAddingStudent = " + ViewModel.IsAddingStudent);
-            // Trigger the AddStudent command which will set IsAddingStudent = true
-            ViewModel.AddStudentCommand.Execute(null);
-            System.Diagnostics.Debug.WriteLine("OnAddStudentCardClicked - After: IsAddingStudent = " + ViewModel.IsAddingStudent);
-        }
+        Services.StudentCoordinatorService.Instance.PublishAddStudentRequested();
     }
 
     // Event handler for double-clicking on background to return to gallery
     private void OnBackgroundDoubleTapped(object? sender, RoutedEventArgs e)
     {
-        if (ViewModel != null)
-        {
-            ViewModel.DeselectStudentCommand.Execute(null);
-            // Reinitialize keyboard handler after returning from detailed view
-            ReinitializeKeyboardHandler();
-        }
+        Services.StudentCoordinatorService.Instance.PublishStudentDeselected();
+        // Reinitialize keyboard handler after returning from detailed view
+        ReinitializeKeyboardHandler();
     }
 
         private void ScrollSelectedStudentIntoCenter()

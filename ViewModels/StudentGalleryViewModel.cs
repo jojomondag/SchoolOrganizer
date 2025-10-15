@@ -14,6 +14,9 @@ using SchoolOrganizer.Models;
 using SchoolOrganizer.Services;
 using SchoolOrganizer.Views.Converters;
 using SchoolOrganizer.Views.Windows;
+using Avalonia.Controls;
+using SchoolOrganizer.Views.Windows.ImageCrop;
+using Serilog;
 
 namespace SchoolOrganizer.ViewModels;
 
@@ -96,8 +99,11 @@ public partial class StudentGalleryViewModel : ObservableObject
     { 
         get 
         {
-            var result = IsDoubleClickMode || (!ForceGridView && Students.Count == 2 && Students.Any(s => s is Student) && !string.IsNullOrWhiteSpace(SearchText));
-            System.Diagnostics.Debug.WriteLine($"ShowSingleStudent: IsDoubleClickMode={IsDoubleClickMode}, ForceGridView={ForceGridView}, Students.Count={Students.Count}, HasStudent={Students.Any(s => s is Student)}, SearchText='{SearchText}' -> {result}");
+            // Show single student large card ONLY when:
+            // 1. User double-clicked a student (IsDoubleClickMode = true)
+            // Note: Removed automatic single card view - always use grid view for consistency
+            var result = IsDoubleClickMode;
+            System.Diagnostics.Debug.WriteLine($"ShowSingleStudent: IsDoubleClickMode={IsDoubleClickMode}, Students.Count={Students.Count} -> {result}");
             return result;
         }
     }
@@ -106,8 +112,9 @@ public partial class StudentGalleryViewModel : ObservableObject
     { 
         get 
         {
-            var result = !IsDoubleClickMode && (ForceGridView || Students.Count != 2 || !Students.Any(s => s is Student) || string.IsNullOrWhiteSpace(SearchText));
-            System.Diagnostics.Debug.WriteLine($"ShowMultipleStudents: IsDoubleClickMode={IsDoubleClickMode}, ForceGridView={ForceGridView}, Students.Count={Students.Count}, HasStudent={Students.Any(s => s is Student)}, SearchText='{SearchText}' -> {result}");
+            // Show grid view when NOT showing single student
+            var result = !ShowSingleStudent;
+            System.Diagnostics.Debug.WriteLine($"ShowMultipleStudents: ShowSingleStudent={ShowSingleStudent} -> {result}");
             return result;
         }
     }
@@ -126,10 +133,7 @@ public partial class StudentGalleryViewModel : ObservableObject
     // Search enabled when not adding student
     public bool IsSearchEnabled => !IsAddingStudent;
 
-    // Events
-    public event EventHandler? AddStudentRequested;
-    public event EventHandler<Student>? StudentImageChangeRequested;
-    public event EventHandler<Student>? EditStudentRequested;
+    // Events - Removed direct event publishers, now using StudentCoordinatorService
 
     public void UpdateAuthenticationState(GoogleAuthService authService)
     {
@@ -144,13 +148,18 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     public StudentGalleryViewModel(GoogleAuthService? authService = null)
     {
-        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel constructor - IsAddingStudent initial value: {IsAddingStudent}");
+        Log.Information("StudentGalleryViewModel constructor started");
+        Log.Information("AuthService provided: {HasAuthService}", authService != null);
+        Log.Information("Initial state - IsAddingStudent: {IsAddingStudent}, ForceGridView: {ForceGridView}, IsLoading: {IsLoading}", 
+            IsAddingStudent, ForceGridView, IsLoading);
+        
         this.authService = authService;
         if (authService != null)
         {
             userProfileService = new UserProfileService(authService);
             IsAuthenticated = true;
             TeacherName = authService.TeacherName;
+            Log.Information("Authentication setup - TeacherName: {TeacherName}", TeacherName);
             // Don't use Task.Run here to avoid threading issues
             _ = LoadProfileImageAsync();
         }
@@ -158,56 +167,96 @@ public partial class StudentGalleryViewModel : ObservableObject
         {
             IsAuthenticated = false;
             TeacherName = "Not Authenticated";
+            Log.Warning("No AuthService provided - running in unauthenticated mode");
         }
-        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel constructor - IsAddingStudent after setup: {IsAddingStudent}");
-        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel constructor - Initial state: ForceGridView={ForceGridView}, IsLoading={IsLoading}");
+        
+        Log.Information("After setup - IsAddingStudent: {IsAddingStudent}, IsAuthenticated: {IsAuthenticated}, TeacherName: {TeacherName}", 
+            IsAddingStudent, IsAuthenticated, TeacherName);
+        
+        // Subscribe to StudentCoordinatorService events
+        SubscribeToCoordinatorEvents();
+        Log.Information("Subscribed to StudentCoordinatorService events");
+        
+        Log.Information("Starting LoadStudents...");
         _ = LoadStudents();
     }
 
     [RelayCommand]
     private async Task LoadStudents()
     {
+        Log.Information("LoadStudents started");
         IsLoading = true;
+        Log.Information("Set IsLoading = true");
+        
         try
         {
             var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
+            Log.Information("Looking for students.json at: {JsonPath}", jsonPath);
             
             if (File.Exists(jsonPath))
             {
+                Log.Information("students.json file found, reading content...");
                 var jsonContent = await File.ReadAllTextAsync(jsonPath);
+                Log.Information("JSON content length: {ContentLength} characters", jsonContent.Length);
+                
                 var studentList = JsonSerializer.Deserialize<List<Student>>(jsonContent);
+                Log.Information("Deserialized {StudentCount} students from JSON", studentList?.Count ?? 0);
                 
                 allStudents.Clear();
                 Students.Clear();
+                Log.Information("Cleared existing student collections");
+                
                 if (studentList != null)
                 {
                     foreach (var student in studentList)
                     {
                         allStudents.Add(student);
+                        Log.Debug("Added student: {StudentName} (ID: {StudentId})", student.Name, student.Id);
                     }
+                    Log.Information("Added {StudentCount} students to AllStudents collection", allStudents.Count);
+                }
+                else
+                {
+                    Log.Warning("Deserialized student list is null");
                 }
 
                 // Ensure ForceGridView is true before applying search
                 ForceGridView = true;
+                Log.Information("Set ForceGridView = true");
+                
                 IsLoading = false; // Set loading to false before applying search
+                Log.Information("Set IsLoading = false");
+                
+                Log.Information("Calling ApplySearchImmediate...");
                 await ApplySearchImmediate();
+                
+                Log.Information("Calling UpdateDisplayLevelBasedOnItemCount...");
                 UpdateDisplayLevelBasedOnItemCount();
                 
                 // Explicitly update view properties to ensure bindings are refreshed
+                Log.Information("Calling UpdateViewProperties...");
                 UpdateViewProperties();
                 
-                System.Diagnostics.Debug.WriteLine($"LoadStudents completed - Students.Count: {Students.Count}, ForceGridView: {ForceGridView}, ShowMultipleStudents: {ShowMultipleStudents}, ShowEmptyState: {ShowEmptyState}");
+                Log.Information("LoadStudents completed - Students.Count: {StudentsCount}, AllStudents.Count: {AllStudentsCount}, ForceGridView: {ForceGridView}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}", 
+                    Students.Count, allStudents.Count, ForceGridView, ShowMultipleStudents, ShowSingleStudent, ShowEmptyState);
+            }
+            else
+            {
+                Log.Warning("students.json file not found at: {JsonPath}", jsonPath);
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading students: {ex.Message}");
+            Log.Error(ex, "Error loading students from JSON file");
         }
         finally
         {
             IsLoading = false;
+            Log.Information("Set IsLoading = false in finally block");
             // Ensure view properties are updated even on error
             UpdateViewProperties();
+            Log.Information("Final state - Students.Count: {StudentsCount}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}", 
+                Students.Count, ShowMultipleStudents, ShowSingleStudent, ShowEmptyState);
         }
     }
 
@@ -248,10 +297,10 @@ public partial class StudentGalleryViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void EditStudent(Student student) => EditStudentRequested?.Invoke(this, student);
+    private void EditStudent(Student student) => Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
 
     [RelayCommand]
-    private void ChangeImage(Student student) => StudentImageChangeRequested?.Invoke(this, student);
+    private void ChangeImage(Student student) => Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
 
     [RelayCommand]
     private async Task DeselectStudent() 
@@ -266,8 +315,6 @@ public partial class StudentGalleryViewModel : ObservableObject
             searchCts?.Cancel();
             // Reset search text
             SearchText = string.Empty;
-            // Set ForceGridView BEFORE calling ApplySearchImmediate to ensure view state is correct
-            ForceGridView = true;
             // Immediately restore the full student list (not debounced)
             await ApplySearchImmediate();
             // Let automatic sizing determine the optimal display level based on student count
@@ -282,8 +329,6 @@ public partial class StudentGalleryViewModel : ObservableObject
             // For single-click deselection, only clear selection without refreshing cards
             // Cancel any pending debounced searches
             searchCts?.Cancel();
-            // Set ForceGridView to ensure we don't show single-student view
-            ForceGridView = true;
             // Update view properties to update visibility bindings
             UpdateViewProperties();
         }
@@ -316,9 +361,6 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     partial void OnSearchTextChanged(string value)
     {
-        if (ForceGridView && !string.IsNullOrEmpty(value))
-            ForceGridView = false;
-        
         // Exit double-click mode when search text changes
         if (IsDoubleClickMode)
             IsDoubleClickMode = false;
@@ -334,7 +376,6 @@ public partial class StudentGalleryViewModel : ObservableObject
         UpdateDisplayLevelBasedOnItemCount();
     }
 
-    partial void OnForceGridViewChanged(bool value) => UpdateViewProperties();
 
     partial void OnSelectedStudentChanged(Student? value)
     {
@@ -404,47 +445,60 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     private Task ApplySearchImmediate()
     {
+        Log.Information("ApplySearchImmediate started");
+        Log.Information("Input - SearchText: '{SearchText}', AllStudents.Count: {AllStudentsCount}, IsAddingStudent: {IsAddingStudent}", 
+            SearchText, allStudents.Count, IsAddingStudent);
+        
         try
         {
             var results = searchService.Search(allStudents, SearchText).ToList();
-            
-            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - SearchText: '{SearchText}', Found {results.Count} students, AllStudents: {allStudents.Count}");
+            Log.Information("Search completed - Found {ResultCount} students matching '{SearchText}'", results.Count, SearchText);
             
             Students.Clear();
+            Log.Information("Cleared Students collection");
+            
             foreach (var s in results)
+            {
                 Students.Add(s);
+                Log.Debug("Added student to Students collection: {StudentName} (ID: {StudentId})", s.Name, s.Id);
+            }
             
             // Only add AddStudentCard when NOT in add student mode
             if (!IsAddingStudent)
             {
                 Students.Add(new AddStudentCard());
+                Log.Information("Added AddStudentCard to Students collection");
+            }
+            else
+            {
+                Log.Information("Skipped adding AddStudentCard - IsAddingStudent is true");
             }
             
             // Defensive check: ensure Students collection is never empty when not in add mode
             if (Students.Count == 0 && !IsAddingStudent)
             {
                 Students.Add(new AddStudentCard());
+                Log.Warning("Students collection was empty, added AddStudentCard as fallback");
             }
             
-            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - Final Students.Count: {Students.Count}");
-            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - ForceGridView: {ForceGridView}");
-            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - ShowMultipleStudents: {ShowMultipleStudents}");
-            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - ShowSingleStudent: {ShowSingleStudent}");
-            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - ShowEmptyState: {ShowEmptyState}");
-            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - CurrentDisplayLevel: {CurrentDisplayLevel}");
-            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - IsLoading: {IsLoading}");
+            Log.Information("ApplySearchImmediate completed - Students.Count: {StudentsCount}, ForceGridView: {ForceGridView}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}, CurrentDisplayLevel: {CurrentDisplayLevel}, IsLoading: {IsLoading}", 
+                Students.Count, ForceGridView, ShowMultipleStudents, ShowSingleStudent, ShowEmptyState, CurrentDisplayLevel, IsLoading);
             
             // Always update view properties to ensure bindings are refreshed
+            Log.Information("Calling UpdateViewProperties...");
             UpdateViewProperties();
+            
+            Log.Information("Calling UpdateDisplayLevelBasedOnItemCount...");
             UpdateDisplayLevelBasedOnItemCount();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Search error: {ex.Message}");
+            Log.Error(ex, "Error in ApplySearchImmediate");
             // Ensure Students collection is never empty even on error, but only when not in add mode
             if (Students.Count == 0 && !IsAddingStudent)
             {
                 Students.Add(new AddStudentCard());
+                Log.Warning("Added AddStudentCard as error fallback");
             }
             // Update view properties even on error to ensure UI state is correct
             UpdateViewProperties();
@@ -479,7 +533,6 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         System.Diagnostics.Debug.WriteLine("CompleteAddStudent command executed - setting IsAddingStudent to false");
         IsAddingStudent = false;
-        ForceGridView = true;
     }
 
     [RelayCommand]
@@ -498,10 +551,7 @@ public partial class StudentGalleryViewModel : ObservableObject
         // Immediately restore the full student list
         await ApplySearchImmediate();
         // Let automatic sizing determine the optimal display level based on student count
-        // IMPORTANT: Call this BEFORE setting ForceGridView = true, otherwise it returns early
         UpdateDisplayLevelBasedOnItemCount();
-        // Set ForceGridView last to ensure display level is calculated first
-        ForceGridView = true;
     }
 
     [RelayCommand]
@@ -658,12 +708,20 @@ public partial class StudentGalleryViewModel : ObservableObject
 
             void UpdateStudentPictureUrl(Student s, string oldPath, string newPath, string? settings, string? origPath)
             {
+                System.Diagnostics.Debug.WriteLine($"UpdateStudentPictureUrl: Updating student {s.Id} ({s.Name})");
+                System.Diagnostics.Debug.WriteLine($"  Old path: {oldPath}");
+                System.Diagnostics.Debug.WriteLine($"  New path: {newPath}");
+                System.Diagnostics.Debug.WriteLine($"  Crop settings: {settings}");
+                System.Diagnostics.Debug.WriteLine($"  Original path: {origPath}");
+                
                 if (!string.IsNullOrWhiteSpace(oldPath))
                     UniversalImageConverter.ClearCache(oldPath);
                 UniversalImageConverter.ClearCache(newPath);
                 s.PictureUrl = newPath;
                 s.CropSettings = settings;
                 s.OriginalImagePath = origPath;
+                
+                System.Diagnostics.Debug.WriteLine($"  Updated PictureUrl to: {s.PictureUrl}");
             }
 
             UpdateStudentPictureUrl(student, student.PictureUrl, newImagePath, cropSettings, originalImagePath);
@@ -747,6 +805,185 @@ public partial class StudentGalleryViewModel : ObservableObject
             s.Email.Equals(email, StringComparison.OrdinalIgnoreCase) && 
             s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
+
+    /// <summary>
+    /// Subscribes to StudentCoordinatorService events
+    /// </summary>
+    private void SubscribeToCoordinatorEvents()
+    {
+        var coordinator = Services.StudentCoordinatorService.Instance;
+        
+        coordinator.StudentSelected += OnCoordinatorStudentSelected;
+        coordinator.StudentDeselected += OnCoordinatorStudentDeselected;
+        coordinator.AddStudentRequested += OnCoordinatorAddStudentRequested;
+        coordinator.StudentAdded += OnCoordinatorStudentAdded;
+        coordinator.StudentImageChangeRequested += OnCoordinatorStudentImageChangeRequested;
+        coordinator.ViewAssignmentsRequested += OnCoordinatorViewAssignmentsRequested;
+        coordinator.ManualEntryRequested += OnCoordinatorManualEntryRequested;
+        coordinator.ClassroomImportRequested += OnCoordinatorClassroomImportRequested;
+        coordinator.AddStudentCompleted += OnCoordinatorAddStudentCompleted;
+        coordinator.AddStudentCancelled += OnCoordinatorAddStudentCancelled;
+        coordinator.StudentImageUpdated += OnCoordinatorStudentImageUpdated;
+    }
+
+    private void OnCoordinatorStudentSelected(object? sender, Student student)
+    {
+        SelectStudentCommand.Execute(student);
+    }
+
+    private void OnCoordinatorStudentDeselected(object? sender, EventArgs e)
+    {
+        DeselectStudentCommand.Execute(null);
+    }
+
+    private void OnCoordinatorAddStudentRequested(object? sender, EventArgs e)
+    {
+        AddStudentCommand.Execute(null);
+    }
+
+    private async void OnCoordinatorStudentAdded(object? sender, Student student)
+    {
+        // Add the student to the collection
+        await AddNewStudentAsync(
+            student.Name,
+            student.ClassName,
+            student.Teachers.ToList(),
+            student.Email,
+            student.EnrollmentDate,
+            student.PictureUrl
+        );
+    }
+
+    private async void OnCoordinatorStudentImageChangeRequested(object? sender, Student student)
+    {
+        await HandleStudentImageChange(student);
+    }
+
+    private async void OnCoordinatorViewAssignmentsRequested(object? sender, Student student)
+    {
+        await HandleViewAssignments(student);
+    }
+
+    private void OnCoordinatorManualEntryRequested(object? sender, EventArgs e)
+    {
+        // This will be handled by the view layer
+    }
+
+    private void OnCoordinatorClassroomImportRequested(object? sender, EventArgs e)
+    {
+        // This will be handled by the view layer
+    }
+
+    private void OnCoordinatorAddStudentCompleted(object? sender, EventArgs e)
+    {
+        CompleteAddStudentCommand.Execute(null);
+    }
+
+    private void OnCoordinatorAddStudentCancelled(object? sender, EventArgs e)
+    {
+        CancelAddStudentCommand.Execute(null);
+    }
+
+    private async void OnCoordinatorStudentImageUpdated(object? sender, (Student student, string imagePath, string? cropSettings, string? originalImagePath) args)
+    {
+        await UpdateStudentImage(args.student, args.imagePath, args.cropSettings, args.originalImagePath);
+    }
+
+    /// <summary>
+    /// Handles student image change requests
+    /// </summary>
+    private async Task HandleStudentImageChange(Student student)
+    {
+        // This method should be handled by the view layer, not the ViewModel
+        // The ViewModel should not contain UI logic
+        System.Diagnostics.Debug.WriteLine($"HandleStudentImageChange called for student {student.Id} ({student.Name}) - should be handled by view layer");
+    }
+
+    /// <summary>
+    /// Handles view assignments requests
+    /// </summary>
+    private async Task HandleViewAssignments(Student student)
+    {
+        try
+        {
+            // Find the student's assignment folder by searching through existing course folders
+            var studentFolderPath = await FindStudentAssignmentFolder(student);
+            
+            if (string.IsNullOrEmpty(studentFolderPath))
+            {
+                // Try to download assignments for this student
+                System.Diagnostics.Debug.WriteLine($"No assignment folder found for {student.Name}, attempting to download...");
+                
+                if (string.IsNullOrEmpty(student.Email))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Cannot download assignments for {student.Name}: Student email not found.");
+                    return;
+                }
+
+                // Set download status
+                IsDownloadingAssignments = true;
+                DownloadStatusText = "Preparing to download assignments...";
+
+                // Attempt to download assignments for this student
+                var assignmentService = new Services.StudentAssignmentService();
+                var downloadSuccess = await assignmentService.DownloadStudentAssignmentsAsync(student, authService!, TeacherName);
+                
+                if (downloadSuccess)
+                {
+                    // Retry finding the folder after download
+                    studentFolderPath = await FindStudentAssignmentFolder(student);
+                    
+                    if (string.IsNullOrEmpty(studentFolderPath))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Download completed but no assignment folder was created for {student.Name}");
+                        return;
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to download assignments for {student.Name}");
+                    return;
+                }
+            }
+
+            var fileCount = Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length;
+            if (fileCount == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"No assignment files found for {student.Name}");
+                return;
+            }
+
+            // Create and show AssignmentViewer
+            var detailViewModel = new SchoolOrganizer.ViewModels.StudentDetailViewModel();
+            var detailWindow = new SchoolOrganizer.Views.AssignmentManagement.AssignmentViewer(detailViewModel);
+            
+            // Load the student files asynchronously
+            await detailViewModel.LoadStudentFilesAsync(student.Name, student.ClassName, studentFolderPath);
+            
+            detailWindow.Show();
+            System.Diagnostics.Debug.WriteLine($"Opened AssignmentViewer for {student.Name} with {fileCount} files");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error opening assignments for {student.Name}: {ex.Message}");
+        }
+        finally
+        {
+            // Clear download status
+            IsDownloadingAssignments = false;
+            DownloadStatusText = string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Find the student's assignment folder by searching through existing course folders
+    /// </summary>
+    private async Task<string?> FindStudentAssignmentFolder(Student student)
+    {
+        var assignmentService = new Services.StudentAssignmentService();
+        return await assignmentService.FindStudentAssignmentFolderAsync(student);
+    }
+
 
 
 }

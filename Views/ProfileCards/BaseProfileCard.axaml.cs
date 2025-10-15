@@ -6,6 +6,7 @@ using Avalonia.Animation;
 using System;
 using Avalonia.Threading;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SchoolOrganizer.Models;
 using SchoolOrganizer.Views.Windows;
@@ -56,20 +57,57 @@ namespace SchoolOrganizer.Views.ProfileCards
             Unloaded -= OnUnloaded;
         }
 
+
         // Allow derived classes to opt out of hover effects without overriding the entire SetupEventHandlers
         protected virtual bool EnableHover => true;
 
         protected virtual void UpdateAllControls()
         {
-            // Iterate mappings and update target TextBlocks
-            foreach (var kvp in _propertyMappings)
+            // Try to get data from DataContext first (direct source)
+            if (DataContext is IPerson person)
             {
-                var prop = kvp.Key;
-                var (controlName, fallback) = kvp.Value;
-                if (this.FindControl<TextBlock>(controlName) is { } textBlock)
+                // Update from person directly - this ensures immediate display of real data
+                if (this.FindControl<TextBlock>("NameText") is { } nameText)
+                    nameText.Text = person.Name ?? "Unknown";
+                    
+                if (this.FindControl<TextBlock>("EmailText") is { } emailText)
+                    emailText.Text = person.Email ?? "No Email";
+                    
+                if (this.FindControl<TextBlock>("SecondaryText") is { } secondaryText)
+                    secondaryText.Text = person.SecondaryInfo ?? "No Info";
+                    
+                if (this.FindControl<TextBlock>("EnrollmentText") is { } enrollmentText)
                 {
-                    var value = GetValue(prop) as string ?? fallback;
-                    textBlock.Text = value;
+                    if (person is Student student)
+                        enrollmentText.Text = student.EnrollmentDate.ToString("MMMM d, yyyy");
+                    else
+                        enrollmentText.Text = "Unknown";
+                }
+                    
+                if (this.FindControl<TextBlock>("IdText") is { } idText)
+                    idText.Text = person.Id.ToString();
+                    
+                if (this.FindControl<TextBlock>("InitialsText") is { } initialsText)
+                {
+                    var name = person.Name ?? "";
+                    var initials = name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(word => word.Length > 0 ? word[0].ToString().ToUpper() : "")
+                        .Take(2);
+                    initialsText.Text = string.Join("", initials);
+                }
+            }
+            else
+            {
+                // Fallback to StyledProperty values when DataContext isn't set
+                foreach (var kvp in _propertyMappings)
+                {
+                    var prop = kvp.Key;
+                    var (controlName, fallback) = kvp.Value;
+                    if (this.FindControl<TextBlock>(controlName) is { } textBlock)
+                    {
+                        var value = GetValue(prop) as string ?? fallback;
+                        textBlock.Text = value;
+                    }
                 }
             }
         }
@@ -320,21 +358,38 @@ namespace SchoolOrganizer.Views.ProfileCards
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"BaseProfileCard.UpdateProfileImage called with PictureUrl: {PictureUrl}");
+                
                 if (this.FindControl<Ellipse>("ProfileImageEllipse") is { } ellipse)
                 {
                     var pictureUrl = PictureUrl;
 
                     if (!string.IsNullOrEmpty(pictureUrl))
                     {
+                        System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Loading image from path: {pictureUrl}");
+                        
                         // Use UniversalImageConverter to load the image
                         var converter = new SchoolOrganizer.Views.Converters.UniversalImageConverter();
                         var bitmap = converter.Convert(pictureUrl, typeof(Avalonia.Media.Imaging.Bitmap), null, System.Globalization.CultureInfo.CurrentCulture);
 
                         if (bitmap is Avalonia.Media.Imaging.Bitmap bmp)
                         {
+                            System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Successfully loaded bitmap, setting as Fill");
                             ellipse.Fill = new ImageBrush(bmp) { Stretch = Avalonia.Media.Stretch.UniformToFill };
                         }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Failed to load bitmap from {pictureUrl}");
+                        }
                     }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"BaseProfileCard: PictureUrl is null or empty");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: ProfileImageEllipse not found");
                 }
             }
             catch (Exception ex)
@@ -379,10 +434,10 @@ namespace SchoolOrganizer.Views.ProfileCards
                     student.CropSettings = result.cropSettings;
                     student.OriginalImagePath = result.originalImagePath;
 
-                    // Raise event to notify that student data changed with the new image path
-                    ProfileImageUpdated?.Invoke(this, (student, result.imagePath));
+                    // Use StudentCoordinatorService to publish the image update
+                    Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(student, result.imagePath, result.cropSettings, result.originalImagePath);
 
-                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: ProfileImageUpdated event raised successfully");
+                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: StudentCoordinatorService.PublishStudentImageUpdated called successfully");
                 }
                 else
                 {

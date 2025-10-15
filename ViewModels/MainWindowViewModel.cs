@@ -59,8 +59,11 @@ public partial class MainWindowViewModel : ObservableObject
         _studentGalleryViewModel = new StudentGalleryViewModel(authService);
         _currentViewModel = _studentGalleryViewModel;
         
-        // Subscribe to student gallery property changes to update menu
-        _studentGalleryViewModel.PropertyChanged += OnStudentGalleryPropertyChanged;
+        // Subscribe to StudentCoordinatorService for add-student mode detection
+        var coordinator = Services.StudentCoordinatorService.Instance;
+        coordinator.AddStudentRequested += OnCoordinatorAddStudentRequested;
+        coordinator.AddStudentCompleted += OnCoordinatorAddStudentCompleted;
+        coordinator.AddStudentCancelled += OnCoordinatorAddStudentCancelled;
         
         if (authService != null)
         {
@@ -73,12 +76,19 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void OnStudentGalleryPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnCoordinatorAddStudentRequested(object? sender, EventArgs e)
     {
-        if (e.PropertyName == nameof(StudentGalleryViewModel.IsAddingStudent))
-        {
-            OnPropertyChanged(nameof(IsAddStudentMode));
-        }
+        OnPropertyChanged(nameof(IsAddStudentMode));
+    }
+
+    private void OnCoordinatorAddStudentCompleted(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(IsAddStudentMode));
+    }
+
+    private void OnCoordinatorAddStudentCancelled(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(IsAddStudentMode));
     }
 
     public bool IsStudentGalleryActive => CurrentViewModel is StudentGalleryViewModel;
@@ -92,18 +102,31 @@ public partial class MainWindowViewModel : ObservableObject
     };
 
     [RelayCommand]
-    private void NavigateToStudentGallery() => CurrentViewModel = _studentGalleryViewModel;
+    private void NavigateToStudentGallery() 
+    {
+        Log.Information("NavigateToStudentGallery command executed");
+        Log.Information("Current ViewModel before navigation: {CurrentViewModel}", CurrentViewModel?.GetType().Name ?? "null");
+        Log.Information("StudentGalleryViewModel state - IsLoading: {IsLoading}, Students.Count: {StudentsCount}, AllStudents.Count: {AllStudentsCount}", 
+            _studentGalleryViewModel.IsLoading, 
+            _studentGalleryViewModel.Students.Count, 
+            _studentGalleryViewModel.AllStudents.Count);
+        Log.Information("StudentGalleryViewModel view properties - ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}", 
+            _studentGalleryViewModel.ShowMultipleStudents, 
+            _studentGalleryViewModel.ShowSingleStudent, 
+            _studentGalleryViewModel.ShowEmptyState);
+        
+        CurrentViewModel = _studentGalleryViewModel;
+        
+        Log.Information("Current ViewModel after navigation: {CurrentViewModel}", CurrentViewModel?.GetType().Name ?? "null");
+    }
 
     [RelayCommand]
     private void NavigateToManualEntry()
     {
         if (IsAddStudentMode)
         {
-            // Switch to manual entry mode in the add student view
-            // We need to find the AddStudentView and switch its mode
-            // This will be handled by the StudentGalleryView code-behind
-            // For now, we'll add an event that the StudentGalleryView can listen to
-            ManualEntryRequested?.Invoke(this, EventArgs.Empty);
+            // Use StudentCoordinatorService to publish manual entry request
+            Services.StudentCoordinatorService.Instance.PublishManualEntryRequested();
         }
     }
 
@@ -112,17 +135,10 @@ public partial class MainWindowViewModel : ObservableObject
     {
         if (IsAddStudentMode)
         {
-            // Switch to classroom import mode in the add student view
-            // We need to find the AddStudentView and switch its mode
-            // This will be handled by the StudentGalleryView code-behind
-            // For now, we'll add an event that the StudentGalleryView can listen to
-            ClassroomImportRequested?.Invoke(this, EventArgs.Empty);
+            // Use StudentCoordinatorService to publish classroom import request
+            Services.StudentCoordinatorService.Instance.PublishClassroomImportRequested();
         }
     }
-
-    // Events for add student mode switching
-    public event EventHandler? ManualEntryRequested;
-    public event EventHandler? ClassroomImportRequested;
 
     [RelayCommand]
     private void NavigateToClassroomDownload()

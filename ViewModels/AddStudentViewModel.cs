@@ -92,6 +92,9 @@ public partial class AddStudentViewModel : ObservableObject
             // Load classrooms when initialized with auth service
             _ = LoadClassroomsAsync();
         }
+        
+        // Subscribe to coordinator events for mode switching
+        SubscribeToCoordinatorEvents();
     }
 
     // Commands for mode switching
@@ -237,11 +240,20 @@ public partial class AddStudentViewModel : ObservableObject
     // Classroom import methods
     private async Task LoadClassroomsAsync()
     {
-        if (classroomService == null) return;
+        System.Diagnostics.Debug.WriteLine($"LoadClassroomsAsync called - classroomService is null: {classroomService == null}");
+        
+        if (classroomService == null) 
+        {
+            // Show message that authentication is required
+            ValidationText = "Please login with Google to import from Classroom";
+            System.Diagnostics.Debug.WriteLine($"Set ValidationText to: {ValidationText}");
+            return;
+        }
 
         try
         {
             IsLoadingClassrooms = true;
+            ValidationText = "Loading classrooms...";
             var classrooms = await classroomService.GetActiveClassroomsAsync();
             
             AvailableClassrooms.Clear();
@@ -249,10 +261,20 @@ public partial class AddStudentViewModel : ObservableObject
             {
                 AvailableClassrooms.Add(classroom);
             }
+            
+            if (classrooms.Count == 0)
+            {
+                ValidationText = "No active classrooms found";
+            }
+            else
+            {
+                ValidationText = string.Empty;
+            }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading classrooms: {ex.Message}");
+            ValidationText = $"Error loading classrooms: {ex.Message}";
         }
         finally
         {
@@ -263,11 +285,18 @@ public partial class AddStudentViewModel : ObservableObject
     [RelayCommand]
     private async Task OnClassroomSelected()
     {
-        if (SelectedClassroom == null || classroomService == null) return;
+        if (SelectedClassroom == null) return;
+        
+        if (classroomService == null)
+        {
+            ValidationText = "Please login with Google to load students";
+            return;
+        }
 
         try
         {
             IsLoadingStudents = true;
+            ValidationText = "Loading students...";
             ClassroomStudents.Clear();
             
             var students = await classroomService.GetStudentsInCourseAsync(SelectedClassroom.Id);
@@ -276,10 +305,20 @@ public partial class AddStudentViewModel : ObservableObject
             {
                 ClassroomStudents.Add(new ClassroomStudentWrapper(student));
             }
+            
+            if (students.Count == 0)
+            {
+                ValidationText = "No students found in this classroom";
+            }
+            else
+            {
+                ValidationText = $"Found {students.Count} students. Select the ones you want to import.";
+            }
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading students: {ex.Message}");
+            ValidationText = $"Error loading students: {ex.Message}";
         }
         finally
         {
@@ -395,6 +434,35 @@ public partial class AddStudentViewModel : ObservableObject
         {
             OnPropertyChanged(nameof(PrimaryButtonText));
         }
+    }
+
+    /// <summary>
+    /// Subscribes to StudentCoordinatorService events for mode switching
+    /// </summary>
+    private void SubscribeToCoordinatorEvents()
+    {
+        var coordinator = Services.StudentCoordinatorService.Instance;
+        
+        coordinator.ManualEntryRequested += OnManualEntryRequested;
+        coordinator.ClassroomImportRequested += OnClassroomImportRequested;
+    }
+
+    /// <summary>
+    /// Handles manual entry request from coordinator service
+    /// </summary>
+    private void OnManualEntryRequested(object? sender, EventArgs e)
+    {
+        SwitchToManualMode();
+    }
+
+    /// <summary>
+    /// Handles classroom import request from coordinator service
+    /// </summary>
+    private void OnClassroomImportRequested(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("OnClassroomImportRequested called - switching to classroom mode");
+        SwitchToClassroomMode();
+        System.Diagnostics.Debug.WriteLine($"After switch - IsClassroomMode: {IsClassroomMode}, IsManualMode: {IsManualMode}");
     }
 
     public class AddedStudentResult

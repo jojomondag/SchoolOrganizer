@@ -15,10 +15,10 @@ public class CardSizeManager
     {
         // Handle edge cases
         if (studentCount <= 0) return ProfileCardDisplayLevel.Medium;
-        if (studentCount == 1) return ProfileCardDisplayLevel.Full;
+        // Removed automatic Full view for 1 student - always use grid view
         
         // Determine the best size based on student count
-        if (studentCount <= 8) // 2-8 students = Medium
+        if (studentCount <= 8) // 1-8 students = Medium
         {
             return ProfileCardDisplayLevel.Medium;
         }
@@ -35,8 +35,8 @@ public class CardSizeManager
     {
         return studentCount switch
         {
-            <= 1 => ProfileCardDisplayLevel.Full,
-            <= 8 => ProfileCardDisplayLevel.Medium,
+            <= 0 => ProfileCardDisplayLevel.Medium, // Handle empty case
+            <= 8 => ProfileCardDisplayLevel.Medium, // 1-8 students = Medium (removed Full for 1 student)
             _ => ProfileCardDisplayLevel.Small
         };
     }

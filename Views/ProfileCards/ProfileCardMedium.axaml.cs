@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using SchoolOrganizer.Models;
 
 namespace SchoolOrganizer.Views.ProfileCards
 {
@@ -29,5 +30,21 @@ namespace SchoolOrganizer.Views.ProfileCards
         }
         public static readonly Avalonia.StyledProperty<string?> TeacherProperty =
             Avalonia.AvaloniaProperty.Register<ProfileCardMedium, string?>("Teacher");
+
+        protected override void UpdateAllControls()
+        {
+            // Call base implementation first to update common controls
+            base.UpdateAllControls();
+            
+            // Update medium-specific controls from DataContext
+            if (DataContext is IPerson person)
+            {
+                if (this.FindControl<TextBlock>("ClassText") is { } classText)
+                    classText.Text = person.RoleInfo ?? "No Class";
+                    
+                if (this.FindControl<TextBlock>("TeacherText") is { } teacherText)
+                    teacherText.Text = person.SecondaryInfo ?? "No Teacher";
+            }
+        }
     }
 }

@@ -35,20 +35,57 @@ public partial class AddStudentView : UserControl
 
     private void OnStudentAdded(object? sender, AddStudentViewModel.AddedStudentResult result)
     {
-        // This will be handled by the parent StudentGalleryViewModel
-        // The event is just for the ViewModel to communicate completion
+        // Convert AddStudentViewModel.AddedStudentResult to Student and publish through coordinator
+        var student = new SchoolOrganizer.Models.Student
+        {
+            Name = result.Name,
+            ClassName = result.ClassName,
+            Email = result.Email,
+            EnrollmentDate = result.EnrollmentDate.DateTime,
+            PictureUrl = result.PicturePath ?? string.Empty
+        };
+        
+        // Add teachers
+        foreach (var teacher in result.Teachers ?? new System.Collections.Generic.List<string>())
+            student.AddTeacher(teacher);
+        
+        // Publish the student added event
+        Services.StudentCoordinatorService.Instance.PublishStudentAdded(student);
+        
+        // Also publish completion
+        Services.StudentCoordinatorService.Instance.PublishAddStudentCompleted();
     }
 
     private void OnMultipleStudentsAdded(object? sender, System.Collections.Generic.List<AddStudentViewModel.AddedStudentResult> results)
     {
-        // This will be handled by the parent StudentGalleryViewModel
-        // The event is just for the ViewModel to communicate completion
+        // Convert each result to Student and publish through coordinator
+        foreach (var result in results)
+        {
+            var student = new SchoolOrganizer.Models.Student
+            {
+                Name = result.Name,
+                ClassName = result.ClassName,
+                Email = result.Email,
+                EnrollmentDate = result.EnrollmentDate.DateTime,
+                PictureUrl = result.PicturePath ?? string.Empty
+            };
+            
+            // Add teachers
+            foreach (var teacher in result.Teachers ?? new System.Collections.Generic.List<string>())
+                student.AddTeacher(teacher);
+            
+            // Publish the student added event
+            Services.StudentCoordinatorService.Instance.PublishStudentAdded(student);
+        }
+        
+        // Also publish completion
+        Services.StudentCoordinatorService.Instance.PublishAddStudentCompleted();
     }
 
     private void OnCancelled(object? sender, EventArgs e)
     {
-        // This will be handled by the parent StudentGalleryViewModel
-        // The event is just for the ViewModel to communicate cancellation
+        // Use StudentCoordinatorService to publish cancellation
+        Services.StudentCoordinatorService.Instance.PublishAddStudentCancelled();
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
