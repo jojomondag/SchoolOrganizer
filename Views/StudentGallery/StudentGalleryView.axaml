@@ -7,6 +7,7 @@
              xmlns:views="using:SchoolOrganizer.Views.Converters"
              xmlns:profileCard="using:SchoolOrganizer.Views.ProfileCards"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:addStudent="using:SchoolOrganizer.Views.StudentGallery"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="SchoolOrganizer.Views.StudentGallery.StudentGalleryView"
              x:DataType="vm:StudentGalleryViewModel"
@@ -91,7 +92,8 @@
                      SelectionBrush="{DynamicResource BackgroundTertiaryBrush}"
                      SelectionForegroundBrush="{DynamicResource TextPrimaryBrush}"
                      CaretBrush="{DynamicResource TextPrimaryBrush}"
-                     Foreground="{DynamicResource TextPrimaryBrush}">
+                     Foreground="{DynamicResource TextPrimaryBrush}"
+                     IsEnabled="{Binding IsSearchEnabled}">
               <TextBox.Styles>
                 <Style Selector="TextBox:focus">
                   <Setter Property="BorderBrush" Value="Transparent"/>
@@ -122,13 +124,22 @@
 
     <!-- Student Gallery -->
   <Border Grid.Row="1" Background="{DynamicResource BackgroundTertiaryBrush}">
-    <ScrollViewer Name="StudentsScrollViewer" 
-                  Padding="0,20,0,40" 
-                  VerticalScrollBarVisibility="Auto" 
-                  HorizontalScrollBarVisibility="Disabled"
-                  ClipToBounds="False"
-                  VerticalAlignment="Stretch"
-                  HorizontalAlignment="Stretch">
+    <Grid>
+      <!-- Add Student View - Completely replaces gallery when IsAddingStudent is true -->
+      <addStudent:AddStudentView Name="AddStudentView" 
+                                 IsVisible="{Binding $parent[UserControl].DataContext.IsAddingStudent}"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Stretch"/>
+      
+      <!-- Student Gallery Content - Only shown when NOT adding student -->
+      <ScrollViewer Name="StudentsScrollViewer" 
+                    Padding="0,20,0,40" 
+                    VerticalScrollBarVisibility="Auto" 
+                    HorizontalScrollBarVisibility="Disabled"
+                    ClipToBounds="False"
+                    VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch"
+                    IsVisible="{Binding $parent[UserControl].DataContext.IsAddingStudent, Converter={x:Static BoolConverters.Not}}">
       <Grid HorizontalAlignment="Stretch" VerticalAlignment="Top" ClipToBounds="False">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
@@ -269,7 +280,7 @@
                                                      ProfileImageUpdated="OnProfileImageUpdated"
                                                      CardClicked="OnStudentCardClicked"
                                                      CardDoubleClicked="OnStudentCardDoubleClicked"
-                                                     IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
+                                                     IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall, FallbackValue=False}"/>
 
                         <!-- Medium Card for Medium DisplayLevel -->
                         <profileCard:ProfileCardMedium Name="{Binding Name}"
@@ -281,20 +292,26 @@
                                                        ProfileImageUpdated="OnProfileImageUpdated"
                                                        CardClicked="OnStudentCardClicked"
                                                        CardDoubleClicked="OnStudentCardDoubleClicked"
-                                                       IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
+                                                       IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium, FallbackValue=True}"/>
                       </Panel>
                       
                       <!-- Add Student Card Template -->
-                      <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsAddCardConverter}}">
+                      <Panel>
+                        <Panel.IsVisible>
+                          <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="Id" Converter="{StaticResource IdToIsAddCardConverter}"/>
+                            <Binding Path="$parent[UserControl].DataContext.IsAddingStudent" Converter="{x:Static BoolConverters.Not}" FallbackValue="True"/>
+                          </MultiBinding>
+                        </Panel.IsVisible>
                         <!-- Add Student Card for Small DisplayLevel -->
                         <profileCard:AddStudentProfileCardSmall Name="AddStudentCardSmall"
                                                                CardClicked="OnAddStudentCardClicked"
-                                                               IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall}"/>
+                                                               IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall, FallbackValue=False}"/>
 
                         <!-- Add Student Card for Medium DisplayLevel -->
                         <profileCard:AddStudentProfileCardMedium Name="AddStudentCardMedium"
                                                                CardClicked="OnAddStudentCardClicked"
-                                                               IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium}"/>
+                                                               IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium, FallbackValue=True}"/>
                       </Panel>
                     </Grid>
                   </DataTemplate>
@@ -372,6 +389,7 @@
                 IsVisible="{Binding SelectedStudent, Converter={x:Static ObjectConverters.IsNull}}"/>
       </Grid>
     </ScrollViewer>
+    </Grid>
   </Border>
 
     <!-- Download Progress -->

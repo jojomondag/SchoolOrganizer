@@ -59,6 +59,9 @@ public partial class MainWindowViewModel : ObservableObject
         _studentGalleryViewModel = new StudentGalleryViewModel(authService);
         _currentViewModel = _studentGalleryViewModel;
         
+        // Subscribe to student gallery property changes to update menu
+        _studentGalleryViewModel.PropertyChanged += OnStudentGalleryPropertyChanged;
+        
         if (authService != null)
         {
             SetAuthenticatedState();
@@ -70,8 +73,17 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    private void OnStudentGalleryPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(StudentGalleryViewModel.IsAddingStudent))
+        {
+            OnPropertyChanged(nameof(IsAddStudentMode));
+        }
+    }
+
     public bool IsStudentGalleryActive => CurrentViewModel is StudentGalleryViewModel;
     public bool IsClassroomDownloadActive => CurrentViewModel is ClassroomDownloadViewModel;
+    public bool IsAddStudentMode => IsStudentGalleryActive && _studentGalleryViewModel.IsAddingStudent;
     public IBrush ActiveContentBrush => CurrentViewModel switch
     {
         StudentGalleryViewModel => Brushes.White,
@@ -82,6 +94,35 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void NavigateToStudentGallery() => CurrentViewModel = _studentGalleryViewModel;
 
+    [RelayCommand]
+    private void NavigateToManualEntry()
+    {
+        if (IsAddStudentMode)
+        {
+            // Switch to manual entry mode in the add student view
+            // We need to find the AddStudentView and switch its mode
+            // This will be handled by the StudentGalleryView code-behind
+            // For now, we'll add an event that the StudentGalleryView can listen to
+            ManualEntryRequested?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    [RelayCommand]
+    private void NavigateToClassroomImport()
+    {
+        if (IsAddStudentMode)
+        {
+            // Switch to classroom import mode in the add student view
+            // We need to find the AddStudentView and switch its mode
+            // This will be handled by the StudentGalleryView code-behind
+            // For now, we'll add an event that the StudentGalleryView can listen to
+            ClassroomImportRequested?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    // Events for add student mode switching
+    public event EventHandler? ManualEntryRequested;
+    public event EventHandler? ClassroomImportRequested;
 
     [RelayCommand]
     private void NavigateToClassroomDownload()

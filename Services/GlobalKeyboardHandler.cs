@@ -86,6 +86,12 @@ public class GlobalKeyboardHandler
     /// </summary>
     public bool HandleKeyDown(KeyEventArgs e)
     {
+        // Don't handle any keyboard events when in add student mode
+        if (_viewModel.IsAddingStudent)
+        {
+            return false;
+        }
+
         // If search box is already focused, let it handle most keys normally
         if (_searchTextBox.IsFocused)
         {

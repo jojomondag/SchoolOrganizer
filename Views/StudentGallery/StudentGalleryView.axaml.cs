@@ -43,6 +43,9 @@ public partial class StudentGalleryView : UserControl
     private double _currentCardPadding = 14; // 18 * 0.8
     
     private GlobalKeyboardHandler? _keyboardHandler;
+    private MainWindowViewModel? _mainWindowViewModel;
+    private bool _pendingManualModeRequest = false;
+    private bool _pendingClassroomModeRequest = false;
     
     public StudentGalleryView()
     {
@@ -138,6 +141,8 @@ public partial class StudentGalleryView : UserControl
 
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine($"ViewModel_PropertyChanged: {e.PropertyName}");
+        
         if (e.PropertyName == "SelectedStudent")
         {
             // Defer scrolling until layout pass completes
@@ -145,6 +150,7 @@ public partial class StudentGalleryView : UserControl
         }
         else if (e.PropertyName == "Students")
         {
+            System.Diagnostics.Debug.WriteLine($"Students collection changed - forcing ItemsControl refresh");
             // Students collection changed - force ItemsControl refresh
             Dispatcher.UIThread.Post(async () => await ForceItemsControlRefresh(), DispatcherPriority.Render);
         }
@@ -153,9 +159,39 @@ public partial class StudentGalleryView : UserControl
             // When DisplayConfig changes, update card layout with new dimensions
             Dispatcher.UIThread.Post(() => UpdateCardLayout(), DispatcherPriority.Render);
         }
+        else if (e.PropertyName == "IsAddingStudent")
+        {
+            System.Diagnostics.Debug.WriteLine($"IsAddingStudent changed - checking view visibility");
+            var addStudentView = this.FindControl<AddStudentView>("AddStudentView");
+            var scrollViewer = this.FindControl<ScrollViewer>("StudentsScrollViewer");
+            if (addStudentView != null && scrollViewer != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddStudentView IsVisible: {addStudentView.IsVisible}, ScrollViewer IsVisible: {scrollViewer.IsVisible}");
+            }
+        }
         else if (e.PropertyName == "ShowMultipleStudents" || e.PropertyName == "ShowSingleStudent" || e.PropertyName == "ShowEmptyState")
         {
-            // View state changed - no action needed for deselection
+            System.Diagnostics.Debug.WriteLine($"View state changed: {e.PropertyName}");
+            // Check ItemsControl visibility
+            var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
+            if (studentsContainer != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"ItemsControl IsVisible: {studentsContainer.IsVisible}");
+                
+                // Force visibility if it should be visible
+                if (ViewModel != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Binding check - IsLoading: {ViewModel.IsLoading}, ShowMultipleStudents: {ViewModel.ShowMultipleStudents}, ShowEmptyState: {ViewModel.ShowEmptyState}");
+                    if (!ViewModel.IsLoading && ViewModel.ShowMultipleStudents && !ViewModel.ShowEmptyState)
+                    {
+                        if (!studentsContainer.IsVisible)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Forcing ItemsControl to be visible");
+                            studentsContainer.IsVisible = true;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -175,6 +211,14 @@ public partial class StudentGalleryView : UserControl
             // Clean up keyboard handler
             _keyboardHandler?.Dispose();
             _keyboardHandler = null;
+        }
+        
+        // Unsubscribe from previous MainWindowViewModel if any
+        if (_mainWindowViewModel != null)
+        {
+            _mainWindowViewModel.ManualEntryRequested -= OnManualEntryRequested;
+            _mainWindowViewModel.ClassroomImportRequested -= OnClassroomImportRequested;
+            _mainWindowViewModel = null;
         }
         
         // Subscribe to new ViewModel
@@ -209,10 +253,131 @@ public partial class StudentGalleryView : UserControl
                 studentsContainer.ContainerPrepared -= OnContainerPrepared;
                 studentsContainer.ContainerPrepared += OnContainerPrepared;
             }
+
+            // Set up AddStudentView when it becomes visible
+            SetupAddStudentView(viewModel);
         }
         else
         {
             // DataContext is not StudentGalleryViewModel
+        }
+    }
+
+    private void SubscribeToMainWindowViewModel()
+    {
+        // Find the MainWindow and subscribe to its ViewModel events
+        var mainWindow = TopLevel.GetTopLevel(this) as Window;
+        if (mainWindow?.DataContext is MainWindowViewModel mainViewModel)
+        {
+            _mainWindowViewModel = mainViewModel;
+            mainViewModel.ManualEntryRequested += OnManualEntryRequested;
+            mainViewModel.ClassroomImportRequested += OnClassroomImportRequested;
+        }
+    }
+
+    private void SetupAddStudentView(StudentGalleryViewModel viewModel)
+    {
+        // Set up the AddStudentView DataContext immediately
+        SetupAddStudentViewDataContext(viewModel);
+        
+        // Subscribe to IsAddingStudent changes to ensure DataContext is set when needed
+        viewModel.PropertyChanged += (sender, e) =>
+        {
+            if (e.PropertyName == nameof(StudentGalleryViewModel.IsAddingStudent) && viewModel.IsAddingStudent)
+            {
+                // Ensure DataContext is set when becoming visible
+                SetupAddStudentViewDataContext(viewModel);
+            }
+        };
+    }
+
+    private void OnManualEntryRequested(object? sender, EventArgs e)
+    {
+        // Switch AddStudentView to manual mode
+        var addStudentView = this.FindControl<AddStudentView>("AddStudentView");
+        if (addStudentView?.DataContext is AddStudentViewModel addStudentViewModel)
+        {
+            addStudentViewModel.SwitchToManualModeCommand.Execute(null);
+            _pendingManualModeRequest = false;
+            _pendingClassroomModeRequest = false;
+        }
+        else
+        {
+            // If AddStudentView is not ready yet, set pending flag to apply mode when it becomes available
+            _pendingManualModeRequest = true;
+            _pendingClassroomModeRequest = false;
+            System.Diagnostics.Debug.WriteLine("AddStudentView not ready for manual mode switch - setting pending flag");
+        }
+    }
+
+    private void OnClassroomImportRequested(object? sender, EventArgs e)
+    {
+        // Switch AddStudentView to classroom mode
+        var addStudentView = this.FindControl<AddStudentView>("AddStudentView");
+        if (addStudentView?.DataContext is AddStudentViewModel addStudentViewModel)
+        {
+            addStudentViewModel.SwitchToClassroomModeCommand.Execute(null);
+            _pendingManualModeRequest = false;
+            _pendingClassroomModeRequest = false;
+        }
+        else
+        {
+            // If AddStudentView is not ready yet, set pending flag to apply mode when it becomes available
+            _pendingClassroomModeRequest = true;
+            _pendingManualModeRequest = false;
+            System.Diagnostics.Debug.WriteLine("AddStudentView not ready for classroom mode switch - setting pending flag");
+        }
+    }
+
+    private void SetupAddStudentViewDataContext(StudentGalleryViewModel viewModel)
+    {
+        System.Diagnostics.Debug.WriteLine("SetupAddStudentViewDataContext called");
+        // Find the AddStudentView and wire up its events
+        var addStudentView = this.FindControl<AddStudentView>("AddStudentView");
+        if (addStudentView != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"AddStudentView found, current DataContext: {addStudentView.DataContext?.GetType().Name ?? "null"}");
+            
+            // Only set DataContext if it's not already an AddStudentViewModel
+            if (addStudentView.DataContext is not AddStudentViewModel)
+            {
+                // Create AddStudentViewModel and set it as DataContext
+                var addStudentViewModel = new AddStudentViewModel(viewModel.AuthService);
+                addStudentViewModel.LoadOptionsFromStudents(viewModel.AllStudents);
+                
+                // Wire up completion events
+                addStudentViewModel.StudentAdded += HandleAddStudentCompleted;
+                addStudentViewModel.MultipleStudentsAdded += HandleMultipleStudentsAdded;
+                addStudentViewModel.Cancelled += HandleAddStudentCancelled;
+                
+                addStudentView.DataContext = addStudentViewModel;
+                System.Diagnostics.Debug.WriteLine($"AddStudentView DataContext set to: {addStudentView.DataContext?.GetType().Name ?? "null"}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("AddStudentView already has correct DataContext");
+            }
+            
+            // Apply any pending mode requests
+            if (addStudentView.DataContext is AddStudentViewModel existingViewModel)
+            {
+                if (_pendingManualModeRequest)
+                {
+                    existingViewModel.SwitchToManualModeCommand.Execute(null);
+                    _pendingManualModeRequest = false;
+                    System.Diagnostics.Debug.WriteLine("Applied pending manual mode request");
+                }
+                else if (_pendingClassroomModeRequest)
+                {
+                    existingViewModel.SwitchToClassroomModeCommand.Execute(null);
+                    _pendingClassroomModeRequest = false;
+                    System.Diagnostics.Debug.WriteLine("Applied pending classroom mode request");
+                }
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("AddStudentView not found!");
         }
     }
 
@@ -244,49 +409,51 @@ public partial class StudentGalleryView : UserControl
 
     private async void HandleAddStudentRequested(object? sender, EventArgs e)
     {
-        await HandleAddStudent();
+        // This is now handled by the ViewModel directly
+        // The event is kept for backward compatibility but the actual logic is in the ViewModel
     }
 
-    private async System.Threading.Tasks.Task HandleAddStudent()
+    private async void HandleAddStudentCompleted(object? sender, AddStudentViewModel.AddedStudentResult result)
     {
-        try
+        if (ViewModel != null)
         {
-            // Add student requested
-            var parentWindow = TopLevel.GetTopLevel(this) as Window;
-            if (parentWindow == null || ViewModel == null) return;
-
-            // Check if we have GoogleAuthService available for classroom import
-            var addWindow = ViewModel.AuthService != null 
-                ? new AddStudentWindow(ViewModel.AuthService)
-                : new AddStudentWindow();
-            
-            addWindow.LoadOptionsFromStudents(ViewModel.AllStudents);
-            var result = await addWindow.ShowDialog<object?>(parentWindow);
-            
-            if (result != null)
-            {
-                // Handle single student result (manual mode)
-                if (result is AddStudentWindow.AddedStudentResult singleResult)
-                {
-                    await ViewModel.AddNewStudentAsync(
-                        singleResult.Name,
-                        singleResult.ClassName,
-                        singleResult.Teachers,
-                        singleResult.Email,
-                        singleResult.EnrollmentDate,
-                        singleResult.PicturePath
-                    );
-                }
-                // Handle multiple students result (classroom import mode)
-                else if (result is List<AddStudentWindow.AddedStudentResult> multipleResults)
-                {
-                    await ViewModel.AddMultipleStudentsAsync(multipleResults);
-                }
-            }
+            await ViewModel.AddNewStudentAsync(
+                result.Name,
+                result.ClassName,
+                result.Teachers,
+                result.Email,
+                result.EnrollmentDate.DateTime,
+                result.PicturePath
+            );
+            ViewModel.CompleteAddStudentCommand.Execute(null);
         }
-        catch (Exception ex)
+    }
+
+    private async void HandleMultipleStudentsAdded(object? sender, List<AddStudentViewModel.AddedStudentResult> results)
+    {
+        if (ViewModel != null)
         {
-            System.Diagnostics.Debug.WriteLine($"Error adding student: {ex.Message}");
+            // Convert to the expected type
+            var convertedResults = results.Select(r => new AddStudentWindow.AddedStudentResult
+            {
+                Name = r.Name,
+                ClassName = r.ClassName,
+                Teachers = r.Teachers,
+                Email = r.Email,
+                EnrollmentDate = r.EnrollmentDate.DateTime,
+                PicturePath = r.PicturePath
+            }).ToList();
+            
+            await ViewModel.AddMultipleStudentsAsync(convertedResults);
+            ViewModel.CompleteAddStudentCommand.Execute(null);
+        }
+    }
+
+    private void HandleAddStudentCancelled(object? sender, EventArgs e)
+    {
+        if (ViewModel != null)
+        {
+            ViewModel.CancelAddStudentCommand.Execute(null);
         }
     }
 
@@ -376,6 +543,9 @@ public partial class StudentGalleryView : UserControl
 
         // Subscribe to ViewModel selection changes
         SubscribeToViewModelSelections(ViewModel);
+        
+        // Subscribe to MainWindowViewModel events for mode switching (after visual tree is ready)
+        SubscribeToMainWindowViewModel();
     }
 
     private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
@@ -432,8 +602,12 @@ public partial class StudentGalleryView : UserControl
             var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
             var scrollViewer = this.FindControl<ScrollViewer>("StudentsScrollViewer");
             
+            System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - studentsContainer: {studentsContainer != null}, scrollViewer: {scrollViewer != null}");
+            
             if (studentsContainer != null && scrollViewer != null)
             {
+                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - Before: ItemsControl.IsVisible={studentsContainer.IsVisible}, ItemsCount={studentsContainer.Items?.Count ?? 0}");
+                
                 // Force refresh of ItemsControl
                 
                 // Force the parent ScrollViewer to invalidate (which will re-evaluate child visibility bindings)
@@ -446,6 +620,7 @@ public partial class StudentGalleryView : UserControl
                 // If ItemsControl is still not visible, force it to be visible
                 if (!studentsContainer.IsVisible)
                 {
+                    System.Diagnostics.Debug.WriteLine("ForceItemsControlRefresh - ItemsControl not visible, forcing to visible");
                     studentsContainer.IsVisible = true;
                 }
                 
@@ -456,6 +631,8 @@ public partial class StudentGalleryView : UserControl
                 
                 // Force a layout pass
                 studentsContainer.UpdateLayout();
+                
+                System.Diagnostics.Debug.WriteLine($"ForceItemsControlRefresh - After: ItemsControl.IsVisible={studentsContainer.IsVisible}, ItemsCount={studentsContainer.Items?.Count ?? 0}");
                 
                 // ItemsControl refresh completed
             }
@@ -1035,7 +1212,13 @@ public partial class StudentGalleryView : UserControl
     // Event handler for clicking on add student cards
     private async void OnAddStudentCardClicked(object? sender, IPerson person)
     {
-        await HandleAddStudent();
+        if (ViewModel != null)
+        {
+            System.Diagnostics.Debug.WriteLine("OnAddStudentCardClicked - Before: IsAddingStudent = " + ViewModel.IsAddingStudent);
+            // Trigger the AddStudent command which will set IsAddingStudent = true
+            ViewModel.AddStudentCommand.Execute(null);
+            System.Diagnostics.Debug.WriteLine("OnAddStudentCardClicked - After: IsAddingStudent = " + ViewModel.IsAddingStudent);
+        }
     }
 
     // Event handler for double-clicking on background to return to gallery

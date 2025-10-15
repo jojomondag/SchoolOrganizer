@@ -54,7 +54,7 @@ public partial class StudentGalleryViewModel : ObservableObject
     private ProfileCardDisplayConfig displayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium);
 
     [ObservableProperty]
-    private bool forceGridView = false;
+    private bool forceGridView = true;
 
     [ObservableProperty]
     private Bitmap? profileImage;
@@ -74,11 +74,57 @@ public partial class StudentGalleryViewModel : ObservableObject
     [ObservableProperty]
     private string downloadStatusText = string.Empty;
 
+    [ObservableProperty]
+    private bool isAddingStudent = false;
+    
+    partial void OnIsAddingStudentChanged(bool value)
+    {
+        System.Diagnostics.Debug.WriteLine($"IsAddingStudent changed to: {value}");
+        System.Diagnostics.Debug.WriteLine($"Stack trace: {System.Environment.StackTrace}");
+        // Notify that search enabled state has changed
+        OnPropertyChanged(nameof(IsSearchEnabled));
+        
+        // Refresh the Students collection to show/hide the Add Student Card
+        _ = ApplySearchImmediate();
+        
+        // Force UI update for visibility bindings
+        OnPropertyChanged(nameof(IsAddingStudent));
+    }
+
     // Properties for controlling view mode
-    public bool ShowSingleStudent => !ForceGridView && Students.Count == 2 && Students.Any(s => s is Student);
-    public bool ShowMultipleStudents => ForceGridView || Students.Count != 2 || !Students.Any(s => s is Student);
-    public bool ShowEmptyState => Students.Count == 0; // Only show empty state when there are truly no items
+    public bool ShowSingleStudent 
+    { 
+        get 
+        {
+            var result = IsDoubleClickMode || (!ForceGridView && Students.Count == 2 && Students.Any(s => s is Student) && !string.IsNullOrWhiteSpace(SearchText));
+            System.Diagnostics.Debug.WriteLine($"ShowSingleStudent: IsDoubleClickMode={IsDoubleClickMode}, ForceGridView={ForceGridView}, Students.Count={Students.Count}, HasStudent={Students.Any(s => s is Student)}, SearchText='{SearchText}' -> {result}");
+            return result;
+        }
+    }
+    
+    public bool ShowMultipleStudents 
+    { 
+        get 
+        {
+            var result = !IsDoubleClickMode && (ForceGridView || Students.Count != 2 || !Students.Any(s => s is Student) || string.IsNullOrWhiteSpace(SearchText));
+            System.Diagnostics.Debug.WriteLine($"ShowMultipleStudents: IsDoubleClickMode={IsDoubleClickMode}, ForceGridView={ForceGridView}, Students.Count={Students.Count}, HasStudent={Students.Any(s => s is Student)}, SearchText='{SearchText}' -> {result}");
+            return result;
+        }
+    }
+    
+    public bool ShowEmptyState 
+    { 
+        get 
+        {
+            var result = Students.Count == 0;
+            System.Diagnostics.Debug.WriteLine($"ShowEmptyState: Students.Count={Students.Count} -> {result}");
+            return result;
+        }
+    }
     public Student? FirstStudent => Students.OfType<Student>().FirstOrDefault();
+    
+    // Search enabled when not adding student
+    public bool IsSearchEnabled => !IsAddingStudent;
 
     // Events
     public event EventHandler? AddStudentRequested;
@@ -98,6 +144,7 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     public StudentGalleryViewModel(GoogleAuthService? authService = null)
     {
+        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel constructor - IsAddingStudent initial value: {IsAddingStudent}");
         this.authService = authService;
         if (authService != null)
         {
@@ -112,6 +159,8 @@ public partial class StudentGalleryViewModel : ObservableObject
             IsAuthenticated = false;
             TeacherName = "Not Authenticated";
         }
+        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel constructor - IsAddingStudent after setup: {IsAddingStudent}");
+        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel constructor - Initial state: ForceGridView={ForceGridView}, IsLoading={IsLoading}");
         _ = LoadStudents();
     }
 
@@ -138,8 +187,16 @@ public partial class StudentGalleryViewModel : ObservableObject
                     }
                 }
 
+                // Ensure ForceGridView is true before applying search
+                ForceGridView = true;
+                IsLoading = false; // Set loading to false before applying search
                 await ApplySearchImmediate();
                 UpdateDisplayLevelBasedOnItemCount();
+                
+                // Explicitly update view properties to ensure bindings are refreshed
+                UpdateViewProperties();
+                
+                System.Diagnostics.Debug.WriteLine($"LoadStudents completed - Students.Count: {Students.Count}, ForceGridView: {ForceGridView}, ShowMultipleStudents: {ShowMultipleStudents}, ShowEmptyState: {ShowEmptyState}");
             }
         }
         catch (Exception ex)
@@ -149,6 +206,8 @@ public partial class StudentGalleryViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+            // Ensure view properties are updated even on error
+            UpdateViewProperties();
         }
     }
 
@@ -180,6 +239,11 @@ public partial class StudentGalleryViewModel : ObservableObject
             // Filter Students collection to show only the double-clicked student + AddStudentCard
             var filteredStudents = new ObservableCollection<IPerson> { student, new AddStudentCard() };
             Students = filteredStudents;
+            
+            // Update view properties to ensure UI reflects the change
+            UpdateViewProperties();
+            
+            System.Diagnostics.Debug.WriteLine($"DoubleClickStudent: IsDoubleClickMode={IsDoubleClickMode}, ShowSingleStudent={ShowSingleStudent}, ShowMultipleStudents={ShowMultipleStudents}");
         }
     }
 
@@ -283,6 +347,7 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     private void UpdateViewProperties()
     {
+        System.Diagnostics.Debug.WriteLine($"UpdateViewProperties called - ShowSingleStudent: {ShowSingleStudent}, ShowMultipleStudents: {ShowMultipleStudents}, ShowEmptyState: {ShowEmptyState}");
         OnPropertyChanged(nameof(ShowSingleStudent));
         OnPropertyChanged(nameof(ShowMultipleStudents));
         OnPropertyChanged(nameof(ShowEmptyState));
@@ -348,27 +413,41 @@ public partial class StudentGalleryViewModel : ObservableObject
             Students.Clear();
             foreach (var s in results)
                 Students.Add(s);
-            Students.Add(new AddStudentCard());
             
-            // Defensive check: ensure Students collection is never empty
-            if (Students.Count == 0)
+            // Only add AddStudentCard when NOT in add student mode
+            if (!IsAddingStudent)
+            {
+                Students.Add(new AddStudentCard());
+            }
+            
+            // Defensive check: ensure Students collection is never empty when not in add mode
+            if (Students.Count == 0 && !IsAddingStudent)
             {
                 Students.Add(new AddStudentCard());
             }
             
             System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - Final Students.Count: {Students.Count}");
+            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - ForceGridView: {ForceGridView}");
+            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - ShowMultipleStudents: {ShowMultipleStudents}");
+            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - ShowSingleStudent: {ShowSingleStudent}");
+            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - ShowEmptyState: {ShowEmptyState}");
+            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - CurrentDisplayLevel: {CurrentDisplayLevel}");
+            System.Diagnostics.Debug.WriteLine($"ApplySearchImmediate - IsLoading: {IsLoading}");
             
+            // Always update view properties to ensure bindings are refreshed
             UpdateViewProperties();
             UpdateDisplayLevelBasedOnItemCount();
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Search error: {ex.Message}");
-            // Ensure Students collection is never empty even on error
-            if (Students.Count == 0)
+            // Ensure Students collection is never empty even on error, but only when not in add mode
+            if (Students.Count == 0 && !IsAddingStudent)
             {
                 Students.Add(new AddStudentCard());
             }
+            // Update view properties even on error to ensure UI state is correct
+            UpdateViewProperties();
         }
         return Task.CompletedTask;
     }
@@ -389,7 +468,26 @@ public partial class StudentGalleryViewModel : ObservableObject
 
 
     [RelayCommand]
-    private void AddStudent() => AddStudentRequested?.Invoke(this, EventArgs.Empty);
+    private void AddStudent() 
+    {
+        System.Diagnostics.Debug.WriteLine("AddStudent command executed - setting IsAddingStudent to true");
+        IsAddingStudent = true;
+    }
+
+    [RelayCommand]
+    private void CompleteAddStudent()
+    {
+        System.Diagnostics.Debug.WriteLine("CompleteAddStudent command executed - setting IsAddingStudent to false");
+        IsAddingStudent = false;
+        ForceGridView = true;
+    }
+
+    [RelayCommand]
+    private void CancelAddStudent() 
+    {
+        System.Diagnostics.Debug.WriteLine("CancelAddStudent command executed - setting IsAddingStudent to false");
+        IsAddingStudent = false;
+    }
 
     [RelayCommand]
     private async Task BackToGallery()

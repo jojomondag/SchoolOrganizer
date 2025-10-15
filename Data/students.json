@@ -1,0 +1,24 @@
+[
+  {
+    "Id": 1,
+    "Name": "John Doe",
+    "ClassName": "Class 9A",
+    "Email": "john.doe@school.com",
+    "EnrollmentDate": "2024-01-15T00:00:00",
+    "PictureUrl": "",
+    "Teachers": ["Mrs. Smith"],
+    "CropSettings": null,
+    "OriginalImagePath": null
+  },
+  {
+    "Id": 2,
+    "Name": "Jane Smith",
+    "ClassName": "Class 9A", 
+    "Email": "jane.smith@school.com",
+    "EnrollmentDate": "2024-01-15T00:00:00",
+    "PictureUrl": "",
+    "Teachers": ["Mrs. Smith"],
+    "CropSettings": null,
+    "OriginalImagePath": null
+  }
+]

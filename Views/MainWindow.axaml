@@ -70,39 +70,79 @@
 
                     <!-- Navigation Items -->
                     <StackPanel Grid.Row="1" Margin="8,16,8,8" Spacing="4">
-                        <!-- Student Gallery -->
-                        <Button Command="{Binding NavigateToStudentGalleryCommand}"
-                                HorizontalAlignment="Stretch" 
-                                HorizontalContentAlignment="Left"
-                                Padding="12,8"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                CornerRadius="4">
-                            <Button.Content>
-                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <materialIcons:MaterialIcon Kind="AccountGroupOutline" Width="20" Height="20"/>
-                                    <TextBlock Text="Student Gallery" VerticalAlignment="Center" 
-                                              IsVisible="{Binding IsMenuOpen}"/>
-                                </StackPanel>
-                            </Button.Content>
-                        </Button>
+                        <!-- Normal Navigation (when not in add student mode) -->
+                        <StackPanel IsVisible="{Binding !IsAddStudentMode}">
+                            <!-- Student Gallery -->
+                            <Button Command="{Binding NavigateToStudentGalleryCommand}"
+                                    HorizontalAlignment="Stretch" 
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,8"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    CornerRadius="4">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <materialIcons:MaterialIcon Kind="AccountGroupOutline" Width="20" Height="20"/>
+                                        <TextBlock Text="Student Gallery" VerticalAlignment="Center" 
+                                                  IsVisible="{Binding IsMenuOpen}"/>
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
 
-                        <!-- Classroom Downloads -->
-                        <Button Command="{Binding NavigateToClassroomDownloadCommand}"
-                                HorizontalAlignment="Stretch" 
-                                HorizontalContentAlignment="Left"
-                                Padding="12,8"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                CornerRadius="4">
-                            <Button.Content>
-                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <materialIcons:MaterialIcon Kind="Download" Width="20" Height="20"/>
-                                    <TextBlock Text="Classroom Downloads" VerticalAlignment="Center" 
-                                              IsVisible="{Binding IsMenuOpen}"/>
-                                </StackPanel>
-                            </Button.Content>
-                        </Button>
+                            <!-- Classroom Downloads -->
+                            <Button Command="{Binding NavigateToClassroomDownloadCommand}"
+                                    HorizontalAlignment="Stretch" 
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,8"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    CornerRadius="4">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <materialIcons:MaterialIcon Kind="Download" Width="20" Height="20"/>
+                                        <TextBlock Text="Classroom Downloads" VerticalAlignment="Center" 
+                                                  IsVisible="{Binding IsMenuOpen}"/>
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Add Student Navigation (when in add student mode) -->
+                        <StackPanel IsVisible="{Binding IsAddStudentMode}">
+                            <!-- Manual Entry -->
+                            <Button Command="{Binding NavigateToManualEntryCommand}"
+                                    HorizontalAlignment="Stretch" 
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,8"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    CornerRadius="4">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <materialIcons:MaterialIcon Kind="AccountPlus" Width="20" Height="20"/>
+                                        <TextBlock Text="Manual Entry" VerticalAlignment="Center" 
+                                                  IsVisible="{Binding IsMenuOpen}"/>
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+
+                            <!-- From Classroom -->
+                            <Button Command="{Binding NavigateToClassroomImportCommand}"
+                                    HorizontalAlignment="Stretch" 
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,8"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    CornerRadius="4">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <materialIcons:MaterialIcon Kind="GoogleClassroom" Width="20" Height="20"/>
+                                        <TextBlock Text="From Classroom" VerticalAlignment="Center" 
+                                                  IsVisible="{Binding IsMenuOpen}"/>
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- Profile/Login at Bottom -->
