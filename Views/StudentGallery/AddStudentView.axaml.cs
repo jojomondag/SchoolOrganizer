@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using SchoolOrganizer.ViewModels;
 using SchoolOrganizer.Views.Windows.ImageCrop;
 
@@ -35,22 +36,56 @@ public partial class AddStudentView : UserControl
 
     private void OnStudentAdded(object? sender, AddStudentViewModel.AddedStudentResult result)
     {
-        // Convert AddStudentViewModel.AddedStudentResult to Student and publish through coordinator
-        var student = new SchoolOrganizer.Models.Student
+        // Check if we're in edit mode by looking at the parent ViewModel
+        var parentViewModel = GetParentStudentGalleryViewModel();
+        bool isEditMode = parentViewModel?.StudentBeingEdited != null;
+        
+        if (isEditMode && parentViewModel != null && parentViewModel.StudentBeingEdited != null)
         {
-            Name = result.Name,
-            ClassName = result.ClassName,
-            Email = result.Email,
-            EnrollmentDate = result.EnrollmentDate.DateTime,
-            PictureUrl = result.PicturePath ?? string.Empty
-        };
-        
-        // Add teachers
-        foreach (var teacher in result.Teachers ?? new System.Collections.Generic.List<string>())
-            student.AddTeacher(teacher);
-        
-        // Publish the student added event
-        Services.StudentCoordinatorService.Instance.PublishStudentAdded(student);
+            System.Diagnostics.Debug.WriteLine($"AddStudentView: Handling edit mode for student: {parentViewModel.StudentBeingEdited.Name}");
+            
+            // We're in edit mode - update the existing student
+            var originalStudent = parentViewModel.StudentBeingEdited;
+            
+            // Update the student properties
+            originalStudent.Name = result.Name;
+            originalStudent.ClassName = result.ClassName;
+            originalStudent.Email = result.Email;
+            originalStudent.EnrollmentDate = result.EnrollmentDate.DateTime;
+            originalStudent.PictureUrl = result.PicturePath ?? string.Empty;
+            
+            // Update teachers
+            originalStudent.ClearTeachers();
+            foreach (var teacher in result.Teachers ?? new System.Collections.Generic.List<string>())
+                originalStudent.AddTeacher(teacher);
+            
+            // Publish the student updated event
+            Services.StudentCoordinatorService.Instance.PublishStudentUpdated(originalStudent);
+            
+            // Clear the student being edited
+            parentViewModel.StudentBeingEdited = null;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("AddStudentView: Handling add mode");
+            
+            // Convert AddStudentViewModel.AddedStudentResult to Student and publish through coordinator
+            var student = new SchoolOrganizer.Models.Student
+            {
+                Name = result.Name,
+                ClassName = result.ClassName,
+                Email = result.Email,
+                EnrollmentDate = result.EnrollmentDate.DateTime,
+                PictureUrl = result.PicturePath ?? string.Empty
+            };
+            
+            // Add teachers
+            foreach (var teacher in result.Teachers ?? new System.Collections.Generic.List<string>())
+                student.AddTeacher(teacher);
+            
+            // Publish the student added event
+            Services.StudentCoordinatorService.Instance.PublishStudentAdded(student);
+        }
         
         // Also publish completion
         Services.StudentCoordinatorService.Instance.PublishAddStudentCompleted();
@@ -165,5 +200,25 @@ public partial class AddStudentView : UserControl
         // The SelectionChanged event will trigger the property change
         // which will automatically call the OnClassroomSelected method in the ViewModel
         // No need to manually call the command
+    }
+
+    private void OnProfileImageControlClicked(object? sender, EventArgs e)
+    {
+        OnChooseImageClick(sender, new RoutedEventArgs());
+    }
+
+    private StudentGalleryViewModel? GetParentStudentGalleryViewModel()
+    {
+        // Find the parent StudentGalleryView and get its ViewModel
+        var parent = this.GetVisualParent();
+        while (parent != null)
+        {
+            if (parent is StudentGalleryView galleryView)
+            {
+                return galleryView.ViewModel;
+            }
+            parent = parent.GetVisualParent();
+        }
+        return null;
     }
 }

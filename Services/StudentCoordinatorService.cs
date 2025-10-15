@@ -36,6 +36,9 @@ namespace SchoolOrganizer.Services
         public event EventHandler<Student>? StudentImageChangeRequested;
         public event EventHandler<(Student student, string imagePath, string? cropSettings, string? originalImagePath)>? StudentImageUpdated;
 
+        // Student Edit Events
+        public event EventHandler<Student>? EditStudentRequested;
+
         // Assignment Events
         public event EventHandler<Student>? ViewAssignmentsRequested;
 
@@ -111,6 +114,14 @@ namespace SchoolOrganizer.Services
         public void PublishStudentImageUpdated(Student student, string imagePath, string? cropSettings = null, string? originalImagePath = null)
         {
             StudentImageUpdated?.Invoke(this, (student, imagePath, cropSettings, originalImagePath));
+        }
+
+        /// <summary>
+        /// Publishes an edit student request event
+        /// </summary>
+        public void PublishEditStudentRequested(Student student)
+        {
+            EditStudentRequested?.Invoke(this, student);
         }
 
         /// <summary>

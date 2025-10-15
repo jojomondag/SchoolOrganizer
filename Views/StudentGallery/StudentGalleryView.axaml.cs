@@ -157,8 +157,8 @@ public partial class StudentGalleryView : UserControl
         
         if (e.PropertyName == "SelectedStudent")
         {
-            // Defer scrolling until layout pass completes
-            Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
+            // Don't auto-scroll when selecting students - let user control scrolling manually
+            // Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
         }
         else if (e.PropertyName == "Students")
         {
@@ -212,6 +212,7 @@ public partial class StudentGalleryView : UserControl
         // Unsubscribe from StudentCoordinatorService events
         var coordinator = Services.StudentCoordinatorService.Instance;
         coordinator.StudentImageChangeRequested -= OnStudentImageChangeRequestedFromCoordinator;
+        coordinator.EditStudentRequested -= OnEditStudentRequestedFromCoordinator;
         
         // Subscribe to new ViewModel
         if (DataContext is StudentGalleryViewModel viewModel)
@@ -255,7 +256,8 @@ public partial class StudentGalleryView : UserControl
             
             // Subscribe to StudentCoordinatorService events for image changes
             coordinator.StudentImageChangeRequested += OnStudentImageChangeRequestedFromCoordinator;
-            Log.Information("Subscribed to StudentCoordinatorService.StudentImageChangeRequested");
+            coordinator.EditStudentRequested += OnEditStudentRequestedFromCoordinator;
+            Log.Information("Subscribed to StudentCoordinatorService.StudentImageChangeRequested and EditStudentRequested");
         }
         else
         {
@@ -286,6 +288,11 @@ public partial class StudentGalleryView : UserControl
                 // Ensure DataContext is set when becoming visible
                 SetupAddStudentViewDataContext(viewModel);
             }
+            else if (e.PropertyName == nameof(StudentGalleryViewModel.IsAuthenticated) && viewModel.IsAuthenticated)
+            {
+                // When authentication completes, update the AddStudentView's ViewModel with auth service
+                UpdateAddStudentViewAuthService(viewModel);
+            }
         };
     }
 
@@ -312,10 +319,39 @@ public partial class StudentGalleryView : UserControl
             {
                 System.Diagnostics.Debug.WriteLine("AddStudentView already has correct DataContext");
             }
+
+            // If we're in edit mode, initialize the AddStudentView for editing
+            if (viewModel.StudentBeingEdited != null && addStudentView.DataContext is AddStudentViewModel editViewModel)
+            {
+                System.Diagnostics.Debug.WriteLine($"Initializing AddStudentView for edit mode with student: {viewModel.StudentBeingEdited.Name}");
+                
+                // Load available options from existing students
+                editViewModel.LoadOptionsFromStudents(viewModel.AllStudents);
+                
+                // Initialize the AddStudentViewModel for editing this student
+                editViewModel.InitializeForEdit(viewModel.StudentBeingEdited);
+            }
+            else if (addStudentView.DataContext is AddStudentViewModel addViewModel)
+            {
+                // Reset to add mode for new students
+                addViewModel.ResetToAddMode();
+            }
         }
         else
         {
             System.Diagnostics.Debug.WriteLine("AddStudentView not found!");
+        }
+    }
+
+    private void UpdateAddStudentViewAuthService(StudentGalleryViewModel viewModel)
+    {
+        System.Diagnostics.Debug.WriteLine("UpdateAddStudentViewAuthService called");
+        // Find the AddStudentView and update its ViewModel with auth service
+        var addStudentView = this.FindControl<AddStudentView>("AddStudentView");
+        if (addStudentView?.DataContext is AddStudentViewModel addStudentViewModel && viewModel.AuthService != null)
+        {
+            System.Diagnostics.Debug.WriteLine("Updating AddStudentViewModel with auth service");
+            addStudentViewModel.UpdateAuthService(viewModel.AuthService);
         }
     }
 
@@ -396,8 +432,8 @@ public partial class StudentGalleryView : UserControl
     private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
     {
         UpdateCardLayout();
-        // Recenter selected student on size changes
-        Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
+        // Don't auto-scroll on size changes - let user control scrolling manually
+        // Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
         
         // Update display level based on new window size
         if (ViewModel != null)
@@ -508,6 +544,12 @@ public partial class StudentGalleryView : UserControl
         await OpenImageCropperForStudent(student);
     }
 
+    // Event handler for when StudentCoordinatorService requests editing a student
+    private async void OnEditStudentRequestedFromCoordinator(object? sender, SchoolOrganizer.Models.Student student)
+    {
+        await OpenEditStudentWindow(student);
+    }
+
     /// <summary>
     /// Opens the ImageCropper window for editing the profile image.
     /// </summary>
@@ -553,6 +595,33 @@ public partial class StudentGalleryView : UserControl
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Error opening ImageCropper: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Stack trace: {ex.StackTrace}");
+        }
+    }
+
+    /// <summary>
+    /// Opens the in-view AddStudentView in edit mode for editing student details.
+    /// </summary>
+    private async Task OpenEditStudentWindow(Student student)
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Opening in-view edit for student: {student.Name} (ID: {student.Id})");
+
+            // Set the student being edited in the ViewModel for the AddStudentView to use
+            if (ViewModel != null)
+            {
+                // Store the student being edited in a way the AddStudentView can access it
+                // We'll use the existing AddStudent functionality but modify it for editing
+                ViewModel.SetStudentForEdit(student);
+                
+                // Trigger the AddStudent mode to show the AddStudentView
+                ViewModel.AddStudentCommand.Execute(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Error opening in-view edit: {ex.Message}");
             System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Stack trace: {ex.StackTrace}");
         }
     }

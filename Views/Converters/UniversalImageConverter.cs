@@ -12,6 +12,9 @@ public class UniversalImageConverter : IValueConverter
 {
     // Cache to track file modification times to force refresh when file changes
     private static readonly ConcurrentDictionary<string, (DateTime lastModified, Bitmap? bitmap)> _bitmapCache = new();
+    
+    // Shared instance to ensure all cards use the same cache
+    public static readonly UniversalImageConverter SharedInstance = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -19,6 +22,12 @@ public class UniversalImageConverter : IValueConverter
         {
             try
             {
+                // Skip loading for special values that aren't real file paths
+                if (path == "ADD_CARD" || path == "" || path == "null")
+                {
+                    return null;
+                }
+
                 if (File.Exists(path))
                 {
                     // Check if we have a cached bitmap and if the file has been modified
@@ -34,18 +43,15 @@ public class UniversalImageConverter : IValueConverter
 
                     // Try reading with shared access and a few quick retries in case the file
                     // is still being finalized by the image saver.
-                    const int maxAttempts = 4;
-                    const int delayMs = 50;
+                    const int maxAttempts = 2; // Reduced to 2 attempts
+                    const int delayMs = 10; // Reduced to 10ms
                     for (int attempt = 0; attempt < maxAttempts; attempt++)
                     {
                         try
                         {
-                            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                            // Create a memory stream to ensure the file handle is released immediately
-                            var memoryStream = new MemoryStream();
-                            stream.CopyTo(memoryStream);
-                            memoryStream.Position = 0;
-                            
+                            // Use File.ReadAllBytes for better performance
+                            var imageBytes = File.ReadAllBytes(path);
+                            using var memoryStream = new MemoryStream(imageBytes);
                             var bitmap = new Bitmap(memoryStream);
                             
                             // Update cache

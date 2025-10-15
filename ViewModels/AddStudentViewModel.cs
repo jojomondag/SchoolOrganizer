@@ -31,6 +31,9 @@ public partial class AddStudentViewModel : ObservableObject
     [ObservableProperty]
     private bool isClassroomMode = false;
 
+    [ObservableProperty]
+    private bool isEditMode = false;
+
     // Manual entry properties
     [ObservableProperty]
     private string studentName = string.Empty;
@@ -74,7 +77,15 @@ public partial class AddStudentViewModel : ObservableObject
     private string validationText = string.Empty;
 
     // Button text
-    public string PrimaryButtonText => IsManualMode ? "Add Student" : "Import Selected Students";
+    public string PrimaryButtonText 
+    {
+        get
+        {
+            if (IsEditMode)
+                return "Save Changes";
+            return IsManualMode ? "Add Student" : "Import Selected Students";
+        }
+    }
 
     // Services
     private GoogleAuthService? authService;
@@ -97,6 +108,20 @@ public partial class AddStudentViewModel : ObservableObject
         SubscribeToCoordinatorEvents();
     }
 
+    /// <summary>
+    /// Updates the authentication service and initializes classroom loading
+    /// This method can be called when authentication completes after the ViewModel is created
+    /// </summary>
+    public void UpdateAuthService(GoogleAuthService authService)
+    {
+        this.authService = authService;
+        this.classroomService = new ClassroomDataService(authService.ClassroomService!);
+        this.imageDownloadService = new ImageDownloadService();
+        
+        // Load classrooms when auth service is updated
+        _ = LoadClassroomsAsync();
+    }
+
     // Commands for mode switching
     [RelayCommand]
     private void SwitchToManualMode()
@@ -110,6 +135,12 @@ public partial class AddStudentViewModel : ObservableObject
     {
         IsManualMode = false;
         IsClassroomMode = true;
+        
+        // Ensure classrooms are loaded when switching to classroom mode
+        if (classroomService != null && AvailableClassrooms.Count == 0)
+        {
+            _ = LoadClassroomsAsync();
+        }
     }
 
     [RelayCommand]
@@ -401,6 +432,7 @@ public partial class AddStudentViewModel : ObservableObject
 
     public void InitializeForEdit(Models.Student student)
     {
+        IsEditMode = true;
         StudentName = student.Name;
         SelectedClassName = student.ClassName;
         
@@ -414,6 +446,17 @@ public partial class AddStudentViewModel : ObservableObject
         StudentEmail = student.Email;
         EnrollmentDate = new DateTimeOffset(student.EnrollmentDate);
         SelectedImagePath = student.PictureUrl;
+    }
+
+    public void ResetToAddMode()
+    {
+        IsEditMode = false;
+        StudentName = string.Empty;
+        SelectedClassName = string.Empty;
+        SelectedTeachers.Clear();
+        StudentEmail = string.Empty;
+        EnrollmentDate = DateTimeOffset.Now;
+        SelectedImagePath = string.Empty;
     }
 
     // Override OnPropertyChanged to handle computed properties
@@ -430,7 +473,7 @@ public partial class AddStudentViewModel : ObservableObject
             // Automatically load students when classroom is selected
             _ = OnClassroomSelected();
         }
-        else if (e.PropertyName == nameof(IsManualMode) || e.PropertyName == nameof(IsClassroomMode))
+        else if (e.PropertyName == nameof(IsManualMode) || e.PropertyName == nameof(IsClassroomMode) || e.PropertyName == nameof(IsEditMode))
         {
             OnPropertyChanged(nameof(PrimaryButtonText));
         }

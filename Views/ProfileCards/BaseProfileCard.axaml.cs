@@ -39,12 +39,11 @@ namespace SchoolOrganizer.Views.ProfileCards
             // Ensure we perform setup once the visual tree is ready
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
+            DataContextChanged += OnDataContextChanged;
         }
 
         private void OnLoaded(object? s, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            // Unsubscribe so this runs only once per load
-            Loaded -= OnLoaded;
             SetupEventHandlers();
             UpdateAllControls();
             UpdateProfileImageBorder();
@@ -55,6 +54,17 @@ namespace SchoolOrganizer.Views.ProfileCards
         {
             // Clean up event subscription to avoid leaks
             Unloaded -= OnUnloaded;
+        }
+
+        private void OnDataContextChanged(object? sender, EventArgs e)
+        {
+            // Only update if the visual tree is loaded
+            if (IsLoaded)
+            {
+                UpdateAllControls();
+                // Defer image loading to improve startup performance
+                Dispatcher.UIThread.Post(() => UpdateProfileImage(), DispatcherPriority.Background);
+            }
         }
 
 
@@ -354,38 +364,72 @@ namespace SchoolOrganizer.Views.ProfileCards
             }
         }
 
-        private void UpdateProfileImage()
+        private bool _imageLoaded = false;
+        private string? _lastPictureUrl = null;
+
+        private async void UpdateProfileImage()
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"BaseProfileCard.UpdateProfileImage called with PictureUrl: {PictureUrl}");
+                var pictureUrl = PictureUrl;
+                
+                // Skip loading for empty or invalid paths
+                if (string.IsNullOrEmpty(pictureUrl) || pictureUrl == "ADD_CARD" || pictureUrl == "null")
+                {
+                    return;
+                }
+
+                // Skip if already loaded the same image
+                if (_imageLoaded && _lastPictureUrl == pictureUrl)
+                {
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"BaseProfileCard.UpdateProfileImage called with PictureUrl: {pictureUrl}");
                 
                 if (this.FindControl<Ellipse>("ProfileImageEllipse") is { } ellipse)
                 {
-                    var pictureUrl = PictureUrl;
-
-                    if (!string.IsNullOrEmpty(pictureUrl))
+                    // Use a shared static converter instance to leverage caching
+                    var converter = SchoolOrganizer.Views.Converters.UniversalImageConverter.SharedInstance;
+                    
+                    // Load image asynchronously to prevent UI blocking
+                    await Task.Run(() =>
                     {
-                        System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Loading image from path: {pictureUrl}");
-                        
-                        // Use UniversalImageConverter to load the image
-                        var converter = new SchoolOrganizer.Views.Converters.UniversalImageConverter();
-                        var bitmap = converter.Convert(pictureUrl, typeof(Avalonia.Media.Imaging.Bitmap), null, System.Globalization.CultureInfo.CurrentCulture);
+                        try
+                        {
+                            var bitmap = converter.Convert(pictureUrl, typeof(Avalonia.Media.Imaging.Bitmap), null, System.Globalization.CultureInfo.CurrentCulture);
 
-                        if (bitmap is Avalonia.Media.Imaging.Bitmap bmp)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Successfully loaded bitmap, setting as Fill");
-                            ellipse.Fill = new ImageBrush(bmp) { Stretch = Avalonia.Media.Stretch.UniformToFill };
+                            if (bitmap is Avalonia.Media.Imaging.Bitmap bmp)
+                            {
+                                // Update UI on UI thread
+                                Dispatcher.UIThread.Post(() =>
+                                {
+                                    try
+                                    {
+                                        if (this.FindControl<Ellipse>("ProfileImageEllipse") is { } currentEllipse)
+                                        {
+                                            System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Successfully loaded bitmap, setting as Fill");
+                                            currentEllipse.Fill = new ImageBrush(bmp) { Stretch = Avalonia.Media.Stretch.UniformToFill };
+                                            _imageLoaded = true;
+                                            _lastPictureUrl = pictureUrl;
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Error setting image on UI thread: {ex.Message}");
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Failed to load bitmap from {pictureUrl}");
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Failed to load bitmap from {pictureUrl}");
+                            System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Error loading image in background: {ex.Message}");
                         }
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"BaseProfileCard: PictureUrl is null or empty");
-                    }
+                    });
                 }
                 else
                 {

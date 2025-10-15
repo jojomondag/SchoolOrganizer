@@ -79,13 +79,14 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isAddingStudent = false;
+
+    [ObservableProperty]
+    private Student? studentBeingEdited = null;
     
     partial void OnIsAddingStudentChanged(bool value)
     {
         System.Diagnostics.Debug.WriteLine($"IsAddingStudent changed to: {value}");
         System.Diagnostics.Debug.WriteLine($"Stack trace: {System.Environment.StackTrace}");
-        // Notify that search enabled state has changed
-        OnPropertyChanged(nameof(IsSearchEnabled));
         
         // Refresh the Students collection to show/hide the Add Student Card
         _ = ApplySearchImmediate();
@@ -130,8 +131,6 @@ public partial class StudentGalleryViewModel : ObservableObject
     }
     public Student? FirstStudent => Students.OfType<Student>().FirstOrDefault();
     
-    // Search enabled when not adding student
-    public bool IsSearchEnabled => !IsAddingStudent;
 
     // Events - Removed direct event publishers, now using StudentCoordinatorService
 
@@ -141,6 +140,9 @@ public partial class StudentGalleryViewModel : ObservableObject
         userProfileService = new UserProfileService(authService);
         IsAuthenticated = true;
         TeacherName = authService.TeacherName;
+        
+        // Notify property change to trigger AddStudentView auth service update
+        OnPropertyChanged(nameof(IsAuthenticated));
     }
 
     public void SetProfileImage(Bitmap? profileImage) => ProfileImage = profileImage;
@@ -190,7 +192,8 @@ public partial class StudentGalleryViewModel : ObservableObject
         
         try
         {
-            var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
+            var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
+            var jsonPath = Path.Combine(projectRoot, "Data", "students.json");
             Log.Information("Looking for students.json at: {JsonPath}", jsonPath);
             
             if (File.Exists(jsonPath))
@@ -230,12 +233,15 @@ public partial class StudentGalleryViewModel : ObservableObject
                 Log.Information("Calling ApplySearchImmediate...");
                 await ApplySearchImmediate();
                 
-                Log.Information("Calling UpdateDisplayLevelBasedOnItemCount...");
-                UpdateDisplayLevelBasedOnItemCount();
-                
-                // Explicitly update view properties to ensure bindings are refreshed
-                Log.Information("Calling UpdateViewProperties...");
-                UpdateViewProperties();
+                // Batch UI updates to reduce redundant property change notifications
+                Dispatcher.UIThread.Post(() =>
+                {
+                    Log.Information("Calling UpdateDisplayLevelBasedOnItemCount...");
+                    UpdateDisplayLevelBasedOnItemCount();
+                    
+                    Log.Information("Calling UpdateViewProperties...");
+                    UpdateViewProperties();
+                }, DispatcherPriority.Background);
                 
                 Log.Information("LoadStudents completed - Students.Count: {StudentsCount}, AllStudents.Count: {AllStudentsCount}, ForceGridView: {ForceGridView}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}", 
                     Students.Count, allStudents.Count, ForceGridView, ShowMultipleStudents, ShowSingleStudent, ShowEmptyState);
@@ -297,7 +303,7 @@ public partial class StudentGalleryViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void EditStudent(Student student) => Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
+    private void EditStudent(Student student) => Services.StudentCoordinatorService.Instance.PublishEditStudentRequested(student);
 
     [RelayCommand]
     private void ChangeImage(Student student) => Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
@@ -388,11 +394,14 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     private void UpdateViewProperties()
     {
-        System.Diagnostics.Debug.WriteLine($"UpdateViewProperties called - ShowSingleStudent: {ShowSingleStudent}, ShowMultipleStudents: {ShowMultipleStudents}, ShowEmptyState: {ShowEmptyState}");
-        OnPropertyChanged(nameof(ShowSingleStudent));
-        OnPropertyChanged(nameof(ShowMultipleStudents));
-        OnPropertyChanged(nameof(ShowEmptyState));
-        OnPropertyChanged(nameof(FirstStudent));
+        // Batch property change notifications to reduce UI updates
+        Dispatcher.UIThread.Post(() =>
+        {
+            OnPropertyChanged(nameof(ShowSingleStudent));
+            OnPropertyChanged(nameof(ShowMultipleStudents));
+            OnPropertyChanged(nameof(ShowEmptyState));
+            OnPropertyChanged(nameof(FirstStudent));
+        }, DispatcherPriority.Background);
     }
 
     private void UpdateDisplayLevelAfterDeletion()
@@ -540,6 +549,13 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         System.Diagnostics.Debug.WriteLine("CancelAddStudent command executed - setting IsAddingStudent to false");
         IsAddingStudent = false;
+        StudentBeingEdited = null; // Clear the student being edited
+    }
+
+    public void SetStudentForEdit(Student student)
+    {
+        StudentBeingEdited = student;
+        System.Diagnostics.Debug.WriteLine($"SetStudentForEdit called for student: {student.Name} (ID: {student.Id})");
     }
 
     [RelayCommand]
@@ -690,7 +706,8 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         try
         {
-            var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
+            var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
+            var jsonPath = Path.Combine(projectRoot, "Data", "students.json");
             var jsonContent = JsonSerializer.Serialize(allStudents.ToList(), new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(jsonPath, jsonContent);
         }
@@ -762,7 +779,8 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         try
         {
-            var jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "students.json");
+            var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
+            var jsonPath = Path.Combine(projectRoot, "Data", "students.json");
             
             if (File.Exists(jsonPath))
             {
@@ -817,7 +835,9 @@ public partial class StudentGalleryViewModel : ObservableObject
         coordinator.StudentDeselected += OnCoordinatorStudentDeselected;
         coordinator.AddStudentRequested += OnCoordinatorAddStudentRequested;
         coordinator.StudentAdded += OnCoordinatorStudentAdded;
+        coordinator.StudentUpdated += OnCoordinatorStudentUpdated;
         coordinator.StudentImageChangeRequested += OnCoordinatorStudentImageChangeRequested;
+        coordinator.EditStudentRequested += OnCoordinatorEditStudentRequested;
         coordinator.ViewAssignmentsRequested += OnCoordinatorViewAssignmentsRequested;
         coordinator.ManualEntryRequested += OnCoordinatorManualEntryRequested;
         coordinator.ClassroomImportRequested += OnCoordinatorClassroomImportRequested;
@@ -854,9 +874,29 @@ public partial class StudentGalleryViewModel : ObservableObject
         );
     }
 
+    private async void OnCoordinatorStudentUpdated(object? sender, Student student)
+    {
+        // Update the existing student in the collection
+        await UpdateExistingStudentAsync(
+            student,
+            student.Name,
+            student.ClassName,
+            student.Teachers.ToList(),
+            student.Email,
+            student.EnrollmentDate,
+            student.PictureUrl
+        );
+    }
+
     private async void OnCoordinatorStudentImageChangeRequested(object? sender, Student student)
     {
         await HandleStudentImageChange(student);
+    }
+
+    private void OnCoordinatorEditStudentRequested(object? sender, Student student)
+    {
+        // This will be handled by the view layer
+        System.Diagnostics.Debug.WriteLine($"OnCoordinatorEditStudentRequested called for student {student.Id} ({student.Name}) - should be handled by view layer");
     }
 
     private async void OnCoordinatorViewAssignmentsRequested(object? sender, Student student)

@@ -1,24 +1,476 @@
 [
   {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
     "Id": 1,
-    "Name": "John Doe",
-    "ClassName": "Class 9A",
-    "Email": "john.doe@school.com",
-    "EnrollmentDate": "2024-01-15T00:00:00",
-    "PictureUrl": "",
-    "Teachers": ["Mrs. Smith"],
-    "CropSettings": null,
-    "OriginalImagePath": null
+    "Name": "Renault Rydberg",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Benjamin Rydberg_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "benjamin.rydberg@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.264798",
+    "CropSettings": null
   },
   {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Dawoud Idris",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Dawoud Idris_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "dawoudsulaiman.idris@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.23349",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Renault Rydberg",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Benjamin Rydberg_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "benjamin.rydberg@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.264798",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Petar Madzarac",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Petar Madzarac_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "petar.madzarac@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.295387",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Azzedine Mekhous Lindblom",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Azzedine Mekhous Lindblom_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "azzedine.mekhouslindblom@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.327376",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Hala Karaish",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Hala Karaish_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "hala.karaish@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.361538",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Yousef Fadil",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Yousef Fadil_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "yousef.fadil@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.395131",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Rezwan Maylee",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Rezwan Maylee_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "rezwan.maylee@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.426988",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Mohamad Salmeh",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Mohamad Salmeh_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mohamadkhir.salmeh@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.457073",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Mohamad Sharifa",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Mohamad Sharifa_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mohamadkamal.sharifa@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.495418",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Elliot Ingvall",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Elliot Ingvall_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "elliot.ingvall@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.524474",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Leon Hasani",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Leon Hasani_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "leon.hasani@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.551522",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Khaled Akkad",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Khaled Akkad_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "khaled.akkad@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.578595",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Liam Schlund Thulin",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Liam Schlund Thulin_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "liam.schlundthulin@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.6087",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Adam Haidar",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Adam Haidar_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "adam.haidar@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.635177",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Erik Welin-Berger",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Erik Welin-Berger_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "erik.welin-berger@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.665689",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Nalu Hedstr\u00F6m",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Nalu Hedstr\u00F6m_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "nalu.hedstrom@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.710381",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Leo Lundgren",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Leo Lundgren_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "leo.lundgren@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.736751",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Edvin Bru\u00E9r Rouhiainen",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Edvin Bru\u00E9r Rouhiainen_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "edvin.bruerrouhiainen@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.763086",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Neo Herrmann Bengtsson",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Neo Herrmann Bengtsson_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "neo.herrmannbengtsson@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.789849",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Mohammed Safie",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Mohammed Safie_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mohammed.safie@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.819109",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Mohamed Fattahy",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Mohamed Fattahy_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mohamed.fattahy@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.853409",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Khaled Idris",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Khaled Idris_20251015_130536.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "khaled.idris@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:36.882919",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Louai Hejazi",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Louai Hejazi_20251015_130537.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "louai.hejazi@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:37.023275",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Yaqab Al-Kwater",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Yaqab Al-Kwater_20251015_130537.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "jakub.al-kwater@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:37.05213",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Ahmed Haj Khatib",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Ahmed Haj Khatib_20251015_130537.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "ahmad.hajkhatib@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:37.080705",
+    "CropSettings": null
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Anders Enoksson",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Anders Enoksson_20251015_130537.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_1",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "anders.enoksson@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-15T13:05:37.108805",
+    "CropSettings": null
+  },
+  {
+    "Teacher": null,
+    "RoleInfo": "",
+    "SecondaryInfo": null,
+    "PersonType": 0,
     "Id": 2,
-    "Name": "Jane Smith",
-    "ClassName": "Class 9A", 
-    "Email": "jane.smith@school.com",
-    "EnrollmentDate": "2024-01-15T00:00:00",
-    "PictureUrl": "",
-    "Teachers": ["Mrs. Smith"],
-    "CropSettings": null,
-    "OriginalImagePath": null
+    "Name": "wawwewa",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/profile_1760527098644.png",
+    "OriginalImagePath": null,
+    "ClassName": "",
+    "Teachers": [],
+    "Email": "asdsadsa",
+    "EnrollmentDate": "2025-10-15T13:15:28.93885",
+    "CropSettings": null
   }
 ]

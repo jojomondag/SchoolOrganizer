@@ -40,15 +40,20 @@ function Invoke-DotNetCommand {
     }
 }
 
+# Clear console at start
+Clear-Host
+
 # Main execution logic
 if ($All -or $Clean) {
     Write-Host "Cleaning project..." -ForegroundColor Yellow
     Invoke-DotNetCommand "clean"
+    Clear-Host
 }
 
 if ($All -or $Build) {
     Write-Host "Building project..." -ForegroundColor Yellow
     Invoke-DotNetCommand "build"
+    Clear-Host
 }
 
 if ($All -or $Run) {
@@ -60,7 +65,11 @@ if ($All -or $Run) {
 if (-not ($Clean -or $Build -or $Run -or $All)) {
     Write-Host "No parameters provided. Running clean, build, and run..." -ForegroundColor Cyan
     Invoke-DotNetCommand "clean"
+    Clear-Host
+    Write-Host "Building project..." -ForegroundColor Yellow
     Invoke-DotNetCommand "build"
+    Clear-Host
+    Write-Host "Running project..." -ForegroundColor Yellow
     Invoke-DotNetCommand "run"
 }
 
