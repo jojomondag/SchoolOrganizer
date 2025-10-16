@@ -2,6 +2,7 @@
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using System;
+using SchoolOrganizer.Src.Views.ProfileCards.Components;
 namespace SchoolOrganizer.Src.Views.Windows.ImageCrop;
 public partial class CropPreview : UserControl
 {
@@ -14,10 +15,20 @@ public partial class CropPreview : UserControl
     }
     public void UpdatePreview(Bitmap? preview)
     {
-        var img = this.FindControl<Image>("PreviewImage");
-        if (img == null) return;
-        img.Source = preview;
-        img.IsVisible = preview != null;
+        var profileImageBorder = this.FindControl<ProfileImage>("PreviewImageBorder");
+        if (profileImageBorder == null) return;
+        
+        if (preview != null)
+        {
+            // Convert bitmap to a temporary file path or use a different approach
+            // For now, we'll need to handle this differently since ProfileImageBorder expects a string path
+            // This is a limitation we'll need to address
+            profileImageBorder.ImagePath = ""; // Clear the path for now
+        }
+        else
+        {
+            profileImageBorder.ImagePath = "";
+        }
     }
     public void ShowActions(bool show)
     {

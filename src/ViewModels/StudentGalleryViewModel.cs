@@ -146,9 +146,9 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     public StudentGalleryViewModel(GoogleAuthService? authService = null)
     {
-        Log.Information("StudentGalleryViewModel constructor started");
-        Log.Information("AuthService provided: {HasAuthService}", authService != null);
-        Log.Information("Initial state - IsAddingStudent: {IsAddingStudent}, ForceGridView: {ForceGridView}, IsLoading: {IsLoading}", 
+        Log.Debug("StudentGalleryViewModel constructor started");
+        Log.Debug("AuthService provided: {HasAuthService}", authService != null);
+        Log.Debug("Initial state - IsAddingStudent: {IsAddingStudent}, ForceGridView: {ForceGridView}, IsLoading: {IsLoading}", 
             IsAddingStudent, ForceGridView, IsLoading);
         
         this.authService = authService;
@@ -168,23 +168,23 @@ public partial class StudentGalleryViewModel : ObservableObject
             Log.Debug("No AuthService provided - running in unauthenticated mode");
         }
         
-        Log.Information("After setup - IsAddingStudent: {IsAddingStudent}, IsAuthenticated: {IsAuthenticated}, TeacherName: {TeacherName}", 
+        Log.Debug("After setup - IsAddingStudent: {IsAddingStudent}, IsAuthenticated: {IsAuthenticated}, TeacherName: {TeacherName}", 
             IsAddingStudent, IsAuthenticated, TeacherName);
         
         // Subscribe to StudentCoordinatorService events
         SubscribeToCoordinatorEvents();
-        Log.Information("Subscribed to StudentCoordinatorService events");
+        Log.Debug("Subscribed to StudentCoordinatorService events");
         
-        Log.Information("Starting LoadStudents...");
+        Log.Debug("Starting LoadStudents...");
         _ = LoadStudents();
     }
 
     [RelayCommand]
     private async Task LoadStudents()
     {
-        Log.Information("LoadStudents started");
+        Log.Debug("LoadStudents started");
         IsLoading = true;
-        Log.Information("Set IsLoading = true");
+        Log.Debug("Set IsLoading = true");
         
         try
         {
@@ -199,11 +199,11 @@ public partial class StudentGalleryViewModel : ObservableObject
                 Log.Information("JSON content length: {ContentLength} characters", jsonContent.Length);
                 
                 var studentList = JsonSerializer.Deserialize<List<Student>>(jsonContent);
-                Log.Information("Deserialized {StudentCount} students from JSON", studentList?.Count ?? 0);
+                Log.Debug("Deserialized {StudentCount} students from JSON", studentList?.Count ?? 0);
                 
                 allStudents.Clear();
                 Students.Clear();
-                Log.Information("Cleared existing student collections");
+                Log.Debug("Cleared existing student collections");
                 
                 if (studentList != null)
                 {
@@ -212,7 +212,7 @@ public partial class StudentGalleryViewModel : ObservableObject
                         allStudents.Add(student);
                         Log.Debug("Added student: {StudentName} (ID: {StudentId})", student.Name, student.Id);
                     }
-                    Log.Information("Added {StudentCount} students to AllStudents collection", allStudents.Count);
+                    Log.Debug("Added {StudentCount} students to AllStudents collection", allStudents.Count);
                 }
                 else
                 {
@@ -221,25 +221,25 @@ public partial class StudentGalleryViewModel : ObservableObject
 
                 // Ensure ForceGridView is true before applying search
                 ForceGridView = true;
-                Log.Information("Set ForceGridView = true");
+                Log.Debug("Set ForceGridView = true");
                 
                 IsLoading = false; // Set loading to false before applying search
-                Log.Information("Set IsLoading = false");
+                Log.Debug("Set IsLoading = false");
                 
-                Log.Information("Calling ApplySearchImmediate...");
+                Log.Debug("Calling ApplySearchImmediate...");
                 await ApplySearchImmediate();
                 
                 // Batch UI updates to reduce redundant property change notifications
                 Dispatcher.UIThread.Post(() =>
                 {
-                    Log.Information("Calling UpdateDisplayLevelBasedOnItemCount...");
+                    Log.Debug("Calling UpdateDisplayLevelBasedOnItemCount...");
                     UpdateDisplayLevelBasedOnItemCount();
                     
-                    Log.Information("Calling UpdateViewProperties...");
+                    Log.Debug("Calling UpdateViewProperties...");
                     UpdateViewProperties();
                 }, DispatcherPriority.Background);
                 
-                Log.Information("LoadStudents completed - Students.Count: {StudentsCount}, AllStudents.Count: {AllStudentsCount}, ForceGridView: {ForceGridView}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}", 
+                Log.Debug("LoadStudents completed - Students.Count: {StudentsCount}, AllStudents.Count: {AllStudentsCount}, ForceGridView: {ForceGridView}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}", 
                     Students.Count, allStudents.Count, ForceGridView, ShowMultipleStudents, ShowSingleStudent, ShowEmptyState);
             }
             else
@@ -254,10 +254,10 @@ public partial class StudentGalleryViewModel : ObservableObject
         finally
         {
             IsLoading = false;
-            Log.Information("Set IsLoading = false in finally block");
+            Log.Debug("Set IsLoading = false in finally block");
             // Ensure view properties are updated even on error
             UpdateViewProperties();
-            Log.Information("Final state - Students.Count: {StudentsCount}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}", 
+            Log.Debug("Final state - Students.Count: {StudentsCount}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}", 
                 Students.Count, ShowMultipleStudents, ShowSingleStudent, ShowEmptyState);
         }
     }
@@ -450,17 +450,17 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     private Task ApplySearchImmediate()
     {
-        Log.Information("ApplySearchImmediate started");
-        Log.Information("Input - SearchText: '{SearchText}', AllStudents.Count: {AllStudentsCount}, IsAddingStudent: {IsAddingStudent}", 
+        Log.Debug("ApplySearchImmediate started");
+        Log.Debug("Input - SearchText: '{SearchText}', AllStudents.Count: {AllStudentsCount}, IsAddingStudent: {IsAddingStudent}", 
             SearchText, allStudents.Count, IsAddingStudent);
         
         try
         {
             var results = searchService.Search(allStudents, SearchText).ToList();
-            Log.Information("Search completed - Found {ResultCount} students matching '{SearchText}'", results.Count, SearchText);
+            Log.Debug("Search completed - Found {ResultCount} students matching '{SearchText}'", results.Count, SearchText);
             
             Students.Clear();
-            Log.Information("Cleared Students collection");
+            Log.Debug("Cleared Students collection");
             
             foreach (var s in results)
             {
@@ -472,11 +472,11 @@ public partial class StudentGalleryViewModel : ObservableObject
             if (!IsAddingStudent)
             {
                 Students.Add(new AddStudentCard());
-                Log.Information("Added AddStudentCard to Students collection");
+                Log.Debug("Added AddStudentCard to Students collection");
             }
             else
             {
-                Log.Information("Skipped adding AddStudentCard - IsAddingStudent is true");
+                Log.Debug("Skipped adding AddStudentCard - IsAddingStudent is true");
             }
             
             // Defensive check: ensure Students collection is never empty when not in add mode
@@ -486,14 +486,14 @@ public partial class StudentGalleryViewModel : ObservableObject
                 Log.Warning("Students collection was empty, added AddStudentCard as fallback");
             }
             
-            Log.Information("ApplySearchImmediate completed - Students.Count: {StudentsCount}, ForceGridView: {ForceGridView}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}, CurrentDisplayLevel: {CurrentDisplayLevel}, IsLoading: {IsLoading}", 
+            Log.Debug("ApplySearchImmediate completed - Students.Count: {StudentsCount}, ForceGridView: {ForceGridView}, ShowMultipleStudents: {ShowMultipleStudents}, ShowSingleStudent: {ShowSingleStudent}, ShowEmptyState: {ShowEmptyState}, CurrentDisplayLevel: {CurrentDisplayLevel}, IsLoading: {IsLoading}", 
                 Students.Count, ForceGridView, ShowMultipleStudents, ShowSingleStudent, ShowEmptyState, CurrentDisplayLevel, IsLoading);
             
             // Always update view properties to ensure bindings are refreshed
-            Log.Information("Calling UpdateViewProperties...");
+            Log.Debug("Calling UpdateViewProperties...");
             UpdateViewProperties();
             
-            Log.Information("Calling UpdateDisplayLevelBasedOnItemCount...");
+            Log.Debug("Calling UpdateDisplayLevelBasedOnItemCount...");
             UpdateDisplayLevelBasedOnItemCount();
         }
         catch (Exception ex)

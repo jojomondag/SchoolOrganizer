@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using SchoolOrganizer.Src.Models.Students;
+using System;
 
 namespace SchoolOrganizer.Src.Views.ProfileCards
 {
@@ -45,6 +46,11 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
                 if (this.FindControl<TextBlock>("TeacherText") is { } teacherText)
                     teacherText.Text = person.SecondaryInfo ?? "No Teacher";
             }
+        }
+
+        protected override void OnProfileImageClicked(object? sender, EventArgs e)
+        {
+            base.OnProfileImageClicked(sender, e);
         }
     }
 }

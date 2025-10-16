@@ -11,9 +11,7 @@
              x:DataType="vm:ClassroomDownloadViewModel">
 
     <UserControl.Resources>
-        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
-        <converters:BoolToStatusTextConverter x:Key="BoolToStatusTextConverter"/>
-        <converters:ExpandCollapseIconConverter x:Key="ExpandCollapseIconConverter"/>
+        <converters:ParameterizedConverter x:Key="ParameterizedConverter"/>
     </UserControl.Resources>
 
     <Grid Background="Transparent">
@@ -42,7 +40,7 @@
                                    FontWeight="Bold"
                                    Foreground="{DynamicResource TextPrimaryColor}"
                                    VerticalAlignment="Center"/>
-                        <materialIcons:MaterialIcon Kind="{Binding IsDownloadSectionExpanded, Converter={StaticResource ExpandCollapseIconConverter}}"
+                        <materialIcons:MaterialIcon Kind="{Binding IsDownloadSectionExpanded, Converter={StaticResource ParameterizedConverter}, ConverterParameter=MenuDown|MenuUp}"
                                                      Width="20"
                                                      Height="20"
                                                      Foreground="{DynamicResource TextSecondaryBrush}"
@@ -169,13 +167,13 @@
 
                                     <!-- Status Indicator -->
                                     <Border Grid.Column="1"
-                                            Background="{Binding IsDownloaded, Converter={StaticResource BoolToColorConverter}}"
+                                            Background="{Binding IsDownloaded, Converter={StaticResource ParameterizedConverter}, ConverterParameter=Green|Gray}"
                                             Width="12"
                                             Height="12"
                                             CornerRadius="6"
                                             Margin="10,0"
                                             VerticalAlignment="Center"
-                                            ToolTip.Tip="{Binding IsDownloaded, Converter={StaticResource BoolToStatusTextConverter}}"/>
+                                            ToolTip.Tip="{Binding IsDownloaded, Converter={StaticResource ParameterizedConverter}, ConverterParameter=Download completed|Not downloaded}"/>
 
                                     <!-- Button Stack -->
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">

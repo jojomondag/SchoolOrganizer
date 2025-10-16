@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:SchoolOrganizer.Src.Views.ProfileCards"
              xmlns:views="using:SchoolOrganizer.Src.Converters"
+             xmlns:components="using:SchoolOrganizer.Src.Views.ProfileCards.Components"
              x:Class="SchoolOrganizer.Src.Views.ProfileCards.ProfileCardSmall"
              x:DataType="local:ProfileCardSmall"
              Width="240" Height="240">
@@ -27,36 +28,13 @@
             IsHitTestVisible="True">
 
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Border x:Name="ProfileImageBorder"
-                Background="{DynamicResource TransparentColor}"
-                CornerRadius="35"
-                BorderThickness="2"
-                BorderBrush="{DynamicResource BlackBrush}"
-                Padding="0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Width="70"
-                Height="70"
-                Margin="0,0,0,8"
-                Cursor="Hand">
-
-          <Grid>
-            <!-- Background circle -->
-            <Ellipse Fill="{DynamicResource BackgroundTertiaryBrush}"
-                     HorizontalAlignment="Stretch"
-                     VerticalAlignment="Stretch"/>
-
-            <!-- Profile image -->
-            <Ellipse x:Name="ProfileImageEllipse"
-                     HorizontalAlignment="Stretch"
-                     VerticalAlignment="Stretch"
-                     Cursor="Hand">
-              <Ellipse.Fill>
-                <ImageBrush Stretch="UniformToFill"/>
-              </Ellipse.Fill>
-            </Ellipse>
-          </Grid>
-        </Border>
+        <components:ProfileImage x:Name="ProfileImageBorder"
+                                         Width="70"
+                                         Height="70"
+                                         BorderThickness="2"
+                                         ImagePath="{Binding PictureUrl}"
+                                         Margin="0,0,0,8"
+                                         ImageClicked="OnProfileImageClicked"/>
 
         <TextBlock x:Name="NameText"
                    FontSize="16"

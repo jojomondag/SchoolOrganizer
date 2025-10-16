@@ -165,6 +165,12 @@ public partial class StudentGalleryView : UserControl
         else if (e.PropertyName == "DisplayConfig")
         {
             // When DisplayConfig changes, update card layout with new dimensions
+            if (sender is StudentGalleryViewModel vm)
+            {
+                Log.Debug("DisplayConfig changed - Level: {Level}, CardWidth: {CardWidth}, CardHeight: {CardHeight}, ImageSize: {ImageSize}, NameFontSize: {NameFontSize}", 
+                    vm.DisplayConfig.Level, vm.DisplayConfig.CardWidth, vm.DisplayConfig.CardHeight, 
+                    vm.DisplayConfig.ImageSize, vm.DisplayConfig.NameFontSize);
+            }
             Dispatcher.UIThread.Post(() => UpdateCardLayout(), DispatcherPriority.Render);
         }
         else if (e.PropertyName == "IsAddingStudent")

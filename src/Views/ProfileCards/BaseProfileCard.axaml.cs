@@ -126,20 +126,15 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             if (this.FindControl<Button>("BackButton") is { } backButton)
                 backButton.Click += (s, e) => BackButtonClicked?.Invoke(this, EventArgs.Empty);
 
-            if (this.FindControl<Border>("ProfileImageBorder") is { } profileImageBorder)
+            // Attach ProfileImageBorder event handlers
+                   if (this.FindControl<SchoolOrganizer.Src.Views.ProfileCards.Components.ProfileImage>("ProfileImageBorder") is { } profileImageBorder)
             {
-                profileImageBorder.PointerPressed += (s, e) =>
-                {
-                    if (DataContext is Student student)
-                    {
-                        ProfileImageClicked?.Invoke(this, student);
-                        e.Handled = true; // Prevent event bubbling
-                    }
-                };
-
-                // Always add hover effects for profile image, regardless of card hover setting
-                profileImageBorder.PointerEntered += OnProfileImagePointerEntered;
-                profileImageBorder.PointerExited += OnProfileImagePointerExited;
+                Serilog.Log.Information("BaseProfileCard: ProfileImageBorder found, attaching ImageClicked event");
+                profileImageBorder.ImageClicked += OnProfileImageClicked;
+            }
+            else
+            {
+                Serilog.Log.Warning("BaseProfileCard: ProfileImageBorder not found");
             }
 
             if (this.FindControl<Border>("CardBorder") is { } cardBorder)
@@ -206,56 +201,19 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             }
         }
 
-        protected virtual void OnProfileImagePointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+        // Profile image hover effects are now handled by ProfileImageBorder component
+
+        protected virtual void OnProfileImageClicked(object? sender, EventArgs e)
         {
-            if (sender is Border profileImageBorder)
+            if (DataContext is Student student)
             {
-                // Create a stronger shadow for profile image hover
-                var shadow = new BoxShadows(
-                    new BoxShadow
-                    {
-                        Color = Color.FromArgb(120, 0, 0, 0), // Much more opaque shadow
-                        Blur = 20,
-                        OffsetX = 0,
-                        OffsetY = 8,
-                        Spread = 2
-                    }
-                );
-                
-                // Add smooth transition
-                var transition = new Transitions
-                {
-                    new BoxShadowsTransition
-                    {
-                        Property = Border.BoxShadowProperty,
-                        Duration = TimeSpan.FromMilliseconds(200),
-                        Easing = new Avalonia.Animation.Easings.CubicEaseOut()
-                    }
-                };
-                
-                profileImageBorder.Transitions = transition;
-                profileImageBorder.BoxShadow = shadow;
+                ProfileImageClicked?.Invoke(this, student);
             }
         }
 
-        protected virtual void OnProfileImagePointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+        protected virtual void OnCardClicked(IPerson person)
         {
-            if (sender is Border profileImageBorder)
-            {
-                // Add smooth transition for exit
-                var transition = new Transitions
-                {
-                    new BoxShadowsTransition
-                    {
-                        Property = Border.BoxShadowProperty,
-                        Duration = TimeSpan.FromMilliseconds(200),
-                        Easing = new Avalonia.Animation.Easings.CubicEaseOut()
-                    }
-                };
-                
-                profileImageBorder.Transitions = transition;
-                profileImageBorder.BoxShadow = new BoxShadows(); // Transparent shadow
-            }
+            CardClicked?.Invoke(this, person);
         }
 
         private void UpdateProfileImageBorder()

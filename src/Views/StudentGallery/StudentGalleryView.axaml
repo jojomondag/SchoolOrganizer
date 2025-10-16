@@ -17,8 +17,7 @@
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
     <views:StudentSelectionBrushConverter x:Key="StudentSelectionBrushConverter"/>
     <views:DisplayConfigConverter x:Key="DisplayConfigConverter"/>
-    <views:IdToIsAddCardConverter x:Key="IdToIsAddCardConverter"/>
-    <views:IdToIsStudentCardConverter x:Key="IdToIsStudentCardConverter"/>
+    <views:ComparisonConverter x:Key="ComparisonConverter"/>
     <ControlTemplate x:Key="FlatButtonTemplate">
       <Border Background="{TemplateBinding Background}"
               BorderBrush="{TemplateBinding BorderBrush}"
@@ -272,7 +271,7 @@
                   <DataTemplate x:DataType="models:IPerson">
                     <Grid>
                       <!-- Student Card Template -->
-                      <Panel IsVisible="{Binding Id, Converter={StaticResource IdToIsStudentCardConverter}}">
+                      <Panel IsVisible="{Binding Id, Converter={StaticResource ComparisonConverter}, ConverterParameter='!=,-1'}">
                         <!-- Small Card for Small DisplayLevel -->
                         <profileCard:ProfileCardSmall Name="{Binding Name}"
                                                      RoleInfo="{Binding RoleInfo}"
@@ -299,19 +298,37 @@
                       <Panel>
                         <Panel.IsVisible>
                           <MultiBinding Converter="{x:Static BoolConverters.And}">
-                            <Binding Path="Id" Converter="{StaticResource IdToIsAddCardConverter}"/>
+                            <Binding Path="Id" Converter="{StaticResource ComparisonConverter}" ConverterParameter="==,-1"/>
                             <Binding Path="$parent[UserControl].DataContext.IsAddingStudent" Converter="{x:Static BoolConverters.Not}" FallbackValue="True"/>
                           </MultiBinding>
                         </Panel.IsVisible>
                         <!-- Add Student Card for Small DisplayLevel -->
-                        <profileCard:AddStudentProfileCardSmall Name="AddStudentCardSmall"
-                                                               CardClicked="OnAddStudentCardClicked"
-                                                               IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall, FallbackValue=False}"/>
+                        <profileCard:AddStudentProfileCard Name="AddStudentCardSmall"
+                                                           Width="{Binding $parent[UserControl].DataContext.DisplayConfig.CardWidth}"
+                                                           Height="{Binding $parent[UserControl].DataContext.DisplayConfig.CardHeight}"
+                                                           Margin="20,30,20,30"
+                                                           CornerRadius="12"
+                                                           Padding="8"
+                                                           IconSize="{Binding $parent[UserControl].DataContext.DisplayConfig.ImageSize}"
+                                                           TitleFontSize="{Binding $parent[UserControl].DataContext.DisplayConfig.NameFontSize}"
+                                                           AddStudentSubtitleText="Click to add"
+                                                           SubtitleFontSize="11"
+                                                           CardClicked="OnAddStudentCardClicked"
+                                                           IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall, FallbackValue=False}"/>
 
                         <!-- Add Student Card for Medium DisplayLevel -->
-                        <profileCard:AddStudentProfileCardMedium Name="AddStudentCardMedium"
-                                                               CardClicked="OnAddStudentCardClicked"
-                                                               IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium, FallbackValue=True}"/>
+                        <profileCard:AddStudentProfileCard Name="AddStudentCardMedium"
+                                                           Width="{Binding $parent[UserControl].DataContext.DisplayConfig.CardWidth}"
+                                                           Height="{Binding $parent[UserControl].DataContext.DisplayConfig.CardHeight}"
+                                                           Margin="20,40,20,40"
+                                                           CornerRadius="16"
+                                                           Padding="12"
+                                                           IconSize="{Binding $parent[UserControl].DataContext.DisplayConfig.ImageSize}"
+                                                           TitleFontSize="{Binding $parent[UserControl].DataContext.DisplayConfig.NameFontSize}"
+                                                           AddStudentSubtitleText="Click to add a new student"
+                                                           SubtitleFontSize="12"
+                                                           CardClicked="OnAddStudentCardClicked"
+                                                           IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium, FallbackValue=True}"/>
                       </Panel>
                     </Grid>
                   </DataTemplate>

@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:views="using:SchoolOrganizer.Src.Converters"
              xmlns:vm="using:SchoolOrganizer.Src.ViewModels"
-             xmlns:components="using:SchoolOrganizer.Src.Views.Components"
+             xmlns:components="using:SchoolOrganizer.Src.Views.ProfileCards.Components"
              x:Class="SchoolOrganizer.Src.Views.StudentGallery.AddStudentView"
              x:DataType="vm:AddStudentViewModel">
 
@@ -130,14 +130,12 @@
             <Grid ColumnDefinitions="140,20,*">
               <!-- Profile Image -->
               <StackPanel Grid.Column="0" Spacing="8">
-                <components:ProfileImageControl Width="100" 
-                                                Height="100" 
-                                                ImagePath="{Binding SelectedImagePath}"
-                                                IsImageMissing="{Binding IsImageMissing}"
-                                                PlaceholderText="+"
-                                                PlaceholderFontSize="28"
-                                                ToolTipText="Add photo"
-                                                ImageClicked="OnProfileImageControlClicked"/>
+                <components:ProfileImage Width="100" 
+                                               Height="100" 
+                                               ImagePath="{Binding SelectedImagePath}"
+                                               ShowPlusIcon="{Binding IsImageMissing}"
+                                               ToolTipText="Add photo"
+                                               ImageClicked="OnProfileImageControlClicked"/>
                 <TextBlock Text="Add Photo" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
               </StackPanel>
 

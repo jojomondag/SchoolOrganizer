@@ -4,6 +4,7 @@
              xmlns:views="using:SchoolOrganizer.Src.Converters"
              xmlns:models="using:SchoolOrganizer.Src.Models.Students"
              xmlns:material="using:Material.Icons.Avalonia"
+             xmlns:components="using:SchoolOrganizer.Src.Views.ProfileCards.Components"
              x:Class="SchoolOrganizer.Src.Views.ProfileCards.ProfileCardLarge"
              x:DataType="models:Student">
 
@@ -28,36 +29,13 @@
 
       <!-- Profile Image -->
       <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,10,40,0">
-        <Border x:Name="ProfileImageBorder"
-                Background="{DynamicResource TransparentColor}"
-                CornerRadius="120"
-                BorderThickness="3"
-                BorderBrush="{DynamicResource BlackBrush}"
-                Padding="0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Width="240"
-                Height="240"
-                Margin="0,0,0,20"
-                Cursor="Hand">
-
-          <Grid>
-            <!-- Background circle -->
-            <Ellipse Fill="{DynamicResource BackgroundTertiaryBrush}"
-                     HorizontalAlignment="Stretch"
-                     VerticalAlignment="Stretch"/>
-
-            <!-- Profile image -->
-            <Ellipse x:Name="ProfileImageEllipse"
-                     HorizontalAlignment="Stretch"
-                     VerticalAlignment="Stretch"
-                     Cursor="Hand">
-              <Ellipse.Fill>
-                <ImageBrush Stretch="UniformToFill"/>
-              </Ellipse.Fill>
-            </Ellipse>
-          </Grid>
-        </Border>
+        <components:ProfileImage x:Name="ProfileImageBorder"
+                                       Width="240"
+                                       Height="240"
+                                       BorderThickness="3"
+                                       ImagePath="{Binding PictureUrl}"
+                                       Margin="0,0,0,20"
+                                       ImageClicked="OnProfileImageClicked"/>
       </StackPanel>
 
       <!-- Details -->

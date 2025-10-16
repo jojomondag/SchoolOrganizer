@@ -59,6 +59,11 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             }
         }
 
+        protected override void OnProfileImageClicked(object? sender, EventArgs e)
+        {
+            base.OnProfileImageClicked(sender, e);
+        }
+
         private void OnEmailClicked(object? sender, Avalonia.Input.PointerPressedEventArgs e)
         {
             if (DataContext is Student student && !string.IsNullOrWhiteSpace(student.Email))

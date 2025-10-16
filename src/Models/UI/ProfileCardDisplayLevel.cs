@@ -48,7 +48,7 @@ public class ProfileCardDisplayConfig
             {
                 Level = level,
                 ImageSize = 70,
-                CardWidth = 160,
+                CardWidth = 180,  // Was 160 - match actual profile card size
                 CardHeight = 180,
                 NameFontSize = 13,
                 RoleFontSize = 11, // Class name - show this
@@ -60,9 +60,9 @@ public class ProfileCardDisplayConfig
             ProfileCardDisplayLevel.Medium => new()
             {
                 Level = level,
-                ImageSize = 80,
-                CardWidth = 200,
-                CardHeight = 220,
+                ImageSize = 90,  // Was 80 - match actual profile card size
+                CardWidth = 240,  // Was 200 - match actual profile card size
+                CardHeight = 240,  // Was 220 - match actual profile card size
                 NameFontSize = 14,
                 RoleFontSize = 11, // Class name
                 SecondaryFontSize = 10, // Teacher name

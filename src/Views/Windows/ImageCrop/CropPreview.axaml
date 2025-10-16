@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:components="using:SchoolOrganizer.Src.Views.ProfileCards.Components"
              mc:Ignorable="d" d:DesignWidth="260" d:DesignHeight="230"
              x:Class="SchoolOrganizer.Src.Views.Windows.ImageCrop.CropPreview">
 
@@ -63,21 +64,14 @@
             <!-- Heading removed per request -->
             
             <!-- Preview Circle -->
-    <Border Grid.Row="1"
-            Width="120" Height="120"
-            CornerRadius="60"
-            ClipToBounds="True"
-            BorderBrush="{DynamicResource ProfileImageBorderBrush}"
-            BorderThickness="3"
-            Background="{DynamicResource ImageCropperPreviewBackgroundBrush}"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
-                <Image Name="PreviewImage"
-                       Stretch="Uniform"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       IsVisible="False" />
-            </Border>
+            <components:ProfileImage Grid.Row="1"
+                                          x:Name="PreviewImageBorder"
+                                          Width="120" 
+                                          Height="120"
+                                          BorderThickness="3"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          IsClickable="False"/>
             
             <!-- Action Buttons -->
             <StackPanel Grid.Row="2"
