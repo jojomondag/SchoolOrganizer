@@ -21,7 +21,6 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             = new Dictionary<AvaloniaProperty, (string, string)>();
 
         public event EventHandler? BackButtonClicked;
-        public event EventHandler<Student>? ProfileImageClicked;
         public event EventHandler<IPerson>? CardClicked;
         public event EventHandler<IPerson>? CardDoubleClicked;
 
@@ -46,7 +45,7 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             SetupEventHandlers();
             UpdateAllControls();
             UpdateProfileImageBorder();
-            UpdateProfileImage();
+            // UpdateProfileImage(); // Disabled since we're using ProfileImage component with binding
         }
 
         private void OnUnloaded(object? s, Avalonia.Interactivity.RoutedEventArgs e)
@@ -61,8 +60,7 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             if (IsLoaded)
             {
                 UpdateAllControls();
-                // Defer image loading to improve startup performance
-                Dispatcher.UIThread.Post(() => UpdateProfileImage(), DispatcherPriority.Background);
+                // UpdateProfileImage(); // Disabled since we're using ProfileImage component with binding
             }
         }
 
@@ -126,16 +124,8 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             if (this.FindControl<Button>("BackButton") is { } backButton)
                 backButton.Click += (s, e) => BackButtonClicked?.Invoke(this, EventArgs.Empty);
 
-            // Attach ProfileImageBorder event handlers
-                   if (this.FindControl<SchoolOrganizer.Src.Views.ProfileCards.Components.ProfileImage>("ProfileImageBorder") is { } profileImageBorder)
-            {
-                Serilog.Log.Information("BaseProfileCard: ProfileImageBorder found, attaching ImageClicked event");
-                profileImageBorder.ImageClicked += OnProfileImageClicked;
-            }
-            else
-            {
-                Serilog.Log.Warning("BaseProfileCard: ProfileImageBorder not found");
-            }
+            // ProfileImageBorder event handlers are handled directly in XAML templates
+            // No need for programmatic subscription since XAML already has ImageClicked="OnProfileImageClicked"
 
             if (this.FindControl<Border>("CardBorder") is { } cardBorder)
             {
@@ -207,7 +197,8 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
         {
             if (DataContext is Student student)
             {
-                ProfileImageClicked?.Invoke(this, student);
+                // Use StudentCoordinatorService directly to avoid double event handling
+                Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
             }
         }
 
@@ -317,7 +308,7 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             // Handle PictureUrl changes specially for the image
             if (change.Property == PictureUrlProperty)
             {
-                UpdateProfileImage();
+                // UpdateProfileImage(); // Disabled since we're using ProfileImage component with binding
             }
         }
 
@@ -399,57 +390,5 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             }
         }
 
-        /// <summary>
-        /// Opens the ImageCropper window for editing the profile image.
-        /// </summary>
-        protected virtual async Task OpenImageCropperAsync(Student student)
-        {
-            try
-            {
-                // Get the parent window
-                var parentWindow = TopLevel.GetTopLevel(this) as Window;
-                if (parentWindow == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("BaseProfileCard: Could not find parent window");
-                    return;
-                }
-
-                System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Opening ImageCropper for student: {student.Name} (ID: {student.Id})");
-
-                // Open the ImageCrop window with student context, passing existing ORIGINAL image and crop settings
-                var result = await ImageCropWindow.ShowForStudentAsync(
-                    parentWindow,
-                    student.Id,
-                    student.OriginalImagePath,  // Load the original, not the cropped result
-                    student.CropSettings);
-
-                System.Diagnostics.Debug.WriteLine($"BaseProfileCard: ImageCropper returned: imagePath={result.imagePath ?? "NULL"}, cropSettings={result.cropSettings ?? "NULL"}, original={result.originalImagePath ?? "NULL"}");
-
-                if (!string.IsNullOrEmpty(result.imagePath))
-                {
-                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Image saved to: {result.imagePath}");
-                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Raising ProfileImageUpdated event for student {student.Id}");
-
-                    // Update student with new image path, crop settings, and original image path before raising event
-                    student.PictureUrl = result.imagePath;
-                    student.CropSettings = result.cropSettings;
-                    student.OriginalImagePath = result.originalImagePath;
-
-                    // Use StudentCoordinatorService to publish the image update
-                    Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(student, result.imagePath, result.cropSettings, result.originalImagePath);
-
-                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: StudentCoordinatorService.PublishStudentImageUpdated called successfully");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("BaseProfileCard: ImageCropper closed without saving (result was null or empty)");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Error opening ImageCropper: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Stack trace: {ex.StackTrace}");
-            }
-        }
     }
 }

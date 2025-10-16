@@ -1,112 +1,81 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:views="using:SchoolOrganizer.Src.Converters"
-             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="SchoolOrganizer.Src.Views.ProfileCards.Components.ProfileImage"
              x:Name="Root">
 
   <UserControl.Resources>
-    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
-    <views:SimpleMathConverter x:Key="SimpleMathConverter"/>
+    <views:UniversalImageConverter x:Key="UniversalImageConverter" x:Shared="True"/>
+    <views:SimpleMathConverter x:Key="SimpleMathConverter" x:Shared="True"/>
   </UserControl.Resources>
 
-  <Grid>
-    <!-- Main profile image border with smooth shadow -->
-    <Border x:Name="ProfileImageBorderElement"
+  <UserControl.Styles>
+    <Style Selector="Border.circle">
+      <Setter Property="Width" Value="200"/>
+      <Setter Property="Height" Value="200"/>
+      <Setter Property="CornerRadius" Value="100"/>
+      <Setter Property="BorderBrush" Value="Black"/>
+      <Setter Property="BorderThickness" Value="3"/>
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="BoxShadow" Value="0 1 3 1 LightGray"/>
+      <Setter Property="Transitions">
+        <Transitions>
+          <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.3"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    
+    <Style Selector="Border.circle:pointerover">
+      <Setter Property="BoxShadow" Value="0 2 8 2 Gray"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ClipToBounds="False" Margin="10">
+    <Border Classes="circle"
             Width="{Binding Width, ElementName=Root}"
             Height="{Binding Height, ElementName=Root}"
+            CornerRadius="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Divide,2'}"
             BorderBrush="{DynamicResource BlackBrush}"
             BorderThickness="{Binding BorderThickness, ElementName=Root}"
-            CornerRadius="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Divide,2'}"
+            Background="{DynamicResource BackgroundTertiaryBrush}"
             Cursor="{Binding Cursor, ElementName=Root}"
-            BoxShadow="0 2px 8px 0 rgba(0,0,0,0.15), 0 4px 12px 0 rgba(0,0,0,0.1)">
+            ClipToBounds="False">
       
       <Grid>
-      <!-- Background circle -->
-      <Ellipse Fill="{DynamicResource BackgroundTertiaryBrush}"
-               HorizontalAlignment="Stretch"
-               VerticalAlignment="Stretch"/>
-      
-      <!-- Profile image -->
-      <Ellipse x:Name="ProfileImageEllipse"
-               Width="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,6'}"
-               Height="{Binding Height, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,6'}"
-               ClipToBounds="True"
-               IsVisible="{Binding !IsImageMissing, ElementName=Root}">
-        <Ellipse.Fill>
-          <ImageBrush Source="{Binding ImagePath, ElementName=Root, Converter={StaticResource UniversalImageConverter}}" 
-                      Stretch="UniformToFill"/>
-        </Ellipse.Fill>
-      </Ellipse>
-      
-      <!-- Initials placeholder -->
-      <Ellipse x:Name="InitialsEllipse"
-               Width="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,6'}"
-               Height="{Binding Height, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,6'}"
-               Fill="{DynamicResource BackgroundTertiaryBrush}"
-               IsVisible="{Binding ShowInitials, ElementName=Root}">
-        <Ellipse.OpacityMask>
-          <VisualBrush>
-            <VisualBrush.Visual>
-              <TextBlock x:Name="InitialsText"
-                         Text="{Binding Initials, ElementName=Root}" 
-                         FontWeight="Light" 
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         HorizontalAlignment="Center"
-                         VerticalAlignment="Center"/>
-            </VisualBrush.Visual>
-          </VisualBrush>
-        </Ellipse.OpacityMask>
-      </Ellipse>
-      
-      <!-- Plus icon placeholder -->
-      <Ellipse x:Name="PlusIconEllipse"
-               Width="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,6'}"
-               Height="{Binding Height, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,6'}"
-               Fill="{DynamicResource BackgroundTertiaryBrush}"
-               IsVisible="{Binding ShowPlusIcon, ElementName=Root}">
-        <Ellipse.OpacityMask>
-          <VisualBrush>
-            <VisualBrush.Visual>
-              <Viewbox x:Name="PlusIconViewbox">
-                <materialIcons:MaterialIcon Kind="Plus" 
-                                            Foreground="{DynamicResource TextPrimaryBrush}"/>
-              </Viewbox>
-            </VisualBrush.Visual>
-          </VisualBrush>
-        </Ellipse.OpacityMask>
-      </Ellipse>
-      
-      <!-- Simple placeholder text (from ProfileImageControl) -->
-      <Ellipse x:Name="PlaceholderEllipse"
-               Width="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,6'}"
-               Height="{Binding Height, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,6'}"
-               Fill="{DynamicResource BackgroundTertiaryBrush}"
-               IsVisible="{Binding IsImageMissing, ElementName=Root}">
-        <Ellipse.OpacityMask>
-          <VisualBrush>
-            <VisualBrush.Visual>
-              <TextBlock x:Name="PlaceholderText"
-                         Text="{Binding PlaceholderTextValue, ElementName=Root}" 
-                         FontSize="{Binding PlaceholderFontSize, ElementName=Root}"
-                         FontWeight="Light" 
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         HorizontalAlignment="Center"
-                         VerticalAlignment="Center"/>
-            </VisualBrush.Visual>
-          </VisualBrush>
-        </Ellipse.OpacityMask>
-      </Ellipse>
-      
-        <!-- Transparent clickable overlay -->
-        <Button Background="{DynamicResource TransparentColor}"
+        <!-- Profile image or placeholder -->
+        <Grid>
+          <!-- Profile image -->
+          <Ellipse x:Name="ProfileImageEllipse"
+                   Width="{Binding Width, ElementName=Root}"
+                   Height="{Binding Height, ElementName=Root}"
+                   Margin="3"
+                   IsVisible="{Binding !IsImageMissing, ElementName=Root}">
+            <Ellipse.Fill>
+              <ImageBrush Source="{Binding ImagePath, ElementName=Root, Converter={StaticResource UniversalImageConverter}}" 
+                          Stretch="UniformToFill"/>
+            </Ellipse.Fill>
+          </Ellipse>
+          
+          <!-- Placeholder text -->
+          <TextBlock x:Name="PlaceholderText"
+                     Text="{Binding PlaceholderTextValue, ElementName=Root}" 
+                     FontSize="{Binding PlaceholderFontSize, ElementName=Root}"
+                     FontWeight="Light" 
+                     Foreground="{DynamicResource TextPrimaryBrush}"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     IsVisible="{Binding IsImageMissing, ElementName=Root}"/>
+        </Grid>
+        
+        <!-- Clickable overlay -->
+        <Button Background="Transparent"
                 BorderThickness="0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 Cursor="{Binding Cursor, ElementName=Root}"
                 Click="OnImageClick"
                 IsVisible="{Binding IsClickable, ElementName=Root}"
-                ToolTip.Tip="{Binding ToolTipText, ElementName=Root}"/>
+                Opacity="0"/>
       </Grid>
     </Border>
   </Grid>

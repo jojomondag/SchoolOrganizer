@@ -2,6 +2,7 @@
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using System;
+using System.IO;
 using SchoolOrganizer.Src.Views.ProfileCards.Components;
 namespace SchoolOrganizer.Src.Views.Windows.ImageCrop;
 public partial class CropPreview : UserControl
@@ -20,14 +21,35 @@ public partial class CropPreview : UserControl
         
         if (preview != null)
         {
-            // Convert bitmap to a temporary file path or use a different approach
-            // For now, we'll need to handle this differently since ProfileImageBorder expects a string path
-            // This is a limitation we'll need to address
-            profileImageBorder.ImagePath = ""; // Clear the path for now
+            // Save the cropped bitmap to a temporary file for the ProfileImage to display
+            var tempPath = SaveBitmapToTempFile(preview);
+            profileImageBorder.ImagePath = tempPath;
         }
         else
         {
             profileImageBorder.ImagePath = "";
+        }
+    }
+
+    private string SaveBitmapToTempFile(Bitmap bitmap)
+    {
+        try
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), "SchoolOrganizer", "CropPreview");
+            Directory.CreateDirectory(tempDir);
+            
+            var tempFileName = $"crop_preview_{Guid.NewGuid():N}.png";
+            var tempPath = Path.Combine(tempDir, tempFileName);
+            
+            // Save bitmap to file
+            bitmap.Save(tempPath);
+            
+            return tempPath;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving crop preview: {ex.Message}");
+            return "";
         }
     }
     public void ShowActions(bool show)

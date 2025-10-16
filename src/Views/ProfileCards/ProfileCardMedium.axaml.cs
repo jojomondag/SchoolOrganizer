@@ -48,9 +48,5 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             }
         }
 
-        protected override void OnProfileImageClicked(object? sender, EventArgs e)
-        {
-            base.OnProfileImageClicked(sender, e);
-        }
     }
 }

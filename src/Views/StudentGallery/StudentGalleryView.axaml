@@ -277,7 +277,6 @@
                                                      RoleInfo="{Binding RoleInfo}"
                                                      PictureUrl="{Binding PictureUrl}"
                                                      DataContext="{Binding}"
-                                                     ProfileImageClicked="OnProfileImageClicked"
                                                      CardClicked="OnStudentCardClicked"
                                                      CardDoubleClicked="OnStudentCardDoubleClicked"
                                                      IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsSmall, FallbackValue=False}"/>
@@ -288,7 +287,6 @@
                                                        Teacher="{Binding SecondaryInfo}"
                                                        PictureUrl="{Binding PictureUrl}"
                                                        DataContext="{Binding}"
-                                                       ProfileImageClicked="OnProfileImageClicked"
                                                        CardClicked="OnStudentCardClicked"
                                                        CardDoubleClicked="OnStudentCardDoubleClicked"
                                                        IsVisible="{Binding $parent[UserControl].DataContext.CurrentDisplayLevel, Converter={StaticResource DisplayConfigConverter}, ConverterParameter=IsMedium, FallbackValue=True}"/>
@@ -380,7 +378,6 @@
                                              Id="{Binding Id}"
                                              PictureUrl="{Binding PictureUrl}"
                                              DataContext="{Binding}"
-                                             ProfileImageClicked="OnDetailedProfileImageClicked"
                                              ViewAssignmentsClicked="OnViewAssignmentsClicked"/>
               </DataTemplate>
             </ContentControl.ContentTemplate>

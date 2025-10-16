@@ -361,6 +361,7 @@ public partial class ImageCropWindow : Window
         if (settings != null && TryRestoreSettings(settings))
         {
             ApplyCropTransform();
+            await Task.Delay(100); // Small delay to ensure UI is ready
             UpdatePreview();
         }
         else if (settings != null)
@@ -376,6 +377,7 @@ public partial class ImageCropWindow : Window
         await LoadGallery();
         if (IsCropStateValid())
         {
+            await Task.Delay(100); // Small delay to ensure UI is ready
             UpdatePreview();
         }
     }
@@ -409,6 +411,12 @@ public partial class ImageCropWindow : Window
         }
         CalculateDisplayMetrics(bounds);
         InitializeCrop();
+        
+        // Update preview after crop size is set
+        if (IsCropStateValid())
+        {
+            UpdatePreview();
+        }
     }
     private void SetDefaultCropValues()
     {

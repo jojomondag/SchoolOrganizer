@@ -18,6 +18,8 @@ public class UniversalImageConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        System.Diagnostics.Debug.WriteLine($"UniversalImageConverter: Convert called with value: '{value}'");
+        
         if (value is string path && !string.IsNullOrWhiteSpace(path))
         {
             try
@@ -25,11 +27,13 @@ public class UniversalImageConverter : IValueConverter
                 // Skip loading for special values that aren't real file paths
                 if (path == "ADD_CARD" || path == "" || path == "null")
                 {
+                    System.Diagnostics.Debug.WriteLine($"UniversalImageConverter: Skipping special value: '{path}'");
                     return null;
                 }
 
                 if (File.Exists(path))
                 {
+                    System.Diagnostics.Debug.WriteLine($"UniversalImageConverter: File exists, loading: {path}");
                     // Check if we have a cached bitmap and if the file has been modified
                     var fileInfo = new FileInfo(path);
                     var lastModified = fileInfo.LastWriteTime;
@@ -43,8 +47,7 @@ public class UniversalImageConverter : IValueConverter
 
                     // Try reading with shared access and a few quick retries in case the file
                     // is still being finalized by the image saver.
-                    const int maxAttempts = 2; // Reduced to 2 attempts
-                    const int delayMs = 10; // Reduced to 10ms
+                    const int maxAttempts = 1; // Reduced to 1 attempt for better performance
                     for (int attempt = 0; attempt < maxAttempts; attempt++)
                     {
                         try
@@ -64,9 +67,12 @@ public class UniversalImageConverter : IValueConverter
                         catch
                         {
                             if (attempt == maxAttempts - 1) throw;
-                            Thread.Sleep(delayMs);
                         }
                     }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"UniversalImageConverter: File does not exist: {path}");
                 }
             }
             catch (Exception ex)

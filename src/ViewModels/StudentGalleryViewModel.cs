@@ -717,6 +717,11 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"UpdateStudentImage: Starting update for student {student.Id} ({student.Name})");
+            System.Diagnostics.Debug.WriteLine($"  New image path: {newImagePath}");
+            System.Diagnostics.Debug.WriteLine($"  Crop settings: {cropSettings}");
+            System.Diagnostics.Debug.WriteLine($"  Original path: {originalImagePath}");
+            
             await WaitForReadableFileAsync(newImagePath);
 
             void UpdateStudentPictureUrl(Student s, string oldPath, string newPath, string? settings, string? origPath)
@@ -727,27 +732,61 @@ public partial class StudentGalleryViewModel : ObservableObject
                 System.Diagnostics.Debug.WriteLine($"  Crop settings: {settings}");
                 System.Diagnostics.Debug.WriteLine($"  Original path: {origPath}");
                 
+                // Clear cache for both old and new paths to ensure fresh loading
                 if (!string.IsNullOrWhiteSpace(oldPath))
                     UniversalImageConverter.ClearCache(oldPath);
                 UniversalImageConverter.ClearCache(newPath);
-                s.PictureUrl = newPath;
+                
+                // Update properties in the correct order to ensure proper change notifications
                 s.CropSettings = settings;
                 s.OriginalImagePath = origPath;
+                
+                // Force property change notification by temporarily clearing and setting the path
+                // This ensures the binding system detects the change
+                s.PictureUrl = "";
+                s.PictureUrl = newPath;
                 
                 System.Diagnostics.Debug.WriteLine($"  Updated PictureUrl to: {s.PictureUrl}");
             }
 
+            // Update the main student object first
+            System.Diagnostics.Debug.WriteLine($"UpdateStudentImage: Updating main student object");
             UpdateStudentPictureUrl(student, student.PictureUrl, newImagePath, cropSettings, originalImagePath);
 
+            // Update the student in the Students collection (the one displayed in UI)
             var studentInCollection = Students.OfType<Student>().FirstOrDefault(s => s.Id == student.Id);
             if (studentInCollection != null && studentInCollection != student)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateStudentImage: Updating student in Students collection (different instance)");
                 UpdateStudentPictureUrl(studentInCollection, studentInCollection.PictureUrl, newImagePath, cropSettings, originalImagePath);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateStudentImage: Student in Students collection is same instance or not found");
+            }
 
+            // Update the student in the allStudents collection
             var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
             if (inAll != null && inAll != student)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateStudentImage: Updating student in allStudents collection (different instance)");
                 UpdateStudentPictureUrl(inAll, inAll.PictureUrl, newImagePath, cropSettings, originalImagePath);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateStudentImage: Student in allStudents collection is same instance or not found");
+            }
+
+            // Force UI refresh by notifying property changes on the UI thread
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateStudentImage: Triggering UI refresh on UI thread");
+                // Trigger a refresh of the Students collection to ensure UI updates
+                OnPropertyChanged(nameof(Students));
+            });
 
             await SaveAllStudentsToJson();
+            System.Diagnostics.Debug.WriteLine($"UpdateStudentImage: Completed update for student {student.Id}");
         }
         catch (Exception ex)
         {
@@ -832,7 +871,6 @@ public partial class StudentGalleryViewModel : ObservableObject
         coordinator.AddStudentRequested += OnCoordinatorAddStudentRequested;
         coordinator.StudentAdded += OnCoordinatorStudentAdded;
         coordinator.StudentUpdated += OnCoordinatorStudentUpdated;
-        coordinator.StudentImageChangeRequested += OnCoordinatorStudentImageChangeRequested;
         coordinator.EditStudentRequested += OnCoordinatorEditStudentRequested;
         coordinator.ViewAssignmentsRequested += OnCoordinatorViewAssignmentsRequested;
         coordinator.ManualEntryRequested += OnCoordinatorManualEntryRequested;
@@ -884,10 +922,6 @@ public partial class StudentGalleryViewModel : ObservableObject
         );
     }
 
-    private async void OnCoordinatorStudentImageChangeRequested(object? sender, Student student)
-    {
-        await HandleStudentImageChange(student);
-    }
 
     private void OnCoordinatorEditStudentRequested(object? sender, Student student)
     {
@@ -925,16 +959,6 @@ public partial class StudentGalleryViewModel : ObservableObject
         await UpdateStudentImage(args.student, args.imagePath, args.cropSettings, args.originalImagePath);
     }
 
-    /// <summary>
-    /// Handles student image change requests
-    /// </summary>
-    private Task HandleStudentImageChange(Student student)
-    {
-        // This method should be handled by the view layer, not the ViewModel
-        // The ViewModel should not contain UI logic
-        System.Diagnostics.Debug.WriteLine($"HandleStudentImageChange called for student {student.Id} ({student.Name}) - should be handled by view layer");
-        return Task.CompletedTask;
-    }
 
     /// <summary>
     /// Handles view assignments requests

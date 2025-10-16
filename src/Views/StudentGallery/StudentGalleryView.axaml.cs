@@ -515,17 +515,6 @@ public partial class StudentGalleryView : UserControl
         }
     }
 
-    // Event handler for when profile image is clicked (opens ImageCropWindow)
-    private void OnProfileImageClicked(object? sender, SchoolOrganizer.Src.Models.Students.Student student)
-    {
-        Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
-    }
-
-    // Event handler for detailed view profile image clicks
-    private void OnDetailedProfileImageClicked(object? sender, SchoolOrganizer.Src.Models.Students.Student student)
-    {
-        Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
-    }
 
     // Event handler for when a profile image has been updated via ImageCropWindow
     private void OnProfileImageUpdated(object? sender, (SchoolOrganizer.Src.Models.Students.Student student, string imagePath) args)
