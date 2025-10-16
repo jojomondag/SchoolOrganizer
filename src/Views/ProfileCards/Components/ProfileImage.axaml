@@ -7,34 +7,15 @@
   <UserControl.Resources>
     <views:UniversalImageConverter x:Key="UniversalImageConverter" x:Shared="True"/>
     <views:SimpleMathConverter x:Key="SimpleMathConverter" x:Shared="True"/>
+    <views:DoubleToCornerRadiusConverter x:Key="DoubleToCornerRadiusConverter" x:Shared="True"/>
   </UserControl.Resources>
 
-  <UserControl.Styles>
-    <Style Selector="Border.circle">
-      <Setter Property="Width" Value="200"/>
-      <Setter Property="Height" Value="200"/>
-      <Setter Property="CornerRadius" Value="100"/>
-      <Setter Property="BorderBrush" Value="Black"/>
-      <Setter Property="BorderThickness" Value="3"/>
-      <Setter Property="Background" Value="White"/>
-      <Setter Property="BoxShadow" Value="0 1 3 1 LightGray"/>
-      <Setter Property="Transitions">
-        <Transitions>
-          <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.3"/>
-        </Transitions>
-      </Setter>
-    </Style>
-    
-    <Style Selector="Border.circle:pointerover">
-      <Setter Property="BoxShadow" Value="0 2 8 2 Gray"/>
-    </Style>
-  </UserControl.Styles>
 
   <Grid ClipToBounds="False" Margin="10">
     <Border Classes="circle"
             Width="{Binding Width, ElementName=Root}"
             Height="{Binding Height, ElementName=Root}"
-            CornerRadius="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Divide,2'}"
+            CornerRadius="{Binding Width, ElementName=Root, Converter={StaticResource DoubleToCornerRadiusConverter}}"
             BorderBrush="{DynamicResource BlackBrush}"
             BorderThickness="{Binding BorderThickness, ElementName=Root}"
             Background="{DynamicResource BackgroundTertiaryBrush}"

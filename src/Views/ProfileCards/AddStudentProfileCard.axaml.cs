@@ -95,59 +95,13 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             InitializeComponent();
             
             // Update layout when properties change
-            WidthProperty.Changed.AddClassHandler<AddStudentProfileCard>((control, e) =>
+            var properties = new AvaloniaProperty[] { WidthProperty, HeightProperty, MarginProperty, CornerRadiusProperty, 
+                                   PaddingProperty, IconSizeProperty, TitleFontSizeProperty, 
+                                   SubtitleTextProperty, SubtitleFontSizeProperty };
+            foreach (var property in properties)
             {
-                Log.Information("AddStudentProfileCard Width changed to: {Width}", control.Width);
-                control.UpdateLayout();
-            });
-            
-            HeightProperty.Changed.AddClassHandler<AddStudentProfileCard>((control, e) =>
-            {
-                Log.Information("AddStudentProfileCard Height changed to: {Height}", control.Height);
-                control.UpdateLayout();
-            });
-            
-            MarginProperty.Changed.AddClassHandler<AddStudentProfileCard>((control, e) =>
-            {
-                Log.Information("AddStudentProfileCard Margin changed to: {Margin}", control.Margin);
-                control.UpdateLayout();
-            });
-            
-            CornerRadiusProperty.Changed.AddClassHandler<AddStudentProfileCard>((control, e) =>
-            {
-                Log.Information("AddStudentProfileCard CornerRadius changed to: {CornerRadius}", control.CornerRadius);
-                control.UpdateLayout();
-            });
-            
-            PaddingProperty.Changed.AddClassHandler<AddStudentProfileCard>((control, e) =>
-            {
-                Log.Information("AddStudentProfileCard Padding changed to: {Padding}", control.Padding);
-                control.UpdateLayout();
-            });
-            
-            IconSizeProperty.Changed.AddClassHandler<AddStudentProfileCard>((control, e) =>
-            {
-                Log.Information("AddStudentProfileCard IconSize changed to: {IconSize}", control.IconSize);
-                control.UpdateLayout();
-            });
-            
-            TitleFontSizeProperty.Changed.AddClassHandler<AddStudentProfileCard>((control, e) =>
-            {
-                Log.Information("AddStudentProfileCard TitleFontSize changed to: {TitleFontSize}", control.TitleFontSize);
-                control.UpdateLayout();
-            });
-            
-            SubtitleTextProperty.Changed.AddClassHandler<AddStudentProfileCard>((control, e) =>
-            {
-                Log.Information("AddStudentProfileCard SubtitleText changed to: '{SubtitleText}'", control.AddStudentSubtitleText);
-                control.UpdateLayout();
-            });
-            
-            SubtitleFontSizeProperty.Changed.AddClassHandler<AddStudentProfileCard>((control, e) =>
-            {
-                Log.Information("AddStudentProfileCard SubtitleFontSize changed to: {SubtitleFontSize}", control.SubtitleFontSize);
-                control.UpdateLayout();
-            });
+                property.Changed.AddClassHandler<AddStudentProfileCard>((control, e) => control.UpdateLayout());
+            }
             
             // Initial layout update
             Loaded += (s, e) => UpdateLayout();
@@ -155,43 +109,28 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
         
         private new void UpdateLayout()
         {
-            Log.Information("AddStudentProfileCard UpdateLayout - Width: {Width}, Height: {Height}, IconSize: {IconSize}, TitleFontSize: {TitleFontSize}", 
-                Width, Height, IconSize, TitleFontSize);
-            
-            if (this.FindControl<Grid>("MainGrid") is { } mainGrid)
-            {
-                mainGrid.Margin = Margin;
-                Log.Information("MainGrid Margin set to: {Margin}", Margin);
-            }
-            
-            if (this.FindControl<Border>("CardBorder") is { } cardBorder)
-            {
-                cardBorder.CornerRadius = CornerRadius;
-                cardBorder.Padding = Padding;
-                cardBorder.Width = Width;
-                cardBorder.Height = Height;
-                Log.Information("CardBorder - CornerRadius: {CornerRadius}, Padding: {Padding}, Width: {Width}, Height: {Height}", CornerRadius, Padding, Width, Height);
-            }
-            
-            if (this.FindControl<ProfileImage>("AddIconBorder") is { } addIconBorder)
-            {
-                addIconBorder.Width = IconSize;
-                addIconBorder.Height = IconSize;
-                Log.Information("AddIconBorder size set to: {IconSize}x{IconSize}", IconSize, IconSize);
-            }
-            
-            if (this.FindControl<TextBlock>("AddStudentText") is { } addStudentText)
-            {
-                addStudentText.FontSize = TitleFontSize;
-                Log.Information("AddStudentText FontSize set to: {TitleFontSize}", TitleFontSize);
-            }
-            
-            if (this.FindControl<TextBlock>("SubtitleText") is { } subtitleText)
-            {
-                subtitleText.Text = AddStudentSubtitleText;
-                subtitleText.FontSize = SubtitleFontSize;
-                Log.Information("SubtitleText - Text: '{AddStudentSubtitleText}', FontSize: {SubtitleFontSize}", AddStudentSubtitleText, SubtitleFontSize);
-            }
+            UpdateControl<Grid>("MainGrid", grid => grid.Margin = Margin);
+            UpdateControl<Border>("CardBorder", border => {
+                border.CornerRadius = CornerRadius;
+                border.Padding = Padding;
+                border.Width = Width;
+                border.Height = Height;
+            });
+            UpdateControl<ProfileImage>("AddIconBorder", icon => {
+                icon.Width = IconSize;
+                icon.Height = IconSize;
+            });
+            UpdateControl<TextBlock>("AddStudentText", text => text.FontSize = TitleFontSize);
+            UpdateControl<TextBlock>("SubtitleText", text => {
+                text.Text = AddStudentSubtitleText;
+                text.FontSize = SubtitleFontSize;
+            });
+        }
+
+        private void UpdateControl<T>(string name, Action<T> updateAction) where T : Control
+        {
+            if (this.FindControl<T>(name) is { } control)
+                updateAction(control);
         }
 
         private void OnAddStudentClicked(object? sender, EventArgs e)

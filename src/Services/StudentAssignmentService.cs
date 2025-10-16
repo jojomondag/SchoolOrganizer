@@ -36,12 +36,10 @@ namespace SchoolOrganizer.Src.Services
                 var downloadFolderPath = _settingsService.LoadDownloadFolderPath();
                 if (string.IsNullOrEmpty(downloadFolderPath) || !Directory.Exists(downloadFolderPath))
                 {
-                    System.Diagnostics.Debug.WriteLine("Download folder not found or not set");
                     return Task.FromResult<string?>(null);
                 }
 
                 var sanitizedStudentName = DirectoryUtil.SanitizeFolderName(student.Name);
-                System.Diagnostics.Debug.WriteLine($"Looking for student folder: {sanitizedStudentName} in {downloadFolderPath}");
 
                 // Search through all course folders
                 var courseFolders = Directory.GetDirectories(downloadFolderPath);
@@ -53,18 +51,15 @@ namespace SchoolOrganizer.Src.Services
                         var fileCount = Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length;
                         if (fileCount > 0)
                         {
-                            System.Diagnostics.Debug.WriteLine($"Found student folder with {fileCount} files: {studentFolderPath}");
                             return Task.FromResult<string?>(studentFolderPath);
                         }
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine($"No student folder found for {student.Name}");
                 return Task.FromResult<string?>(null);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error finding student folder: {ex.Message}");
                 return Task.FromResult<string?>(null);
             }
         }
@@ -80,12 +75,10 @@ namespace SchoolOrganizer.Src.Services
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"Starting download for student: {student.Name} ({student.Email})");
 
                 // Check if we have Google authentication
                 if (authService == null || !await authService.CheckAndAuthenticateAsync())
                 {
-                    System.Diagnostics.Debug.WriteLine("Not authenticated with Google Classroom");
                     return false;
                 }
 
@@ -93,7 +86,6 @@ namespace SchoolOrganizer.Src.Services
                 var downloadFolderPath = _settingsService.LoadDownloadFolderPath();
                 if (string.IsNullOrEmpty(downloadFolderPath) || !Directory.Exists(downloadFolderPath))
                 {
-                    System.Diagnostics.Debug.WriteLine("Download folder not found or not set");
                     return false;
                 }
 
@@ -101,7 +93,6 @@ namespace SchoolOrganizer.Src.Services
                 var classroomService = authService.ClassroomService;
                 if (classroomService == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("Classroom service not available");
                     return false;
                 }
 
@@ -109,7 +100,6 @@ namespace SchoolOrganizer.Src.Services
                 var cachedClassroomService = new CachedClassroomDataService(classroomDataService);
                 var courses = await cachedClassroomService.GetActiveClassroomsAsync();
 
-                System.Diagnostics.Debug.WriteLine($"Found {courses.Count} active courses");
 
                 // Find the course that matches the student's class name
                 var matchingCourse = courses.FirstOrDefault(c => 
@@ -117,11 +107,9 @@ namespace SchoolOrganizer.Src.Services
 
                 if (matchingCourse == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"No matching course found for student class: {student.ClassName}");
                     return false;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Found matching course: {matchingCourse.Name} for student class: {student.ClassName}");
 
                 try
                 {
@@ -134,11 +122,9 @@ namespace SchoolOrganizer.Src.Services
 
                     if (matchingStudent == null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Student {student.Name} not found in course {matchingCourse.Name}");
                         return false;
                     }
 
-                    System.Diagnostics.Debug.WriteLine($"Found {student.Name} in course: {matchingCourse.Name}");
                     
                     // Download assignments for this student from this course
                     var success = await DownloadStudentForCourseAsync(
@@ -152,15 +138,13 @@ namespace SchoolOrganizer.Src.Services
                     
                     return success;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error processing course {matchingCourse.Name}: {ex.Message}");
                     return false;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error downloading assignments for {student.Name}: {ex.Message}");
                 return false;
             }
         }
@@ -179,7 +163,6 @@ namespace SchoolOrganizer.Src.Services
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"Downloading assignments for {studentName} from course: {course.Name}");
                 
                 // 1. Get only this student's submissions
                 var allSubmissions = await classroomService.GetStudentSubmissionsAsync(course.Id);
@@ -189,11 +172,8 @@ namespace SchoolOrganizer.Src.Services
                 
                 if (!studentSubmissions.Any())
                 {
-                    System.Diagnostics.Debug.WriteLine($"No submissions found for {studentName} in course {course.Name}");
                     return false;
                 }
-
-                System.Diagnostics.Debug.WriteLine($"Found {studentSubmissions.Count} submissions for {studentName} in course {course.Name}");
 
                 // 2. Get course work (assignments)
                 var courseWorks = await classroomService.GetCourseWorkAsync(course.Id);
@@ -247,16 +227,13 @@ namespace SchoolOrganizer.Src.Services
                 // 5. Extract ZIP and RAR files if any were downloaded
                 if (anyFilesDownloaded)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Extracting ZIP and RAR files for {studentName}");
                     await FileExtractor.ExtractZipAndRARFilesFromFoldersAsync(studentDirectory);
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Successfully downloaded assignments for {studentName} from course {course.Name}");
                 return anyFilesDownloaded;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error downloading assignments for {studentName} from course {course.Name}: {ex.Message}");
                 return false;
             }
         }
@@ -283,11 +260,9 @@ namespace SchoolOrganizer.Src.Services
                     // Check if the file already exists
                     if (File.Exists(filePath))
                     {
-                        System.Diagnostics.Debug.WriteLine($"File already exists: {filePath}. Skipping download.");
                         return true;
                     }
 
-                    System.Diagnostics.Debug.WriteLine($"Downloading: {attachment.DriveFile.Title} for {studentName} - {assignmentName}");
 
                     // Download the file
                     using var stream = new MemoryStream();
@@ -297,22 +272,19 @@ namespace SchoolOrganizer.Src.Services
                     // Write to file
                     await File.WriteAllBytesAsync(filePath, stream.ToArray());
                     
-                    System.Diagnostics.Debug.WriteLine($"Successfully downloaded: {filePath}");
                     return true;
                 }
                 else if (attachment.Link != null)
                 {
                     // Handle link attachments (URLs)
-                    System.Diagnostics.Debug.WriteLine($"Link attachment found for {studentName} - {assignmentName}: {attachment.Link.Url}");
                     // For now, just log the link - could implement URL download later
                     return false;
                 }
                 
                 return false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error downloading attachment for {studentName} - {assignmentName}: {ex.Message}");
                 return false;
             }
         }
@@ -333,7 +305,6 @@ namespace SchoolOrganizer.Src.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error counting files in {folderPath}: {ex.Message}");
                 return 0;
             }
         }

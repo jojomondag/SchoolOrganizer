@@ -42,8 +42,6 @@ public partial class AddStudentView : UserControl
         
         if (isEditMode && parentViewModel != null && parentViewModel.StudentBeingEdited != null)
         {
-            System.Diagnostics.Debug.WriteLine($"AddStudentView: Handling edit mode for student: {parentViewModel.StudentBeingEdited.Name}");
-            
             // We're in edit mode - update the existing student
             var originalStudent = parentViewModel.StudentBeingEdited;
             
@@ -67,8 +65,6 @@ public partial class AddStudentView : UserControl
         }
         else
         {
-            System.Diagnostics.Debug.WriteLine("AddStudentView: Handling add mode");
-            
             // Convert AddStudentViewModel.AddedStudentResult to Student and publish through coordinator
             var student = new SchoolOrganizer.Src.Models.Students.Student
             {

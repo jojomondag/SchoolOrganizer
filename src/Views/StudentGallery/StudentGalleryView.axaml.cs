@@ -49,28 +49,22 @@ public partial class StudentGalleryView : UserControl
     
     public StudentGalleryView()
     {
-        Log.Information("StudentGalleryView constructor started");
         InitializeComponent();
-        Log.Information("StudentGalleryView InitializeComponent completed");
         
         DataContextChanged += OnDataContextChanged;
         SizeChanged += OnSizeChanged;
         Loaded += OnLoaded;
-        Log.Information("StudentGalleryView event handlers subscribed");
         
         // Subscribe to container prepared events for newly created cards
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
         if (studentsContainer != null)
         {
             studentsContainer.ContainerPrepared += OnContainerPrepared;
-            Log.Information("StudentsContainer found and ContainerPrepared event subscribed");
         }
         else
         {
             Log.Warning("StudentsContainer not found during constructor");
         }
-        
-        Log.Information("StudentGalleryView constructor completed");
     }
 
     private DispatcherTimer? _scrollAnimationTimer;
@@ -165,12 +159,6 @@ public partial class StudentGalleryView : UserControl
         else if (e.PropertyName == "DisplayConfig")
         {
             // When DisplayConfig changes, update card layout with new dimensions
-            if (sender is StudentGalleryViewModel vm)
-            {
-                Log.Debug("DisplayConfig changed - Level: {Level}, CardWidth: {CardWidth}, CardHeight: {CardHeight}, ImageSize: {ImageSize}, NameFontSize: {NameFontSize}", 
-                    vm.DisplayConfig.Level, vm.DisplayConfig.CardWidth, vm.DisplayConfig.CardHeight, 
-                    vm.DisplayConfig.ImageSize, vm.DisplayConfig.NameFontSize);
-            }
             Dispatcher.UIThread.Post(() => UpdateCardLayout(), DispatcherPriority.Render);
         }
         else if (e.PropertyName == "IsAddingStudent")
@@ -189,13 +177,9 @@ public partial class StudentGalleryView : UserControl
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
-        Log.Information("StudentGalleryView OnDataContextChanged triggered");
-        Log.Information("New DataContext type: {DataType}", DataContext?.GetType().Name ?? "null");
-        
         // Unsubscribe from previous ViewModel if any
         if (sender is StudentGalleryView view && view.Tag is StudentGalleryViewModel oldViewModel)
         {
-            Log.Information("Unsubscribing from previous StudentGalleryViewModel");
             UnsubscribeFromViewModelSelections(oldViewModel);
             
             // Clean up keyboard handler
@@ -217,12 +201,9 @@ public partial class StudentGalleryView : UserControl
         // Subscribe to new ViewModel
         if (DataContext is StudentGalleryViewModel viewModel)
         {
-            Log.Information("New StudentGalleryViewModel received - setting up event handlers");
-            
             // Store reference for cleanup
             Tag = viewModel;
             SubscribeToViewModelSelections(viewModel);
-            Log.Information("Subscribed to ViewModel property changes");
             
             // Initialize keyboard handler
             var searchTextBox = this.FindControl<TextBox>("SearchTextBox");
@@ -230,7 +211,6 @@ public partial class StudentGalleryView : UserControl
             {
                 _keyboardHandler?.Dispose(); // Clean up previous handler
                 _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox, this);
-                Log.Information("GlobalKeyboardHandler initialized");
             }
             else
             {
@@ -243,7 +223,6 @@ public partial class StudentGalleryView : UserControl
             {
                 studentsContainer.ContainerPrepared -= OnContainerPrepared;
                 studentsContainer.ContainerPrepared += OnContainerPrepared;
-                Log.Information("StudentsContainer ContainerPrepared event re-subscribed");
             }
             else
             {
@@ -252,12 +231,10 @@ public partial class StudentGalleryView : UserControl
 
             // Set up AddStudentView when it becomes visible
             SetupAddStudentView(viewModel);
-            Log.Information("AddStudentView setup completed");
             
             // Subscribe to StudentCoordinatorService events for image changes
             coordinator.StudentImageChangeRequested += OnStudentImageChangeRequestedFromCoordinator;
             coordinator.EditStudentRequested += OnEditStudentRequestedFromCoordinator;
-            Log.Information("Subscribed to StudentCoordinatorService.StudentImageChangeRequested and EditStudentRequested");
         }
         else
         {
@@ -312,16 +289,10 @@ public partial class StudentGalleryView : UserControl
                 
                 addStudentView.DataContext = addStudentViewModel;
             }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("AddStudentView already has correct DataContext");
-            }
 
             // If we're in edit mode, initialize the AddStudentView for editing
             if (viewModel.StudentBeingEdited != null && addStudentView.DataContext is AddStudentViewModel editViewModel)
             {
-                System.Diagnostics.Debug.WriteLine($"Initializing AddStudentView for edit mode with student: {viewModel.StudentBeingEdited.Name}");
-                
                 // Load available options from existing students
                 editViewModel.LoadOptionsFromStudents(viewModel.AllStudents);
                 
@@ -333,10 +304,6 @@ public partial class StudentGalleryView : UserControl
                 // Reset to add mode for new students
                 addViewModel.ResetToAddMode();
             }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("AddStudentView not found!");
         }
     }
 
@@ -363,50 +330,32 @@ public partial class StudentGalleryView : UserControl
             {
                 _keyboardHandler?.Dispose(); // Clean up previous handler
                 _keyboardHandler = new GlobalKeyboardHandler(viewModel, searchTextBox, this);
-                // GlobalKeyboardHandler re-initialized
             }
-            else
-            {
-                // SearchTextBox not found, keyboard handler not re-initialized
-            }
-        }
-        else
-        {
-            // DataContext is not StudentGalleryViewModel, cannot re-initialize keyboard handler
         }
     }
 
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        Log.Information("StudentGalleryView OnLoaded triggered");
-        Log.Information("ViewModel type: {ViewModelType}", ViewModel?.GetType().Name ?? "null");
-        
         // Ensure we have the container prepared event subscribed after loading
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
         if (studentsContainer != null)
         {
             studentsContainer.ContainerPrepared -= OnContainerPrepared; // Avoid double subscription
             studentsContainer.ContainerPrepared += OnContainerPrepared;
-            Log.Information("StudentsContainer found and ContainerPrepared event subscribed in OnLoaded");
         }
         else
         {
             Log.Error("StudentsContainer not found in OnLoaded - this will cause issues!");
         }
         
-        Log.Information("Calling UpdateCardLayout...");
         UpdateCardLayout();
 
         // Subscribe to ViewModel selection changes
-        Log.Information("Subscribing to ViewModel selection changes...");
         SubscribeToViewModelSelections(ViewModel);
         
         // Subscribe to MainWindowViewModel events for mode switching (after visual tree is ready)
-        Log.Information("Subscribing to MainWindowViewModel events...");
         SubscribeToMainWindowViewModel();
-        
-        Log.Information("StudentGalleryView OnLoaded completed");
     }
 
     private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
@@ -545,11 +494,8 @@ public partial class StudentGalleryView : UserControl
             var parentWindow = TopLevel.GetTopLevel(this) as Window;
             if (parentWindow == null)
             {
-                System.Diagnostics.Debug.WriteLine("StudentGalleryView: Could not find parent window");
                 return;
             }
-
-            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Opening ImageCropper for student: {student.Name} (ID: {student.Id})");
 
             // Open the ImageCrop window with student context, passing existing ORIGINAL image and crop settings
             var result = await ImageCropWindow.ShowForStudentAsync(
@@ -558,28 +504,27 @@ public partial class StudentGalleryView : UserControl
                 student.OriginalImagePath,  // Load the original, not the cropped result
                 student.CropSettings);
 
-            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: ImageCropper returned: imagePath={result.imagePath ?? "NULL"}, cropSettings={result.cropSettings ?? "NULL"}, original={result.originalImagePath ?? "NULL"}");
-
             if (!string.IsNullOrEmpty(result.imagePath))
             {
-                System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Image saved to: {result.imagePath}");
-                System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Raising ProfileImageUpdated event for student {student.Id}");
-
-                // Use StudentCoordinatorService to publish the image update with all the crop data
-                // The ViewModel will handle updating the student objects properly
-                Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(student, result.imagePath, result.cropSettings, result.originalImagePath);
-
-                System.Diagnostics.Debug.WriteLine($"StudentGalleryView: StudentCoordinatorService.PublishStudentImageUpdated called successfully");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("StudentGalleryView: ImageCropper closed without saving (result was null or empty)");
+                // Find the fresh student object by ID from the ViewModel to avoid stale references
+                var viewModel = DataContext as StudentGalleryViewModel;
+                var freshStudent = viewModel?.Students.OfType<Student>().FirstOrDefault(s => s.Id == student.Id);
+                
+                if (freshStudent != null)
+                {
+                    // Use StudentCoordinatorService to publish the image update with all the crop data
+                    // The ViewModel will handle updating the student objects properly
+                    Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(freshStudent, result.imagePath, result.cropSettings, result.originalImagePath);
+                }
+                else
+                {
+                    Log.Warning("Could not find fresh student object with ID {StudentId} for image update", student.Id);
+                }
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Error opening ImageCropper: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Stack trace: {ex.StackTrace}");
+            Log.Error(ex, "Error opening ImageCropper");
         }
     }
 
@@ -590,8 +535,6 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Opening in-view edit for student: {student.Name} (ID: {student.Id})");
-
             // Set the student being edited in the ViewModel for the AddStudentView to use
             if (ViewModel != null)
             {
@@ -605,8 +548,7 @@ public partial class StudentGalleryView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Error opening in-view edit: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Stack trace: {ex.StackTrace}");
+            Log.Error(ex, "Error opening in-view edit");
         }
         return Task.CompletedTask;
     }
@@ -737,9 +679,9 @@ public partial class StudentGalleryView : UserControl
                 // Smooth scroll to target offset
                 SmoothScrollToVerticalOffset(scrollViewer, targetOffset, 320);
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error scrolling selected student into center: {ex.Message}");
-            }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error scrolling selected student into center");
+        }
         }
 }

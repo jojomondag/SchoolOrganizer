@@ -7,9 +7,6 @@
              x:DataType="local:ProfileCardSmall"
              Width="240" Height="240">
 
-  <UserControl.Resources>
-    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
-  </UserControl.Resources>
 
   <Grid Margin="20,30,20,30" ClipToBounds="False">
     <Border x:Name="CardBorder"

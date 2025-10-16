@@ -31,14 +31,9 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             // Update small-specific controls from DataContext
             if (DataContext is IPerson person)
             {
-                if (this.FindControl<TextBlock>("RoleText") is { } roleText)
-                    roleText.Text = person.RoleInfo ?? "No Role";
+                UpdateTextBlockFromPerson("RoleText", person.RoleInfo, "No Role");
             }
         }
 
-        protected override void OnProfileImageClicked(object? sender, EventArgs e)
-        {
-            base.OnProfileImageClicked(sender, e);
-        }
     }
 }

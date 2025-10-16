@@ -40,11 +40,8 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             // Update medium-specific controls from DataContext
             if (DataContext is IPerson person)
             {
-                if (this.FindControl<TextBlock>("ClassText") is { } classText)
-                    classText.Text = person.RoleInfo ?? "No Class";
-                    
-                if (this.FindControl<TextBlock>("TeacherText") is { } teacherText)
-                    teacherText.Text = person.SecondaryInfo ?? "No Teacher";
+                UpdateTextBlockFromPerson("ClassText", person.RoleInfo, "No Class");
+                UpdateTextBlockFromPerson("TeacherText", person.SecondaryInfo, "No Teacher");
             }
         }
 

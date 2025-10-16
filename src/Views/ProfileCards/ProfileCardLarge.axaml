@@ -8,9 +8,6 @@
              x:Class="SchoolOrganizer.Src.Views.ProfileCards.ProfileCardLarge"
              x:DataType="models:Student">
 
-  <UserControl.Resources>
-    <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
-  </UserControl.Resources>
 
   <Border x:Name="CardBorder"
           Background="{DynamicResource BackgroundPrimaryBrush}"

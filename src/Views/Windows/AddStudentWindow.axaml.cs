@@ -372,9 +372,9 @@ public partial class AddStudentWindow : Window
                 }
             });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading classrooms: {ex.Message}");
+            // Silently handle classroom loading errors
         }
         finally
         {
@@ -401,9 +401,9 @@ public partial class AddStudentWindow : Window
                 }
             });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading students: {ex.Message}");
+            // Silently handle student loading errors
         }
         finally
         {

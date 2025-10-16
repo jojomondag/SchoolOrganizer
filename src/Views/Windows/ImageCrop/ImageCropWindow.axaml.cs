@@ -48,6 +48,7 @@ public partial class ImageCropWindow : Window
     private double _rotationInitialAngle;
     private object? _pendingCropSettings;
     private bool _shouldRestoreSettings;
+    private bool _isPreviewUpdatePending;
     private MainImageDisplay? _mainImageDisplay;
     private CropPreview? _cropPreview;
     private ImageHistory? _imageHistory;
@@ -818,7 +819,7 @@ public partial class ImageCropWindow : Window
             PerformResize(e.GetPosition(CropOverlay));
             ApplyCropTransform();
             UpdateCutout();
-            UpdatePreview();
+            // UpdatePreview() removed - will be called when resize ends
             e.Handled = true;
         }
         else if (!_isDragging && string.IsNullOrEmpty(_activeHandle))
@@ -835,8 +836,17 @@ public partial class ImageCropWindow : Window
     }
     #endregion
     #region Image Processing
-    private void UpdatePreview() => 
+    private void UpdatePreview()
+    {
+        if (_isDragging || _isResizing)
+        {
+            _isPreviewUpdatePending = true;
+            return;
+        }
+        
         _cropPreview?.UpdatePreview(IsCropStateValid() ? CreateCroppedImage() : null);
+        _isPreviewUpdatePending = false;
+    }
     private Bitmap? CreateCroppedImage()
     {
         if (!IsCropStateValid())
@@ -991,6 +1001,12 @@ public partial class ImageCropWindow : Window
     private void EndResize()
     {
         _isResizing = false;
+        
+        if (_isPreviewUpdatePending)
+        {
+            _cropPreview?.UpdatePreview(IsCropStateValid() ? CreateCroppedImage() : null);
+            _isPreviewUpdatePending = false;
+        }
     }
 
     private void EndDrag(Control? control)
@@ -1005,6 +1021,12 @@ public partial class ImageCropWindow : Window
         _isDragging = false;
         _isResizing = false;
         _activeHandle = null;
+        
+        if (_isPreviewUpdatePending)
+        {
+            _cropPreview?.UpdatePreview(IsCropStateValid() ? CreateCroppedImage() : null);
+            _isPreviewUpdatePending = false;
+        }
     }
 
     private void UpdateCursorBasedOnPosition(Point position, Control control)
@@ -1049,7 +1071,7 @@ public partial class ImageCropWindow : Window
         );
         _cropArea = new Rect(newX, newY, _dragStartCropArea.Width, _dragStartCropArea.Height);
         ApplyCropTransform();
-        UpdatePreview();
+        // UpdatePreview() removed - will be called when drag ends
     }
 
     private void PerformRotation(Point currentPosition)

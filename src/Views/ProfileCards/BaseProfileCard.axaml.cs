@@ -44,8 +44,6 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
         {
             SetupEventHandlers();
             UpdateAllControls();
-            UpdateProfileImageBorder();
-            // UpdateProfileImage(); // Disabled since we're using ProfileImage component with binding
         }
 
         private void OnUnloaded(object? s, Avalonia.Interactivity.RoutedEventArgs e)
@@ -60,7 +58,6 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             if (IsLoaded)
             {
                 UpdateAllControls();
-                // UpdateProfileImage(); // Disabled since we're using ProfileImage component with binding
             }
         }
 
@@ -74,15 +71,10 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             if (DataContext is IPerson person)
             {
                 // Update from person directly - this ensures immediate display of real data
-                if (this.FindControl<TextBlock>("NameText") is { } nameText)
-                    nameText.Text = person.Name ?? "Unknown";
-                    
-                if (this.FindControl<TextBlock>("EmailText") is { } emailText)
-                    emailText.Text = person.Email ?? "No Email";
-                    
-                if (this.FindControl<TextBlock>("SecondaryText") is { } secondaryText)
-                    secondaryText.Text = person.SecondaryInfo ?? "No Info";
-                    
+                UpdateTextBlockFromPerson("NameText", person.Name, "Unknown");
+                UpdateTextBlockFromPerson("EmailText", person.Email, "No Email");
+                UpdateTextBlockFromPerson("SecondaryText", person.SecondaryInfo, "No Info");
+                
                 if (this.FindControl<TextBlock>("EnrollmentText") is { } enrollmentText)
                 {
                     if (person is Student student)
@@ -91,9 +83,8 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
                         enrollmentText.Text = "Unknown";
                 }
                     
-                if (this.FindControl<TextBlock>("IdText") is { } idText)
-                    idText.Text = person.Id.ToString();
-                    
+                UpdateTextBlockFromPerson("IdText", person.Id.ToString(), "Unknown");
+                
                 if (this.FindControl<TextBlock>("InitialsText") is { } initialsText)
                 {
                     var name = person.Name ?? "";
@@ -110,11 +101,8 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
                 {
                     var prop = kvp.Key;
                     var (controlName, fallback) = kvp.Value;
-                    if (this.FindControl<TextBlock>(controlName) is { } textBlock)
-                    {
-                        var value = GetValue(prop) as string ?? fallback;
-                        textBlock.Text = value;
-                    }
+                    var value = GetValue(prop) as string ?? fallback;
+                    UpdateTextBlockFromPerson(controlName, value, fallback);
                 }
             }
         }
@@ -207,30 +195,18 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             CardClicked?.Invoke(this, person);
         }
 
-        private void UpdateProfileImageBorder()
-        {
-            try
-            {
-                if (this.FindControl<Avalonia.Controls.Shapes.Ellipse>("ProfileImageEllipse") is { } profileImageEllipse)
-                {
-                    // Always enforce a black border
-                    if (this.FindResource("BlackColor") is IBrush blackBrush)
-                    {
-                        profileImageEllipse.Stroke = blackBrush;
-                        return;
-                    }
-                }
-            }
-            catch
-            {
-                // Swallow exceptions here to avoid crashing UI on resource lookup issues
-            }
-        }
 
         // Helper to map properties to controls so derived classes can register their own mappings
         protected void MapPropertyToControl(AvaloniaProperty property, string controlName, string fallback)
         {
             _propertyMappings[property] = (controlName, fallback);
+        }
+
+        // Helper to update TextBlock controls from DataContext person properties
+        protected void UpdateTextBlockFromPerson(string controlName, string? value, string fallback = "")
+        {
+            if (this.FindControl<TextBlock>(controlName) is { } textBlock)
+                textBlock.Text = value ?? fallback;
         }
 
         // Common Properties
@@ -305,90 +281,8 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
                     textBlock.Text = GetValue(change.Property) as string ?? fallback;
             }
 
-            // Handle PictureUrl changes specially for the image
-            if (change.Property == PictureUrlProperty)
-            {
-                // UpdateProfileImage(); // Disabled since we're using ProfileImage component with binding
-            }
         }
 
-        private bool _imageLoaded = false;
-        private string? _lastPictureUrl = null;
-
-        private async void UpdateProfileImage()
-        {
-            try
-            {
-                var pictureUrl = PictureUrl;
-                
-                // Skip loading for empty or invalid paths
-                if (string.IsNullOrEmpty(pictureUrl) || pictureUrl == "ADD_CARD" || pictureUrl == "null")
-                {
-                    return;
-                }
-
-                // Skip if already loaded the same image
-                if (_imageLoaded && _lastPictureUrl == pictureUrl)
-                {
-                    return;
-                }
-
-                System.Diagnostics.Debug.WriteLine($"BaseProfileCard.UpdateProfileImage called with PictureUrl: {pictureUrl}");
-                
-                if (this.FindControl<Ellipse>("ProfileImageEllipse") is { } ellipse)
-                {
-                    // Use a shared static converter instance to leverage caching
-                    var converter = SchoolOrganizer.Src.Converters.UniversalImageConverter.SharedInstance;
-                    
-                    // Load image asynchronously to prevent UI blocking
-                    await Task.Run(() =>
-                    {
-                        try
-                        {
-                            var bitmap = converter.Convert(pictureUrl, typeof(Avalonia.Media.Imaging.Bitmap), null, System.Globalization.CultureInfo.CurrentCulture);
-
-                            if (bitmap is Avalonia.Media.Imaging.Bitmap bmp)
-                            {
-                                // Update UI on UI thread
-                                Dispatcher.UIThread.Post(() =>
-                                {
-                                    try
-                                    {
-                                        if (this.FindControl<Ellipse>("ProfileImageEllipse") is { } currentEllipse)
-                                        {
-                                            System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Successfully loaded bitmap, setting as Fill");
-                                            currentEllipse.Fill = new ImageBrush(bmp) { Stretch = Avalonia.Media.Stretch.UniformToFill };
-                                            _imageLoaded = true;
-                                            _lastPictureUrl = pictureUrl;
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Error setting image on UI thread: {ex.Message}");
-                                    }
-                                });
-                            }
-                            else
-                            {
-                                System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Failed to load bitmap from {pictureUrl}");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Error loading image in background: {ex.Message}");
-                        }
-                    });
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"BaseProfileCard: ProfileImageEllipse not found");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"BaseProfileCard: Error updating profile image: {ex.Message}");
-            }
-        }
 
     }
 }

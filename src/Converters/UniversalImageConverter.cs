@@ -18,8 +18,6 @@ public class UniversalImageConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        System.Diagnostics.Debug.WriteLine($"UniversalImageConverter: Convert called with value: '{value}'");
-        
         if (value is string path && !string.IsNullOrWhiteSpace(path))
         {
             try
@@ -27,13 +25,11 @@ public class UniversalImageConverter : IValueConverter
                 // Skip loading for special values that aren't real file paths
                 if (path == "ADD_CARD" || path == "" || path == "null")
                 {
-                    System.Diagnostics.Debug.WriteLine($"UniversalImageConverter: Skipping special value: '{path}'");
                     return null;
                 }
 
                 if (File.Exists(path))
                 {
-                    System.Diagnostics.Debug.WriteLine($"UniversalImageConverter: File exists, loading: {path}");
                     // Check if we have a cached bitmap and if the file has been modified
                     var fileInfo = new FileInfo(path);
                     var lastModified = fileInfo.LastWriteTime;
@@ -70,14 +66,9 @@ public class UniversalImageConverter : IValueConverter
                         }
                     }
                 }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"UniversalImageConverter: File does not exist: {path}");
-                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading image from {path}: {ex.Message}");
                 return null;
             }
         }

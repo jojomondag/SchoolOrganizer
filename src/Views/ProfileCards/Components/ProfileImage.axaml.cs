@@ -29,14 +29,10 @@ public partial class ProfileImage : UserControl
     public static readonly StyledProperty<double> PlaceholderFontSizeProperty =
         AvaloniaProperty.Register<ProfileImage, double>(nameof(PlaceholderFontSize), 28);
 
-    public static readonly StyledProperty<bool> ShowPlusIconProperty =
-        AvaloniaProperty.Register<ProfileImage, bool>(nameof(ShowPlusIcon), false);
 
     public static readonly StyledProperty<bool> IsClickableProperty =
         AvaloniaProperty.Register<ProfileImage, bool>(nameof(IsClickable), true);
 
-    public static readonly StyledProperty<string> ToolTipTextProperty =
-        AvaloniaProperty.Register<ProfileImage, string>(nameof(ToolTipText), "Click to edit");
 
     public new static readonly StyledProperty<Cursor> CursorProperty =
         AvaloniaProperty.Register<ProfileImage, Cursor>(nameof(Cursor), Cursor.Parse("Hand"));
@@ -83,11 +79,6 @@ public partial class ProfileImage : UserControl
         set => SetValue(PlaceholderFontSizeProperty, value);
     }
 
-    public bool ShowPlusIcon
-    {
-        get => GetValue(ShowPlusIconProperty);
-        set => SetValue(ShowPlusIconProperty, value);
-    }
 
     public bool IsClickable
     {
@@ -95,11 +86,6 @@ public partial class ProfileImage : UserControl
         set => SetValue(IsClickableProperty, value);
     }
 
-    public string ToolTipText
-    {
-        get => GetValue(ToolTipTextProperty);
-        set => SetValue(ToolTipTextProperty, value);
-    }
 
     public new Cursor Cursor
     {
@@ -122,17 +108,6 @@ public partial class ProfileImage : UserControl
                 control.IsImageMissing = newValue;
             }
             
-            // Add debugging to track ImagePath changes
-            System.Diagnostics.Debug.WriteLine($"ProfileImage: ImagePath changed to '{control.ImagePath}' (IsImageMissing: {control.IsImageMissing})");
-            System.Diagnostics.Debug.WriteLine($"ProfileImage: DataContext is {control.DataContext?.GetType().Name ?? "null"}");
-            System.Diagnostics.Debug.WriteLine($"ProfileImage: Parent is {control.Parent?.GetType().Name ?? "null"}");
-            
-            // Force refresh of the image when path changes
-            if (!string.IsNullOrWhiteSpace(control.ImagePath))
-            {
-                // Avoid infinite loop by not calling ForceImageRefresh here
-                // The image will be refreshed automatically by the binding
-            }
         });
     }
 
@@ -155,7 +130,6 @@ public partial class ProfileImage : UserControl
             var currentPath = ImagePath;
             ImagePath = "";
             ImagePath = currentPath;
-            System.Diagnostics.Debug.WriteLine($"ProfileImage: Forced refresh of image '{currentPath}'");
         }
     }
 }

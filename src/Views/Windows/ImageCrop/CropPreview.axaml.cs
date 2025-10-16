@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
+using Avalonia.VisualTree;
 using System;
 using System.IO;
 using SchoolOrganizer.Src.Views.ProfileCards.Components;
@@ -10,6 +11,8 @@ public partial class CropPreview : UserControl
     public event EventHandler? BackClicked;
     public event EventHandler? ResetClicked;
     public event EventHandler? SaveClicked;
+    
+    private string? _tempFilePath;
     public CropPreview()
     {
         InitializeComponent();
@@ -21,8 +24,8 @@ public partial class CropPreview : UserControl
         
         if (preview != null)
         {
-            // Save the cropped bitmap to a temporary file for the ProfileImage to display
-            var tempPath = SaveBitmapToTempFile(preview);
+            // Save the cropped bitmap to a reusable temporary file for the ProfileImage to display
+            var tempPath = SaveBitmapToReusableTempFile(preview);
             profileImageBorder.ImagePath = tempPath;
         }
         else
@@ -31,24 +34,25 @@ public partial class CropPreview : UserControl
         }
     }
 
-    private string SaveBitmapToTempFile(Bitmap bitmap)
+    private string SaveBitmapToReusableTempFile(Bitmap bitmap)
     {
         try
         {
-            var tempDir = Path.Combine(Path.GetTempPath(), "SchoolOrganizer", "CropPreview");
-            Directory.CreateDirectory(tempDir);
+            // Create temp file path only once
+            if (string.IsNullOrEmpty(_tempFilePath))
+            {
+                var tempDir = Path.Combine(Path.GetTempPath(), "SchoolOrganizer", "CropPreview");
+                Directory.CreateDirectory(tempDir);
+                _tempFilePath = Path.Combine(tempDir, "crop_preview.png");
+            }
             
-            var tempFileName = $"crop_preview_{Guid.NewGuid():N}.png";
-            var tempPath = Path.Combine(tempDir, tempFileName);
+            // Save bitmap to the same reusable file
+            bitmap.Save(_tempFilePath);
             
-            // Save bitmap to file
-            bitmap.Save(tempPath);
-            
-            return tempPath;
+            return _tempFilePath;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error saving crop preview: {ex.Message}");
             return "";
         }
     }
@@ -70,4 +74,21 @@ public partial class CropPreview : UserControl
     private void BackButton_Click(object? sender, RoutedEventArgs e) => BackClicked?.Invoke(this, EventArgs.Empty);
     private void ResetButton_Click(object? sender, RoutedEventArgs e) => ResetClicked?.Invoke(this, EventArgs.Empty);
     private void SaveButton_Click(object? sender, RoutedEventArgs e) => SaveClicked?.Invoke(this, EventArgs.Empty);
+    
+    protected override void OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        // Clean up temp file when control is removed from visual tree
+        if (!string.IsNullOrEmpty(_tempFilePath) && File.Exists(_tempFilePath))
+        {
+            try
+            {
+                File.Delete(_tempFilePath);
+            }
+            catch (Exception)
+            {
+                // Silently handle cleanup errors
+            }
+        }
+        base.OnDetachedFromVisualTree(e);
+    }
 }

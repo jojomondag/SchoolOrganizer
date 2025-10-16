@@ -277,7 +277,6 @@ public partial class AddStudentViewModel : ObservableObject
         {
             // Show message that authentication is required
             ValidationText = "Please login with Google to import from Classroom";
-            System.Diagnostics.Debug.WriteLine($"Set ValidationText to: {ValidationText}");
             return;
         }
 
@@ -304,7 +303,6 @@ public partial class AddStudentViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading classrooms: {ex.Message}");
             ValidationText = $"Error loading classrooms: {ex.Message}";
         }
         finally
@@ -348,7 +346,6 @@ public partial class AddStudentViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error loading students: {ex.Message}");
             ValidationText = $"Error loading students: {ex.Message}";
         }
         finally
@@ -503,9 +500,7 @@ public partial class AddStudentViewModel : ObservableObject
     /// </summary>
     private void OnClassroomImportRequested(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("OnClassroomImportRequested called - switching to classroom mode");
         SwitchToClassroomMode();
-        System.Diagnostics.Debug.WriteLine($"After switch - IsClassroomMode: {IsClassroomMode}, IsManualMode: {IsManualMode}");
     }
 
     public class AddedStudentResult
