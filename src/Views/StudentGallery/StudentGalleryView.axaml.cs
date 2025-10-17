@@ -1,51 +1,23 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using SchoolOrganizer.Src.ViewModels;
 using System.Threading.Tasks;
-using Avalonia.Layout;
-using Avalonia.Controls.Primitives;
 using System.Linq;
 using Avalonia;
 using Avalonia.VisualTree;
-using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
-using Avalonia.Input;
-using SchoolOrganizer.Src.Views.ProfileCards;
-using SchoolOrganizer.Src.Views.Windows;
 using SchoolOrganizer.Src.Views.Windows.ImageCrop;
 using SchoolOrganizer.Src.Services;
-using SchoolOrganizer.Src.Services.Utilities;
 using SchoolOrganizer.Src.Models.Students;
-using SchoolOrganizer.Src.Models.UI;
 using Serilog;
-
 
 namespace SchoolOrganizer.Src.Views.StudentGallery;
 
 public partial class StudentGalleryView : UserControl
 {
     public StudentGalleryViewModel? ViewModel => DataContext as StudentGalleryViewModel;
-
-    private const double MIN_CARD_WIDTH = 200;
-    private const double MAX_CARD_WIDTH = 280;
-    private const double CARD_PADDING = 12; // Margin around each card
-    private const double CONTAINER_PADDING = 40; // ScrollViewer padding (20 * 2)
-    
-    // Current sizing values for newly created containers (20% reduction applied)
-    private double _currentCardWidth = 240;
-    private double _currentImageSize = 134; // 168 * 0.8
-    private double _currentImageRadius = 67; // 84 * 0.8
-    private double _currentNameFontSize = 13; // 16 * 0.8
-    private double _currentClassFontSize = 10; // 12 * 0.8
-    private double _currentTeacherFontSize = 8; // 10 * 0.8
-    private double _currentPlaceholderFontSize = 54; // 67 * 0.8
-    private double _currentCardPadding = 14; // 18 * 0.8
-    
     private GlobalKeyboardHandler? _keyboardHandler;
-    private MainWindowViewModel? _mainWindowViewModel;
     
     public StudentGalleryView()
     {
@@ -54,81 +26,6 @@ public partial class StudentGalleryView : UserControl
         DataContextChanged += OnDataContextChanged;
         SizeChanged += OnSizeChanged;
         Loaded += OnLoaded;
-        
-        // Subscribe to container prepared events for newly created cards
-        var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
-        if (studentsContainer != null)
-        {
-            studentsContainer.ContainerPrepared += OnContainerPrepared;
-        }
-        else
-        {
-            Log.Warning("StudentsContainer not found during constructor");
-        }
-    }
-
-    private DispatcherTimer? _scrollAnimationTimer;
-    private void CancelScrollAnimation()
-    {
-        try
-        {
-            if (_scrollAnimationTimer != null)
-            {
-                _scrollAnimationTimer.Stop();
-                _scrollAnimationTimer = null;
-            }
-        }
-        catch { }
-    }
-
-    private void SmoothScrollToVerticalOffset(ScrollViewer scrollViewer, double targetOffset, int durationMs = 300)
-    {
-        try
-        {
-            CancelScrollAnimation();
-
-            var startOffset = scrollViewer.Offset.Y;
-            var delta = targetOffset - startOffset;
-            if (Math.Abs(delta) < 0.5 || durationMs <= 0)
-            {
-                scrollViewer.Offset = new Vector(scrollViewer.Offset.X, targetOffset);
-                return;
-            }
-
-            var startTime = DateTime.UtcNow;
-            _scrollAnimationTimer = new DispatcherTimer();
-            _scrollAnimationTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60fps
-            _scrollAnimationTimer.Tick += (s, e) =>
-            {
-                try
-                {
-                    var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
-                    var t = Math.Min(1.0, elapsed / durationMs);
-
-                    // Cubic ease-out: 1 - (1 - t)^3
-                    var eased = 1.0 - Math.Pow(1.0 - t, 3);
-
-                    var newOffset = startOffset + (delta * eased);
-                    scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newOffset);
-
-                    if (t >= 1.0)
-                    {
-                        CancelScrollAnimation();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Scroll animation error: {ex.Message}");
-                    CancelScrollAnimation();
-                }
-            };
-
-            _scrollAnimationTimer.Start();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Smooth scroll start error: {ex.Message}");
-        }
     }
 
     private void SubscribeToViewModelSelections(StudentGalleryViewModel? vm)
@@ -146,33 +43,7 @@ public partial class StudentGalleryView : UserControl
 
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        
-        if (e.PropertyName == "SelectedStudent")
-        {
-            // Don't auto-scroll when selecting students - let user control scrolling manually
-            // Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
-        }
-        else if (e.PropertyName == "Students")
-        {
-            // XAML bindings will handle visibility automatically
-        }
-        else if (e.PropertyName == "DisplayConfig")
-        {
-            // When DisplayConfig changes, update card layout with new dimensions
-            Dispatcher.UIThread.Post(() => UpdateCardLayout(), DispatcherPriority.Render);
-        }
-        else if (e.PropertyName == "IsAddingStudent")
-        {
-            var addStudentView = this.FindControl<AddStudentView>("AddStudentView");
-            var scrollViewer = this.FindControl<ScrollViewer>("StudentsScrollViewer");
-            if (addStudentView != null && scrollViewer != null)
-            {
-            }
-        }
-        else if (e.PropertyName == "ShowMultipleStudents" || e.PropertyName == "ShowSingleStudent" || e.PropertyName == "ShowEmptyState")
-        {
-            // XAML bindings will handle visibility automatically
-        }
+        // Handle any necessary updates when properties change
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -185,12 +56,6 @@ public partial class StudentGalleryView : UserControl
             // Clean up keyboard handler
             _keyboardHandler?.Dispose();
             _keyboardHandler = null;
-        }
-        
-        // Unsubscribe from previous MainWindowViewModel if any
-        if (_mainWindowViewModel != null)
-        {
-            _mainWindowViewModel = null;
         }
         
         // Unsubscribe from StudentCoordinatorService events
@@ -216,18 +81,6 @@ public partial class StudentGalleryView : UserControl
             {
                 Log.Warning("SearchTextBox not found, keyboard handler not initialized");
             }
-            
-            // Ensure ItemsControl container events are properly subscribed
-            var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
-            if (studentsContainer != null)
-            {
-                studentsContainer.ContainerPrepared -= OnContainerPrepared;
-                studentsContainer.ContainerPrepared += OnContainerPrepared;
-            }
-            else
-            {
-                Log.Warning("StudentsContainer not found during DataContext change");
-            }
 
             // Set up AddStudentView when it becomes visible
             SetupAddStudentView(viewModel);
@@ -239,16 +92,6 @@ public partial class StudentGalleryView : UserControl
         else
         {
             Log.Warning("DataContext is not StudentGalleryViewModel: {DataType}", DataContext?.GetType().Name ?? "null");
-        }
-    }
-
-    private void SubscribeToMainWindowViewModel()
-    {
-        // Find the MainWindow and subscribe to its ViewModel events
-        var mainWindow = TopLevel.GetTopLevel(this) as Window;
-        if (mainWindow?.DataContext is MainWindowViewModel mainViewModel)
-        {
-            _mainWindowViewModel = mainViewModel;
         }
     }
 
@@ -279,7 +122,6 @@ public partial class StudentGalleryView : UserControl
         var addStudentView = this.FindControl<AddStudentView>("AddStudentView");
         if (addStudentView != null)
         {
-            
             // Only set DataContext if it's not already an AddStudentViewModel
             if (addStudentView.DataContext is not AddStudentViewModel)
             {
@@ -334,136 +176,20 @@ public partial class StudentGalleryView : UserControl
         }
     }
 
-
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        // Ensure we have the container prepared event subscribed after loading
-        var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
-        if (studentsContainer != null)
-        {
-            studentsContainer.ContainerPrepared -= OnContainerPrepared; // Avoid double subscription
-            studentsContainer.ContainerPrepared += OnContainerPrepared;
-        }
-        else
-        {
-            Log.Error("StudentsContainer not found in OnLoaded - this will cause issues!");
-        }
-        
-        UpdateCardLayout();
-
         // Subscribe to ViewModel selection changes
         SubscribeToViewModelSelections(ViewModel);
-        
-        // Subscribe to MainWindowViewModel events for mode switching (after visual tree is ready)
-        SubscribeToMainWindowViewModel();
-    }
-
-    private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
-    {
-        // Only apply dynamic styling if current dimensions differ significantly from defaults
-        var needsUpdate = Math.Abs(_currentCardWidth - 240) > 5 || 
-                         Math.Abs(_currentImageSize - 168) > 5;
-        
-        if (needsUpdate)
-        {
-            // Apply styling immediately to prevent flickering
-            UpdateCardElements(e.Container, _currentCardWidth, _currentImageSize, _currentImageRadius,
-                             _currentNameFontSize, _currentClassFontSize, _currentTeacherFontSize,
-                             _currentPlaceholderFontSize, _currentCardPadding);
-        }
     }
 
     private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
     {
-        UpdateCardLayout();
-        // Don't auto-scroll on size changes - let user control scrolling manually
-        // Dispatcher.UIThread.Post(() => ScrollSelectedStudentIntoCenter(), DispatcherPriority.Background);
-        
         // Update display level based on new window size
         if (ViewModel != null)
         {
             ViewModel.OnWindowResized();
         }
     }
-
-    private void UpdateCardLayout()
-    {
-        try
-        {
-            var availableWidth = Bounds.Width;
-            if (availableWidth <= 0) return;
-
-            // Disable dynamic sizing to maintain consistency
-            // Let XAML templates handle sizing with their hardcoded dimensions
-            // This ensures cards look the same whether loaded initially or after search
-            
-            // Layout updated successfully
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error updating card layout: {ex.Message}");
-        }
-    }
-
-
-    private (double cardWidth, int columns) CalculateOptimalLayout(double usableWidth)
-    {
-        // Start with maximum columns possible at minimum card width
-        var maxColumns = (int)Math.Floor(usableWidth / (MIN_CARD_WIDTH + (CARD_PADDING * 2)));
-        maxColumns = Math.Max(1, maxColumns); // At least 1 column
-
-        // Try different column counts to find the best fit
-        for (int cols = maxColumns; cols >= 1; cols--)
-        {
-            var totalPadding = cols * (CARD_PADDING * 2);
-            var availableForCards = usableWidth - totalPadding;
-            var cardWidth = availableForCards / cols;
-
-            // If card width is within our acceptable range, use it
-            if (cardWidth >= MIN_CARD_WIDTH && cardWidth <= MAX_CARD_WIDTH)
-            {
-                return (cardWidth, cols);
-            }
-            
-            // If card would be too wide, cap it at MAX_CARD_WIDTH
-            if (cardWidth > MAX_CARD_WIDTH)
-            {
-                return (MAX_CARD_WIDTH, cols);
-            }
-        }
-
-        // Fallback: use minimum card width with 1 column
-        return (MIN_CARD_WIDTH, 1);
-    }
-
-    private void ApplyCardSizing(double cardWidth)
-    {
-        // Disabled dynamic card sizing to maintain consistency
-        // Cards will use their XAML template dimensions
-        // This ensures consistent appearance between initial load and search results
-    }
-
-    private void UpdateCardElements(Control container, double cardWidth, double imageSize, double imageRadius,
-                                  double nameFontSize, double classFontSize, double teacherFontSize, 
-                                  double placeholderFontSize, double cardPadding)
-    {
-        // Disabled dynamic element updates to maintain consistency
-        // Cards will use their XAML template styling
-        // This ensures consistent appearance between initial load and search results
-    }
-
-    private T? FindNamedChild<T>(Control parent, string name) where T : Control
-    {
-        try
-        {
-            return parent.GetVisualDescendants().OfType<T>().FirstOrDefault(x => x.Name == name);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
 
     // Event handler for when a profile image has been updated via ImageCropWindow
     private void OnProfileImageUpdated(object? sender, (SchoolOrganizer.Src.Models.Students.Student student, string imagePath) args)
@@ -567,8 +293,6 @@ public partial class StudentGalleryView : UserControl
         return Task.CompletedTask;
     }
 
-
-
     // Event handler for clicking on student cards
     private void OnStudentCardClicked(object? sender, IPerson person)
     {
@@ -601,87 +325,4 @@ public partial class StudentGalleryView : UserControl
         // Reinitialize keyboard handler after returning from detailed view
         ReinitializeKeyboardHandler();
     }
-
-        private void ScrollSelectedStudentIntoCenter()
-        {
-            try
-            {
-                if (ViewModel == null || ViewModel.SelectedStudent == null) return;
-
-                var scrollViewer = this.FindControl<ScrollViewer>("StudentsScrollViewer");
-                var itemsControl = this.FindControl<ItemsControl>("StudentsContainer");
-                if (scrollViewer == null || itemsControl == null) return;
-
-                // Find the container for the selected student
-                int index = itemsControl.Items.Cast<object>().ToList().FindIndex(i =>
-                {
-                    if (i is SchoolOrganizer.Src.Models.Students.Student s)
-                        return s.Id == ViewModel.SelectedStudent.Id;
-                    return false;
-                });
-
-                if (index < 0) return;
-
-                var container = itemsControl.ContainerFromIndex(index) as Control;
-                if (container == null) return;
-
-                // Transform container bounds to ScrollViewer coordinate space
-                var containerBounds = container.Bounds;
-                var containerPoint = container.TranslatePoint(new Point(0, 0), scrollViewer);
-                if (containerPoint == null) return;
-
-                double containerCenterY = containerPoint.Value.Y + (containerBounds.Height / 2.0);
-
-                // Find header bottom and details top in window coordinates
-                var header = this.FindControl<Border>("HeaderBorder");
-                var detailsHost = this.FindControl<Border>("SelectedDetailsHost");
-
-                // Get TopLevel (window) for coordinate transforms
-                var topLevel = TopLevel.GetTopLevel(this);
-                if (topLevel == null) return;
-
-                var headerBottomInWindow = 0.0;
-                if (header != null)
-                {
-                    var headerPoint = header.TranslatePoint(new Point(0, header.Bounds.Height), topLevel);
-                    if (headerPoint != null)
-                        headerBottomInWindow = headerPoint.Value.Y;
-                }
-
-                double detailsTopInWindow = double.NaN;
-                if (detailsHost != null)
-                {
-                    var detailsPoint = detailsHost.TranslatePoint(new Point(0, 0), topLevel);
-                    if (detailsPoint != null)
-                        detailsTopInWindow = detailsPoint.Value.Y;
-                }
-
-                // If details not visible use bottom of window as fallback
-                double windowHeight = topLevel.Bounds.Height;
-
-                double areaTop = headerBottomInWindow;
-                double areaBottom = !double.IsNaN(detailsTopInWindow) ? detailsTopInWindow : windowHeight;
-
-                // Midpoint in window coords
-                double midpointWindowY = (areaTop + areaBottom) / 2.0;
-
-                // Translate midpoint into ScrollViewer's content coordinate space by comparing to scroll viewport top in window coords
-                var scrollViewportTopInWindow = scrollViewer.TranslatePoint(new Point(0, 0), topLevel)?.Y ?? 0;
-                double midpointRelativeToScroll = midpointWindowY - scrollViewportTopInWindow;
-
-                // Compute required vertical offset so containerCenterY aligns with midpointRelativeToScroll
-                double currentOffset = scrollViewer.Offset.Y;
-                double targetOffset = currentOffset + (containerCenterY - midpointRelativeToScroll);
-
-                // Clamp target offset
-                targetOffset = Math.Max(0, Math.Min(targetOffset, scrollViewer.Extent.Height - scrollViewer.Viewport.Height));
-
-                // Smooth scroll to target offset
-                SmoothScrollToVerticalOffset(scrollViewer, targetOffset, 320);
-            }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error scrolling selected student into center");
-        }
-        }
 }
