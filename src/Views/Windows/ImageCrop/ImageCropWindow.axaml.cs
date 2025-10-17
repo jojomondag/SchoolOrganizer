@@ -10,6 +10,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text.Json;
 using IOPath = System.IO.Path;
 using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 using SchoolOrganizer.Src.Views.Windows.ImageCrop;
@@ -158,11 +159,25 @@ public partial class ImageCropWindow : Window
             {
                 try
                 {
-                    settings = System.Text.Json.JsonSerializer.Deserialize<object>(cropSettingsJson);
+                    using var doc = JsonDocument.Parse(cropSettingsJson);
+                    var root = doc.RootElement;
+                    settings = new
+                    {
+                        X = root.GetProperty("X").GetDouble(),
+                        Y = root.GetProperty("Y").GetDouble(),
+                        Width = root.GetProperty("Width").GetDouble(),
+                        Height = root.GetProperty("Height").GetDouble(),
+                        RotationAngle = root.TryGetProperty("RotationAngle", out var rot) ? rot.GetDouble() : 0,
+                        ImageDisplayWidth = root.GetProperty("ImageDisplayWidth").GetDouble(),
+                        ImageDisplayHeight = root.GetProperty("ImageDisplayHeight").GetDouble(),
+                        ImageDisplayOffsetX = root.GetProperty("ImageDisplayOffsetX").GetDouble(),
+                        ImageDisplayOffsetY = root.GetProperty("ImageDisplayOffsetY").GetDouble()
+                    };
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // If deserialization fails, ignore and use no settings
+                    System.Diagnostics.Debug.WriteLine($"Failed to deserialize crop settings: {ex.Message}");
+                    // settings remains null, will use default crop area
                 }
             }
 
@@ -556,10 +571,12 @@ public partial class ImageCropWindow : Window
     {
         if (settings == null || _currentBitmap == null)
         {
+            System.Diagnostics.Debug.WriteLine($"TryRestoreSettings failed: settings={settings != null}, bitmap={_currentBitmap != null}");
             return false;
         }
         try
         {
+            System.Diagnostics.Debug.WriteLine($"TryRestoreSettings: Attempting to restore settings of type {settings.GetType().Name}");
             var type = settings.GetType();
             var properties = new[]
             {
@@ -569,6 +586,7 @@ public partial class ImageCropWindow : Window
             }.Select(name => type.GetProperty(name)).ToArray();
             if (properties.Any(p => p == null))
             {
+                System.Diagnostics.Debug.WriteLine("TryRestoreSettings failed: Missing required properties");
                 return false;
             }
             var savedX = Convert.ToDouble(properties[0]!.GetValue(settings));
@@ -609,6 +627,8 @@ public partial class ImageCropWindow : Window
             _imageDisplayOffset = currentOffset;
             _cropArea = new Rect(newX, newY, newWidth, newHeight);
             _rotationAngle = savedRotation;
+            
+            System.Diagnostics.Debug.WriteLine($"TryRestoreSettings SUCCESS: Restored crop area to X={newX}, Y={newY}, W={newWidth}, H={newHeight}");
             return true;
         }
         catch
@@ -819,7 +839,7 @@ public partial class ImageCropWindow : Window
             PerformResize(e.GetPosition(CropOverlay));
             ApplyCropTransform();
             UpdateCutout();
-            // UpdatePreview() removed - will be called when resize ends
+            UpdatePreview(); // Update preview in real-time during resize
             e.Handled = true;
         }
         else if (!_isDragging && string.IsNullOrEmpty(_activeHandle))
@@ -838,12 +858,7 @@ public partial class ImageCropWindow : Window
     #region Image Processing
     private void UpdatePreview()
     {
-        if (_isDragging || _isResizing)
-        {
-            _isPreviewUpdatePending = true;
-            return;
-        }
-        
+        // Allow real-time updates during dragging and resizing for better user experience
         _cropPreview?.UpdatePreview(IsCropStateValid() ? CreateCroppedImage() : null);
         _isPreviewUpdatePending = false;
     }
@@ -870,12 +885,13 @@ public partial class ImageCropWindow : Window
         {
             if (Math.Abs(_rotationAngle) <= 0.01)
             {
-                var sourceRect = new Rect(
-                    centerX - outputSize / 2.0,
-                    centerY - outputSize / 2.0,
-                    outputSize,
-                    outputSize
-                );
+                // Calculate the source rectangle to properly center the crop area
+                var sourceX = Math.Max(0, centerX - outputSize / 2.0);
+                var sourceY = Math.Max(0, centerY - outputSize / 2.0);
+                var sourceWidth = Math.Min(outputSize, _currentBitmap.PixelSize.Width - sourceX);
+                var sourceHeight = Math.Min(outputSize, _currentBitmap.PixelSize.Height - sourceY);
+                
+                var sourceRect = new Rect(sourceX, sourceY, sourceWidth, sourceHeight);
                 var destRect = new Rect(0, 0, outputSize, outputSize);
                 drawingContext.DrawImage(_currentBitmap, sourceRect, destRect);
             }
@@ -920,8 +936,13 @@ public partial class ImageCropWindow : Window
 
         TryExecute(() =>
         {
-            using var stream = File.Create(savePath);
-            CreateCroppedImage()?.Save(stream);
+            // Create and save the cropped image
+            var croppedImage = CreateCroppedImage();
+            if (croppedImage != null)
+            {
+                using var stream = File.Create(savePath);
+                croppedImage.Save(stream);
+            }
 
             // Save crop settings as JSON
             var settings = GetCurrentCropSettings();
@@ -935,6 +956,13 @@ public partial class ImageCropWindow : Window
 
             ImageSaved?.Invoke(this, savePath);
         });
+        
+        // Add a small delay to ensure the file is fully written before updating preview
+        await Task.Delay(100);
+        
+        // Update the crop preview to use the SAME final file path AFTER the file is written
+        System.Diagnostics.Debug.WriteLine($"ImageCropWindow.HandleSaveButtonAsync calling UpdatePreviewFromPath with: {savePath}");
+        _cropPreview?.UpdatePreviewFromPath(savePath);
     }
     private async Task<string?> PromptForSavePath()
     {
@@ -1071,7 +1099,7 @@ public partial class ImageCropWindow : Window
         );
         _cropArea = new Rect(newX, newY, _dragStartCropArea.Width, _dragStartCropArea.Height);
         ApplyCropTransform();
-        // UpdatePreview() removed - will be called when drag ends
+        UpdatePreview(); // Update preview in real-time during drag
     }
 
     private void PerformRotation(Point currentPosition)

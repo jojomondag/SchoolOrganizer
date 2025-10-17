@@ -272,8 +272,7 @@ public class StudentDetailViewModel : ReactiveObject
             var groupedFiles = BuildGroupedFiles(files);
             AllFilesGrouped = new ObservableCollection<AssignmentGroup>(groupedFiles);
             
-            // Load content for all files to enable preview
-            await LoadContentForAllFilesAsync();
+            // Load content lazily only when files are selected - removed eager loading for performance
             
             // Automatically select the first file and load its content
             if (fileTree.Count > 0)

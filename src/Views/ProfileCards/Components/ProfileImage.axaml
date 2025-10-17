@@ -8,28 +8,43 @@
     <views:UniversalImageConverter x:Key="UniversalImageConverter" x:Shared="True"/>
     <views:SimpleMathConverter x:Key="SimpleMathConverter" x:Shared="True"/>
     <views:DoubleToCornerRadiusConverter x:Key="DoubleToCornerRadiusConverter" x:Shared="True"/>
+    <views:ProfileImageCornerRadiusConverter x:Key="ProfileImageCornerRadiusConverter" x:Shared="True"/>
   </UserControl.Resources>
 
 
-  <Grid ClipToBounds="False" Margin="10">
-    <Border Classes="circle"
+  <Grid ClipToBounds="False" Margin="20">
+    <Border x:Name="ProfileImageBorder"
+            Classes="circle"
             Width="{Binding Width, ElementName=Root}"
             Height="{Binding Height, ElementName=Root}"
-            CornerRadius="{Binding Width, ElementName=Root, Converter={StaticResource DoubleToCornerRadiusConverter}}"
+            CornerRadius="{Binding Width, ElementName=Root, Converter={StaticResource ProfileImageCornerRadiusConverter}}"
             BorderBrush="{DynamicResource BlackBrush}"
             BorderThickness="{Binding BorderThickness, ElementName=Root}"
-            Background="{DynamicResource BackgroundTertiaryBrush}"
+            Background="Transparent"
             Cursor="{Binding Cursor, ElementName=Root}"
-            ClipToBounds="False">
+            ClipToBounds="False"
+            BoxShadow="0 0 0 0 transparent"
+            PointerPressed="OnImageClick"
+            IsHitTestVisible="True"
+            ZIndex="100">
       
-      <Grid>
+      <Border.Styles>
+        <Style Selector="Border#ProfileImageBorder:pointerover">
+          <Setter Property="BoxShadow" Value="0 8 40 0 #80000000"/>
+          <Setter Property="BorderBrush" Value="#000000"/>
+          <Setter Property="BorderThickness" Value="6"/>
+        </Style>
+      </Border.Styles>
+      
+      <Grid IsHitTestVisible="False">
         <!-- Profile image or placeholder -->
-        <Grid>
+        <Grid IsHitTestVisible="False">
           <!-- Profile image -->
           <Ellipse x:Name="ProfileImageEllipse"
-                   Width="{Binding Width, ElementName=Root}"
-                   Height="{Binding Height, ElementName=Root}"
-                   Margin="3"
+                   Width="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,16'}"
+                   Height="{Binding Height, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,16'}"
+                   Margin="8"
+                   IsHitTestVisible="False"
                    IsVisible="{Binding !IsImageMissing, ElementName=Root}">
             <Ellipse.Fill>
               <ImageBrush Source="{Binding ImagePath, ElementName=Root, Converter={StaticResource UniversalImageConverter}}" 
@@ -45,18 +60,11 @@
                      Foreground="{DynamicResource TextPrimaryBrush}"
                      HorizontalAlignment="Center"
                      VerticalAlignment="Center"
+                     Margin="8"
+                     IsHitTestVisible="False"
                      IsVisible="{Binding IsImageMissing, ElementName=Root}"/>
         </Grid>
         
-        <!-- Clickable overlay -->
-        <Button Background="Transparent"
-                BorderThickness="0"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                Cursor="{Binding Cursor, ElementName=Root}"
-                Click="OnImageClick"
-                IsVisible="{Binding IsClickable, ElementName=Root}"
-                Opacity="0"/>
       </Grid>
     </Border>
   </Grid>

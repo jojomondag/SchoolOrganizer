@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using SchoolOrganizer.Src.Models.Students;
 using SchoolOrganizer.Src.Views.Windows;
 using SchoolOrganizer.Src.Views.Windows.ImageCrop;
+using SchoolOrganizer.Src.Views.ProfileCards.Components;
 
 namespace SchoolOrganizer.Src.Views.ProfileCards
 {
@@ -160,10 +161,12 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             if (sender is Border cardBorder)
             {
                 cardBorder.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
-                cardBorder.RenderTransform = new ScaleTransform(1.05, 1.05);
+                cardBorder.RenderTransform = new ScaleTransform(1.02, 1.02);
 
                 if (this.FindResource("ShadowStrong") is BoxShadows hoverShadow)
                     cardBorder.BoxShadow = hoverShadow;
+
+                // ProfileImage hover effects are handled by the ProfileImage component itself
             }
         }
 
@@ -176,6 +179,8 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
 
                 if (this.FindResource("ShadowLight") is BoxShadows normalShadow)
                     cardBorder.BoxShadow = normalShadow;
+
+                // ProfileImage hover effects are handled by the ProfileImage component itself
             }
         }
 

@@ -51,7 +51,27 @@ public class UniversalImageConverter : IValueConverter
                             // Use File.ReadAllBytes for better performance
                             var imageBytes = File.ReadAllBytes(path);
                             using var memoryStream = new MemoryStream(imageBytes);
-                            var bitmap = new Bitmap(memoryStream);
+                            var originalBitmap = new Bitmap(memoryStream);
+                            
+                            // Downscale large images to improve performance and reduce memory usage
+                            const int maxDimension = 800; // Maximum width or height
+                            var bitmap = originalBitmap;
+                            
+                            if (originalBitmap.PixelSize.Width > maxDimension || originalBitmap.PixelSize.Height > maxDimension)
+                            {
+                                var scale = Math.Min((double)maxDimension / originalBitmap.PixelSize.Width, 
+                                                   (double)maxDimension / originalBitmap.PixelSize.Height);
+                                
+                                var newWidth = (int)(originalBitmap.PixelSize.Width * scale);
+                                var newHeight = (int)(originalBitmap.PixelSize.Height * scale);
+                                
+                                // Create downscaled bitmap
+                                bitmap = originalBitmap.CreateScaledBitmap(new Avalonia.PixelSize(newWidth, newHeight), 
+                                    Avalonia.Media.Imaging.BitmapInterpolationMode.HighQuality);
+                                
+                                // Dispose original to free memory
+                                originalBitmap.Dispose();
+                            }
                             
                             // Update cache
                             _bitmapCache.AddOrUpdate(path, 
@@ -83,7 +103,9 @@ public class UniversalImageConverter : IValueConverter
     {
         if (!string.IsNullOrWhiteSpace(path))
         {
-            _bitmapCache.TryRemove(path, out _);
+            System.Diagnostics.Debug.WriteLine($"UniversalImageConverter.ClearCache called for: {path}");
+            var removed = _bitmapCache.TryRemove(path, out _);
+            System.Diagnostics.Debug.WriteLine($"Cache entry removed: {removed}");
         }
     }
 }

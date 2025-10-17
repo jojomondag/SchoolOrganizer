@@ -5,6 +5,7 @@ using Avalonia.VisualTree;
 using System;
 using System.IO;
 using SchoolOrganizer.Src.Views.ProfileCards.Components;
+using SchoolOrganizer.Src.Converters;
 namespace SchoolOrganizer.Src.Views.Windows.ImageCrop;
 public partial class CropPreview : UserControl
 {
@@ -32,6 +33,30 @@ public partial class CropPreview : UserControl
         {
             profileImageBorder.ImagePath = "";
         }
+    }
+
+    public void UpdatePreviewFromPath(string imagePath)
+    {
+        var profileImageBorder = this.FindControl<ProfileImage>("PreviewImageBorder");
+        if (profileImageBorder == null) return;
+        
+        System.Diagnostics.Debug.WriteLine($"CropPreview.UpdatePreviewFromPath called with: {imagePath}");
+        System.Diagnostics.Debug.WriteLine($"File exists: {File.Exists(imagePath)}");
+        
+        // Force a complete refresh by clearing and resetting the ImagePath
+        profileImageBorder.ImagePath = "";
+        
+        // Use Dispatcher to ensure the UI updates on the UI thread
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            // Clear the cache for this path to ensure fresh image loading
+            UniversalImageConverter.ClearCache(imagePath);
+            
+            profileImageBorder.ImagePath = imagePath;
+            System.Diagnostics.Debug.WriteLine($"CropPreview ProfileImage.ImagePath set to: {profileImageBorder.ImagePath}");
+            
+            // Property change notification is automatic when setting ImagePath
+        }, Avalonia.Threading.DispatcherPriority.Render);
     }
 
     private string SaveBitmapToReusableTempFile(Bitmap bitmap)

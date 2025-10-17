@@ -303,7 +303,7 @@ namespace SchoolOrganizer.Src.Services
 
                 return Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories).Length;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return 0;
             }

@@ -340,8 +340,9 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         if (SelectedStudent != null && !Students.Contains(SelectedStudent))
             SelectedStudent = null;
-        UpdateViewProperties();
-        UpdateDisplayLevelBasedOnItemCount();
+        
+        // Batch property updates to reduce UI refresh cycles
+        UpdateViewPropertiesAndDisplayLevel();
     }
 
 
@@ -357,6 +358,28 @@ public partial class StudentGalleryViewModel : ObservableObject
     private void UpdateViewProperties()
     {
         // Direct property change notifications for better performance
+        OnPropertyChanged(nameof(ShowSingleStudent));
+        OnPropertyChanged(nameof(ShowMultipleStudents));
+        OnPropertyChanged(nameof(ShowEmptyState));
+        OnPropertyChanged(nameof(FirstStudent));
+    }
+
+    private void UpdateViewPropertiesAndDisplayLevel()
+    {
+        // Batch both view properties and display level updates to minimize UI refresh cycles
+        var studentCount = Students?.OfType<Student>().Count() ?? 0;
+        var newLevel = cardSizeManager.DetermineSizeByCount(studentCount);
+        
+        // Update display level if needed
+        if (newLevel != CurrentDisplayLevel)
+        {
+            CurrentDisplayLevel = newLevel;
+            DisplayConfig = ProfileCardDisplayConfig.GetConfig(newLevel);
+            OnPropertyChanged(nameof(DisplayConfig));
+            OnPropertyChanged(nameof(CurrentDisplayLevel));
+        }
+        
+        // Update view properties
         OnPropertyChanged(nameof(ShowSingleStudent));
         OnPropertyChanged(nameof(ShowMultipleStudents));
         OnPropertyChanged(nameof(ShowEmptyState));
@@ -411,29 +434,32 @@ public partial class StudentGalleryViewModel : ObservableObject
         {
             var results = searchService.Search(allStudents, SearchText).ToList();
             
-            Students.Clear();
+            // Create new collection to avoid individual UI updates
+            var newStudents = new ObservableCollection<IPerson>();
             
             foreach (var s in results)
             {
-                Students.Add(s);
+                newStudents.Add(s);
             }
             
             // Only add AddStudentCard when NOT in add student mode
             if (!IsAddingStudent)
             {
-                Students.Add(new AddStudentCard());
+                newStudents.Add(new AddStudentCard());
             }
             
             // Defensive check: ensure Students collection is never empty when not in add mode
-            if (Students.Count == 0 && !IsAddingStudent)
+            if (newStudents.Count == 0 && !IsAddingStudent)
             {
-                Students.Add(new AddStudentCard());
+                newStudents.Add(new AddStudentCard());
                 Log.Warning("Students collection was empty, added AddStudentCard as fallback");
             }
             
-            // Always update view properties to ensure bindings are refreshed
-            UpdateViewProperties();
-            UpdateDisplayLevelBasedOnItemCount();
+            // Replace entire collection in one operation to minimize UI updates
+            Students = newStudents;
+            
+            // Update view properties and display level in one batch
+            UpdateViewPropertiesAndDisplayLevel();
         }
         catch (Exception ex)
         {
@@ -441,7 +467,7 @@ public partial class StudentGalleryViewModel : ObservableObject
             // Ensure Students collection is never empty even on error, but only when not in add mode
             if (Students.Count == 0 && !IsAddingStudent)
             {
-                Students.Add(new AddStudentCard());
+                Students = new ObservableCollection<IPerson> { new AddStudentCard() };
                 Log.Warning("Added AddStudentCard as error fallback");
             }
             // Update view properties even on error to ensure UI state is correct
@@ -944,7 +970,7 @@ public partial class StudentGalleryViewModel : ObservableObject
                 }
             }
 
-            var fileCount = Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length;
+            var fileCount = await Task.Run(() => Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length);
             if (fileCount == 0)
             {
                 return;

@@ -67,15 +67,15 @@ public partial class ContentViewModel : ObservableObject
                 return;
             }
 
-            var studentDirs = Directory.GetDirectories(CourseFolder);
+            var studentDirs = await Task.Run(() => Directory.GetDirectories(CourseFolder));
             Log.Information($"Found {studentDirs.Length} student directories");
 
             var studentItems = new List<StudentItem>();
             foreach (var studentDir in studentDirs)
             {
                 var studentName = Path.GetFileName(studentDir);
-                var assignmentDirs = Directory.GetDirectories(studentDir);
-                var fileCount = Directory.GetFiles(studentDir, "*.*", SearchOption.AllDirectories).Length;
+                var assignmentDirs = await Task.Run(() => Directory.GetDirectories(studentDir));
+                var fileCount = await Task.Run(() => Directory.GetFiles(studentDir, "*.*", SearchOption.AllDirectories).Length);
 
                 studentItems.Add(new StudentItem
                 {

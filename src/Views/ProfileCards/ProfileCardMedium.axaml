@@ -28,7 +28,7 @@
         <components:ProfileImage x:Name="ProfileImageBorder"
                                         Width="90"
                                         Height="90"
-                                        BorderThickness="3"
+                                        BorderThickness="6"
                                         ImagePath="{Binding PictureUrl, RelativeSource={RelativeSource AncestorType=local:ProfileCardMedium}}"
                                         Margin="0,0,0,12"
                                         ImageClicked="OnProfileImageClicked"/>
