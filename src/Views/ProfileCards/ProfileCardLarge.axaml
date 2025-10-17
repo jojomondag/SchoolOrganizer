@@ -15,7 +15,7 @@
           BoxShadow="{DynamicResource ShadowLight}"
           Margin="40,20"
           BorderBrush="{DynamicResource BlackBrush}"
-          BorderThickness="1"
+          BorderThickness="0.5"
           IsHitTestVisible="True">
 
     <Grid Margin="40">
@@ -29,7 +29,7 @@
         <components:ProfileImage x:Name="ProfileImageBorder"
                                        Width="240"
                                        Height="240"
-                                       BorderThickness="6"
+                                       BorderThickness="2"
                                        ImagePath="{Binding PictureUrl}"
                                        Margin="0,0,0,20"
                                        ImageClicked="OnProfileImageClicked"/>

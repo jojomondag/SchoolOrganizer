@@ -13,7 +13,7 @@
             Background="{DynamicResource BackgroundPrimaryBrush}"
             CornerRadius="12"
             BorderBrush="{DynamicResource BlackBrush}"
-            BorderThickness="1"
+            BorderThickness="0.5"
             Padding="8"
             Width="180"
             Height="180"
@@ -28,7 +28,7 @@
         <components:ProfileImage x:Name="ProfileImageBorder"
                                          Width="70"
                                          Height="70"
-                                         BorderThickness="6"
+                                         BorderThickness="2"
                                          ImagePath="{Binding PictureUrl, RelativeSource={RelativeSource AncestorType=local:ProfileCardSmall}}"
                                          Margin="0,0,0,8"
                                          ImageClicked="OnProfileImageClicked"/>

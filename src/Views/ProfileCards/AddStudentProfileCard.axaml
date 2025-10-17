@@ -11,7 +11,7 @@
     <Border x:Name="CardBorder"
             Background="{DynamicResource BackgroundPrimaryBrush}"
             BorderBrush="{DynamicResource BlackBrush}"
-            BorderThickness="1"
+            BorderThickness="0.5"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             Cursor="Hand"
@@ -21,7 +21,7 @@
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
         <!-- Plus Icon Circle -->
         <components:ProfileImage x:Name="AddIconBorder"
-                                        BorderThickness="6"
+                                        BorderThickness="2"
                                         Margin="0,0,0,12"
                                         ImageClicked="OnAddStudentClicked"/>
 

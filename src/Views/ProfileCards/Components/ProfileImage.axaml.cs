@@ -25,7 +25,7 @@ public partial class ProfileImage : UserControl
         AvaloniaProperty.Register<ProfileImage, double>(nameof(Height), 100.0);
 
     public new static readonly StyledProperty<Thickness> BorderThicknessProperty =
-        AvaloniaProperty.Register<ProfileImage, Thickness>(nameof(BorderThickness), new Thickness(6));
+        AvaloniaProperty.Register<ProfileImage, Thickness>(nameof(BorderThickness), new Thickness(2));
 
     public static readonly StyledProperty<bool> IsImageMissingProperty =
         AvaloniaProperty.Register<ProfileImage, bool>(nameof(IsImageMissing));
@@ -142,7 +142,7 @@ public partial class ProfileImage : UserControl
         if (this.FindControl<Border>("ProfileImageBorder") is { } border)
         {
             border.BoxShadow = new BoxShadows(
-                new BoxShadow { Blur = 40, OffsetY = 8, OffsetX = 0, Color = Color.Parse("#80000000") }
+                new BoxShadow { Blur = 12, OffsetY = 4, OffsetX = 0, Color = Color.Parse("#CC000000") }
             );
             border.BorderBrush = new SolidColorBrush(Color.Parse("#000000"));
             // Don't change BorderThickness - keep it the same

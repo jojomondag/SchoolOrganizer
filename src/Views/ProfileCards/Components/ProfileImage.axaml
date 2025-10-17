@@ -30,9 +30,9 @@
       
       <Border.Styles>
         <Style Selector="Border#ProfileImageBorder:pointerover">
-          <Setter Property="BoxShadow" Value="0 8 40 0 #80000000"/>
+          <Setter Property="BoxShadow" Value="0 4 12 0 #CC000000"/>
           <Setter Property="BorderBrush" Value="#000000"/>
-          <Setter Property="BorderThickness" Value="6"/>
+          <Setter Property="BorderThickness" Value="3"/>
         </Style>
       </Border.Styles>
       
@@ -41,9 +41,10 @@
         <Grid IsHitTestVisible="False">
           <!-- Profile image -->
           <Ellipse x:Name="ProfileImageEllipse"
-                   Width="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,16'}"
-                   Height="{Binding Height, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,16'}"
-                   Margin="8"
+                   Width="{Binding Width, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,3'}"
+                   Height="{Binding Height, ElementName=Root, Converter={StaticResource SimpleMathConverter}, ConverterParameter='Subtract,3'}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
                    IsHitTestVisible="False"
                    IsVisible="{Binding !IsImageMissing, ElementName=Root}">
             <Ellipse.Fill>
@@ -60,7 +61,6 @@
                      Foreground="{DynamicResource TextPrimaryBrush}"
                      HorizontalAlignment="Center"
                      VerticalAlignment="Center"
-                     Margin="8"
                      IsHitTestVisible="False"
                      IsVisible="{Binding IsImageMissing, ElementName=Root}"/>
         </Grid>

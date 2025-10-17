@@ -9,7 +9,7 @@
           CornerRadius="16"
           BoxShadow="{DynamicResource ShadowLight}"
           BorderBrush="{DynamicResource BlackBrush}"
-          BorderThickness="1"
+          BorderThickness="0.5"
           Cursor="Hand"
           RenderTransformOrigin="0.5,0.5">
 
@@ -19,7 +19,7 @@
            Width="90" Height="90"
            Fill="{DynamicResource BackgroundTertiaryBrush}"
            Stroke="{DynamicResource BlackBrush}"
-           StrokeThickness="2"
+           StrokeThickness="1"
            Margin="0,0,0,12" />
 
       <TextBlock
