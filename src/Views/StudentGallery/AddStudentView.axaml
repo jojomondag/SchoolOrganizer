@@ -27,11 +27,6 @@
       <Setter Property="FocusAdorner" Value="{x:Null}"/>
     </Style>
     
-    <Style Selector="TextBox:focus /template/ Border">
-      <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
-      <Setter Property="BorderThickness" Value="2"/>
-    </Style>
-    
     <Style Selector="ComboBox">
       <Setter Property="Padding" Value="12,8"/>
       <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
@@ -47,12 +42,7 @@
       <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
     </Style>
     
-    <Style Selector="ComboBox:focus">
-      <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
-      <Setter Property="BorderThickness" Value="2"/>
-    </Style>
-    
-    <Style Selector="DatePicker:focus">
+    <Style Selector="ComboBox:focus, DatePicker:focus">
       <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
       <Setter Property="BorderThickness" Value="2"/>
     </Style>
@@ -79,9 +69,6 @@
       <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
     
-    <Style Selector="Button.primary:pointerover">
-      <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
-    </Style>
     
     <!-- Tab Styles -->
     <Style Selector="ToggleButton.tab">

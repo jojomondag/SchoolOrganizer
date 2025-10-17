@@ -139,18 +139,6 @@ public partial class AddStudentView : UserControl
         if (!string.IsNullOrWhiteSpace(path))
         {
             ViewModel.SelectedImagePath = path;
-            // Force a refresh in case the file isn't immediately readable
-            _ = Dispatcher.UIThread.InvokeAsync(async () =>
-            {
-                await System.Threading.Tasks.Task.Delay(150);
-                var current = ViewModel.SelectedImagePath;
-                if (string.Equals(current, path, StringComparison.Ordinal))
-                {
-                    ViewModel.SelectedImagePath = string.Empty;
-                    await System.Threading.Tasks.Task.Delay(1);
-                    ViewModel.SelectedImagePath = path;
-                }
-            });
         }
     }
 
@@ -191,12 +179,6 @@ public partial class AddStudentView : UserControl
         }
     }
 
-    private void OnClassroomSelected(object? sender, SelectionChangedEventArgs e)
-    {
-        // The SelectionChanged event will trigger the property change
-        // which will automatically call the OnClassroomSelected method in the ViewModel
-        // No need to manually call the command
-    }
 
     private void OnProfileImageControlClicked(object? sender, EventArgs e)
     {

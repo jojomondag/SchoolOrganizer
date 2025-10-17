@@ -176,55 +176,7 @@ public partial class AddStudentViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportFromClassroom()
     {
-        var selectedStudents = ClassroomStudents.Where(s => s.IsSelected).ToList();
-        if (selectedStudents.Count == 0)
-        {
-            ValidationText = "Please select at least one student to import";
-            return;
-        }
-
-        if (SelectedClassroom == null)
-        {
-            ValidationText = "Please select a classroom";
-            return;
-        }
-
-        try
-        {
-            var results = new List<AddedStudentResult>();
-            var teacherName = authService?.TeacherName ?? "Unknown Teacher";
-
-            foreach (var wrapper in selectedStudents)
-            {
-                var student = wrapper.ClassroomStudent;
-                var result = new AddedStudentResult
-                {
-                    Name = student.Profile?.Name?.FullName ?? "Unknown Student",
-                    ClassName = SelectedClassroom.Name ?? "Unknown Class",
-                    Email = student.Profile?.EmailAddress ?? string.Empty,
-                    EnrollmentDate = DateTimeOffset.Now,
-                    Teachers = new List<string> { teacherName },
-                    PicturePath = string.Empty
-                };
-
-                // Download profile photo if available
-                if (!string.IsNullOrEmpty(wrapper.ProfilePhotoUrl) && imageDownloadService != null)
-                {
-                    var localPath = await imageDownloadService.DownloadProfileImageAsync(
-                        wrapper.ProfilePhotoUrl, 
-                        result.Name);
-                    result.PicturePath = localPath;
-                }
-
-                results.Add(result);
-            }
-
-            MultipleStudentsAdded?.Invoke(this, results);
-        }
-        catch (Exception ex)
-        {
-            ValidationText = $"Error importing students: {ex.Message}";
-        }
+        await ImportFromClassroomAsync();
     }
 
     [RelayCommand]
@@ -233,17 +185,6 @@ public partial class AddStudentViewModel : ObservableObject
         Cancelled?.Invoke(this, EventArgs.Empty);
     }
 
-    [RelayCommand]
-    private void ChooseImage()
-    {
-        // This will be handled by the view's code-behind
-    }
-
-    [RelayCommand]
-    private void AddTeacher()
-    {
-        // This will be handled by the view's code-behind
-    }
 
     [RelayCommand]
     private void RemoveTeacher(string teacher)
