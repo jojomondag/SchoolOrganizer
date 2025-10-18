@@ -185,17 +185,14 @@ public partial class ProfileImage : UserControl
         Log.Information("ProfileImage.OnImagePointerPressed - Event handled to prevent card selection");
     }
 
-    private async void OnImageClick(object? sender, TappedEventArgs e)
+    private void OnImageClick(object? sender, TappedEventArgs e)
     {
         // IMPORTANT: Mark event as handled immediately to prevent it from bubbling up to the card
         // This prevents the card selection when clicking the profile image
         e.Handled = true;
 
-        Log.Information("ProfileImage.OnImageClick called - IsClickable: {IsClickable}, Processing: {Processing}, Global: {Global}, Name: {Name}, Parent: {ParentType}, Sender: {SenderType}",
-            IsClickable, _isProcessingImageSelection, _isAnyImageSelectionInProgress, this.Name ?? "unnamed", this.Parent?.GetType().Name ?? "null", sender?.GetType().Name ?? "null");
-
-        System.Diagnostics.Debug.WriteLine($"ProfileImage.OnImageClick called - IsClickable: {IsClickable}, Processing: {_isProcessingImageSelection}, Global: {_isAnyImageSelectionInProgress}");
-
+        Log.Information("ProfileImage.OnImageClick called - IsClickable: {IsClickable}, Name: {Name}",
+            IsClickable, this.Name ?? "unnamed");
 
         // Check for rapid successive clicks
         var currentTime = DateTime.Now;
@@ -208,114 +205,15 @@ public partial class ProfileImage : UserControl
 
         if (!IsClickable || _isProcessingImageSelection || _isAnyImageSelectionInProgress)
         {
-            Log.Warning("ProfileImage.OnImageClick - Early return due to guard conditions: IsClickable={IsClickable}, Processing={Processing}, Global={Global}",
-                IsClickable, _isProcessingImageSelection, _isAnyImageSelectionInProgress);
-            System.Diagnostics.Debug.WriteLine("ProfileImage.OnImageClick - Early return due to guard conditions");
+            Log.Warning("ProfileImage.OnImageClick - Early return due to guard conditions");
             return;
         }
 
-        Log.Information("ProfileImage.OnImageClick - Starting image selection process");
-        System.Diagnostics.Debug.WriteLine("ProfileImage.OnImageClick - Starting image selection process");
-        _isProcessingImageSelection = true;
-        _isAnyImageSelectionInProgress = true;
-        try
-        {
-            // Find the parent window
-            var parentWindow = this.FindAncestorOfType<Window>();
-            Log.Information("ProfileImage.OnImageClick - Parent window found: {ParentWindowType}", parentWindow?.GetType().Name ?? "null");
-            
-            string? imagePath = null;
-            string? cropSettings = null;
-            string? originalImagePath = null;
-            
-            if (parentWindow != null)
-            {
-                // Use the full-featured crop window with existing settings for editing
-                Log.Information("Opening image crop window with existing settings...");
-                Log.Information("Current OriginalImagePath: {OriginalPath}", OriginalImagePath ?? "null");
-                Log.Information("Current CropSettings: {CropSettings}", CropSettings ?? "null");
-                
-                // Use a dummy student ID for the crop window
-                var studentId = 1; // This could be made configurable if needed
-                
-                // Open the crop window with existing image and crop settings
-                var result = await ImageCropWindow.ShowForStudentAsync(
-                    parentWindow, 
-                    studentId, 
-                    OriginalImagePath, 
-                    CropSettings);
-                
-                imagePath = result.imagePath;
-                cropSettings = result.cropSettings;
-                originalImagePath = result.originalImagePath;
-                
-                // Log the returned values
-                Log.Information("Crop window returned - ImagePath: {ImagePath}, CropSettings: {CropSettings}, OriginalPath: {OriginalPath}", 
-                    imagePath ?? "null", cropSettings ?? "null", originalImagePath ?? "null");
-                
-                // If a new image was selected and saved, update the properties
-                if (!string.IsNullOrEmpty(imagePath))
-                {
-                    Log.Information("ProfileImage.OnImageClick - New image selected: {ImagePath}", imagePath);
-                    Log.Information("ProfileImage.OnImageClick - File exists: {Exists}", File.Exists(imagePath));
-                    System.Diagnostics.Debug.WriteLine($"Main ProfileImage updating from '{ImagePath}' to '{imagePath}'");
-                    
-                    // Clear the cache for this path to ensure fresh image loading
-                    UniversalImageConverter.ClearCache(imagePath);
-                    Log.Information("ProfileImage.OnImageClick - Cleared image converter cache for: {ImagePath}", imagePath);
-                    
-                    // Update the image path in a single operation to avoid multiple binding updates
-                    Log.Information("ProfileImage.OnImageClick - Updating ImagePath from '{OldPath}' to '{NewPath}'", ImagePath, imagePath);
-                    ImagePath = imagePath;
-                    Log.Information("ProfileImage.OnImageClick - ImagePath updated successfully to: {ImagePath}", ImagePath);
-                    System.Diagnostics.Debug.WriteLine($"Main ProfileImage.ImagePath is now: {ImagePath}");
-                    
-                    // Store the original image path and crop settings
-                    if (!string.IsNullOrEmpty(originalImagePath))
-                    {
-                        OriginalImagePath = originalImagePath;
-                        Log.Information("ProfileImage.OnImageClick - Stored OriginalImagePath: {OriginalPath}", originalImagePath);
-                    }
-                    
-                    if (!string.IsNullOrEmpty(cropSettings))
-                    {
-                        CropSettings = cropSettings;
-                        Log.Information("ProfileImage.OnImageClick - Stored CropSettings: {CropSettings}", cropSettings);
-                    }
-                    
-                    Log.Information("ProfileImage.OnImageClick - Profile image update completed successfully");
-                }
-                else
-                {
-                    Log.Information("ProfileImage.OnImageClick - No image selected or crop window cancelled");
-                }
-            }
-            else
-            {
-                Log.Warning("Could not find parent window for crop dialog");
-            }
-            
-            // Don't fire the ImageClicked event since we already handled the image selection here
-            // Firing this event would cause a second crop window to open via the event chain
-            Log.Information("ProfileImage.OnImageClick - Skipping ImageClicked event to prevent duplicate crop window");
-            Log.Information("ProfileImage.OnImageClick - Event handled successfully");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "ProfileImage.OnImageClick - Error opening image crop window");
-        }
-        finally
-        {
-            Log.Information("ProfileImage.OnImageClick - Resetting processing flags");
-            _isProcessingImageSelection = false;
-            // Only reset the global flag after a longer delay to prevent race conditions
-            _ = Dispatcher.UIThread.InvokeAsync(async () =>
-            {
-                await Task.Delay(500); // Longer delay to prevent race conditions
-                _isAnyImageSelectionInProgress = false;
-                Log.Information("ProfileImage.OnImageClick - Processing completed");
-            });
-        }
+        Log.Information("ProfileImage.OnImageClick - Firing ImageClicked event");
+
+        // Fire the ImageClicked event for the parent (BaseProfileCard) to handle
+        // The parent will use StudentCoordinatorService to update the Student model properly
+        ImageClicked?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

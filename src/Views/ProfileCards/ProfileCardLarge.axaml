@@ -30,7 +30,9 @@
                                        Width="240"
                                        Height="240"
                                        BorderThickness="2"
-                                       ImagePath="{Binding PictureUrl}"
+                                       ImagePath="{Binding PictureUrl, RelativeSource={RelativeSource AncestorType=local:ProfileCardLarge}}"
+                                       OriginalImagePath="{Binding OriginalImagePath, RelativeSource={RelativeSource AncestorType=local:ProfileCardLarge}}"
+                                       CropSettings="{Binding CropSettings, RelativeSource={RelativeSource AncestorType=local:ProfileCardLarge}}"
                                        Margin="0,0,0,20"
                                        ImageClicked="OnProfileImageClicked"/>
       </StackPanel>

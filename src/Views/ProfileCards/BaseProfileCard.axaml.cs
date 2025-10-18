@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SchoolOrganizer.Src.Models.Students;
+using System.ComponentModel;
 
 namespace SchoolOrganizer.Src.Views.ProfileCards
 {
@@ -17,6 +18,8 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
         public event EventHandler? BackButtonClicked;
         public event EventHandler<IPerson>? CardClicked;
         public event EventHandler<IPerson>? CardDoubleClicked;
+
+        private Student? _currentStudent;
 
         public BaseProfileCard()
         {
@@ -42,16 +45,58 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
 
         private void OnUnloaded(object? s, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            // Clean up event subscription to avoid leaks
+            // Clean up event subscriptions to avoid leaks
+            if (_currentStudent != null)
+            {
+                _currentStudent.PropertyChanged -= OnStudentPropertyChanged;
+                _currentStudent = null;
+            }
             Unloaded -= OnUnloaded;
         }
 
         private void OnDataContextChanged(object? sender, EventArgs e)
         {
+            // Unsubscribe from previous student's property changes
+            if (_currentStudent != null)
+            {
+                _currentStudent.PropertyChanged -= OnStudentPropertyChanged;
+            }
+
+            // Subscribe to new student's property changes
+            if (DataContext is Student student)
+            {
+                _currentStudent = student;
+                _currentStudent.PropertyChanged += OnStudentPropertyChanged;
+            }
+            else
+            {
+                _currentStudent = null;
+            }
+
             // Only update if the visual tree is loaded
             if (IsLoaded)
             {
                 UpdateAllControls();
+            }
+        }
+
+        private void OnStudentPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            // When Student's image properties change, sync them to the card's properties
+            if (sender is Student student)
+            {
+                if (e.PropertyName == nameof(Student.PictureUrl))
+                {
+                    SetValue(PictureUrlProperty, student.PictureUrl);
+                }
+                else if (e.PropertyName == nameof(Student.OriginalImagePath))
+                {
+                    SetValue(OriginalImagePathProperty, student.OriginalImagePath);
+                }
+                else if (e.PropertyName == nameof(Student.CropSettings))
+                {
+                    SetValue(CropSettingsProperty, student.CropSettings);
+                }
             }
         }
 
@@ -68,7 +113,7 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
                 UpdateTextBlockFromPerson("NameText", person.Name, "Unknown");
                 UpdateTextBlockFromPerson("EmailText", person.Email, "No Email");
                 UpdateTextBlockFromPerson("SecondaryText", person.SecondaryInfo, "No Info");
-                
+
                 if (this.FindControl<TextBlock>("EnrollmentText") is { } enrollmentText)
                 {
                     if (person is Student student)
@@ -76,9 +121,9 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
                     else
                         enrollmentText.Text = "Unknown";
                 }
-                    
+
                 UpdateTextBlockFromPerson("IdText", person.Id.ToString(), "Unknown");
-                
+
                 if (this.FindControl<TextBlock>("InitialsText") is { } initialsText)
                 {
                     var name = person.Name ?? "";
@@ -86,6 +131,15 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
                         .Select(word => word.Length > 0 ? word[0].ToString().ToUpper() : "")
                         .Take(2);
                     initialsText.Text = string.Join("", initials);
+                }
+
+                // Sync image-related properties from Student to card's styled properties
+                SetValue(PictureUrlProperty, person.PictureUrl);
+
+                if (person is Student studentForImage)
+                {
+                    SetValue(OriginalImagePathProperty, studentForImage.OriginalImagePath);
+                    SetValue(CropSettingsProperty, studentForImage.CropSettings);
                 }
             }
             else
@@ -263,6 +317,22 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
         }
         public static readonly Avalonia.StyledProperty<string?> InitialsProperty =
             Avalonia.AvaloniaProperty.Register<BaseProfileCard, string?>("Initials");
+
+        public string? OriginalImagePath
+        {
+            get => GetValue(OriginalImagePathProperty);
+            set => SetValue(OriginalImagePathProperty, value);
+        }
+        public static readonly Avalonia.StyledProperty<string?> OriginalImagePathProperty =
+            Avalonia.AvaloniaProperty.Register<BaseProfileCard, string?>("OriginalImagePath");
+
+        public string? CropSettings
+        {
+            get => GetValue(CropSettingsProperty);
+            set => SetValue(CropSettingsProperty, value);
+        }
+        public static readonly Avalonia.StyledProperty<string?> CropSettingsProperty =
+            Avalonia.AvaloniaProperty.Register<BaseProfileCard, string?>("CropSettings");
 
         protected override void OnPropertyChanged(Avalonia.AvaloniaPropertyChangedEventArgs change)
         {

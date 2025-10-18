@@ -30,6 +30,8 @@
                                         Height="90"
                                         BorderThickness="2"
                                         ImagePath="{Binding PictureUrl, RelativeSource={RelativeSource AncestorType=local:ProfileCardMedium}}"
+                                        OriginalImagePath="{Binding OriginalImagePath, RelativeSource={RelativeSource AncestorType=local:ProfileCardMedium}}"
+                                        CropSettings="{Binding CropSettings, RelativeSource={RelativeSource AncestorType=local:ProfileCardMedium}}"
                                         Margin="0,0,0,12"
                                         ImageClicked="OnProfileImageClicked"/>
 
