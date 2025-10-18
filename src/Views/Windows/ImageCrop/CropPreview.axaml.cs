@@ -9,6 +9,8 @@ namespace SchoolOrganizer.Src.Views.Windows.ImageCrop;
 public partial class CropPreview : UserControl
 {
     public event EventHandler? BackClicked;
+    public event EventHandler? RotateLeftClicked;
+    public event EventHandler? RotateRightClicked;
     public event EventHandler? ResetClicked;
     public event EventHandler? SaveClicked;
     
@@ -95,7 +97,19 @@ public partial class CropPreview : UserControl
         var btn = this.FindControl<Button>("SaveButton");
         if (btn != null) btn.IsEnabled = enabled;
     }
+    public void SetRotateLeftEnabled(bool enabled)
+    {
+        var btn = this.FindControl<Button>("RotateLeftButton");
+        if (btn != null) btn.IsEnabled = enabled;
+    }
+    public void SetRotateRightEnabled(bool enabled)
+    {
+        var btn = this.FindControl<Button>("RotateRightButton");
+        if (btn != null) btn.IsEnabled = enabled;
+    }
     private void BackButton_Click(object? sender, RoutedEventArgs e) => BackClicked?.Invoke(this, EventArgs.Empty);
+    private void RotateLeftButton_Click(object? sender, RoutedEventArgs e) => RotateLeftClicked?.Invoke(this, EventArgs.Empty);
+    private void RotateRightButton_Click(object? sender, RoutedEventArgs e) => RotateRightClicked?.Invoke(this, EventArgs.Empty);
     private void ResetButton_Click(object? sender, RoutedEventArgs e) => ResetClicked?.Invoke(this, EventArgs.Empty);
     private void SaveButton_Click(object? sender, RoutedEventArgs e) => SaveClicked?.Invoke(this, EventArgs.Empty);
     

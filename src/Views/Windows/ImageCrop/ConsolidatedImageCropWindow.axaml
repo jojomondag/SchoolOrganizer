@@ -150,6 +150,12 @@
                         <Button Classes="IconButton" ToolTip.Tip="Cancel" Click="OnBackClick">
                             <TextBlock Text="×" FontSize="20" HorizontalAlignment="Center"/>
                         </Button>
+                        <Button Name="RotateLeftButton" Classes="IconButton" IsEnabled="False" ToolTip.Tip="Rotate Left" Click="OnRotateLeftClick">
+                            <TextBlock Text="↶" FontSize="16" HorizontalAlignment="Center"/>
+                        </Button>
+                        <Button Name="RotateRightButton" Classes="IconButton" IsEnabled="False" ToolTip.Tip="Rotate Right" Click="OnRotateRightClick">
+                            <TextBlock Text="↷" FontSize="16" HorizontalAlignment="Center"/>
+                        </Button>
                         <Button Name="ResetButton" Classes="IconButton" IsEnabled="False" ToolTip.Tip="Reset" Click="OnResetClick">
                             <TextBlock Text="↻" FontSize="16" HorizontalAlignment="Center"/>
                         </Button>

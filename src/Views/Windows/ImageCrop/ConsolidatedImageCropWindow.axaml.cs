@@ -10,6 +10,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
+using MetadataExtractor;
+using MetadataExtractor.Formats.Exif;
+using Serilog;
 
 namespace SchoolOrganizer.Src.Views.Windows.ImageCrop;
 
@@ -18,10 +21,14 @@ public partial class ConsolidatedImageCropWindow : Window
     private const double MinCropSize = 50;
     private const double MaxCropSize = 400;
     private const int ThumbSize = 90;
-    
+    private const int ProfileImageOutputSize = 512; // High-quality output size for profile images
+    private const int MaxDisplayImageSize = 4096; // Maximum size for display in UI - allow much larger images to preserve quality
+
     private Bitmap? _currentBitmap;
+    private Bitmap? _fullResolutionBitmap; // Keep full resolution version for high-quality final crop
     private bool _isDragging;
     private bool _isResizing;
+    private bool _isPreviewUpdatePending;
     private string? _activeHandle;
     private Rect _cropArea;
     private Rect _dragStartCropArea;
@@ -31,7 +38,7 @@ public partial class ConsolidatedImageCropWindow : Window
     private double _rotationAngle = 0;
     private double _rotationStartAngle;
     private double _rotationInitialAngle;
-    
+
     private Grid? _imageGalleryGrid;
     private string? _tempPreviewPath;
     
@@ -69,6 +76,8 @@ public partial class ConsolidatedImageCropWindow : Window
         // Button events
         SelectButton.Click += OnSelectImage;
         CancelButton.Click += OnCancel;
+        RotateLeftButton.Click += OnRotateLeftClick;
+        RotateRightButton.Click += OnRotateRightClick;
         
         // Window events
         KeyDown += (s, e) => { if (e.Key == Key.Escape) Close(); };
@@ -143,9 +152,16 @@ public partial class ConsolidatedImageCropWindow : Window
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
-            
-            var bitmap = new Bitmap(memoryStream);
-            await LoadBitmap(bitmap);
+
+            var bitmap = LoadBitmapWithCorrectOrientation(memoryStream, file.Path.LocalPath);
+
+            // Keep full resolution bitmap for high-quality final crop
+            _fullResolutionBitmap?.Dispose();
+            _fullResolutionBitmap = bitmap;
+
+            // Create a resized version for display if needed
+            var displayBitmap = ResizeImageIfNeeded(bitmap);
+            await LoadBitmap(displayBitmap);
             await LoadImageGallery();
         }
         catch (Exception ex)
@@ -154,19 +170,41 @@ public partial class ConsolidatedImageCropWindow : Window
         }
     }
 
+    private Bitmap ResizeImageIfNeeded(Bitmap original)
+    {
+        var width = original.PixelSize.Width;
+        var height = original.PixelSize.Height;
+        if (width <= MaxDisplayImageSize && height <= MaxDisplayImageSize)
+        {
+            return original;
+        }
+        double scale = width > height
+            ? (double)MaxDisplayImageSize / width
+            : (double)MaxDisplayImageSize / height;
+        var newWidth = (int)(width * scale);
+        var newHeight = (int)(height * scale);
+
+        // Use high-quality interpolation when resizing
+        var resized = original.CreateScaledBitmap(
+            new PixelSize(newWidth, newHeight),
+            BitmapInterpolationMode.HighQuality);
+
+        return resized;
+    }
+
     private async Task LoadBitmap(Bitmap bitmap)
     {
         _currentBitmap?.Dispose();
         _currentBitmap = bitmap;
-        
+
         MainImage.Source = _currentBitmap;
         MainImage.IsVisible = true;
         BackgroundPattern.IsVisible = false;
         CropOverlay.IsVisible = true;
-        
+
         UpdatePreviewState(true, true, true);
         await Task.Delay(100);
-        
+
         InitializeCropArea();
         UpdatePreview();
     }
@@ -314,7 +352,8 @@ public partial class ConsolidatedImageCropWindow : Window
 
         PerformResize(e.GetPosition(ImageArea));
         ApplyCropTransform();
-        UpdatePreview();
+        // Mark preview for update when resize ends for better performance
+        _isPreviewUpdatePending = true;
     }
 
     private void OnImageAreaReleased(object? sender, PointerReleasedEventArgs e)
@@ -337,7 +376,8 @@ public partial class ConsolidatedImageCropWindow : Window
 
         PerformDrag(e.GetPosition(ImageArea));
         ApplyCropTransform();
-        UpdatePreview();
+        // Mark preview for update when drag ends for better performance
+        _isPreviewUpdatePending = true;
     }
 
     private void OnCropSelectionReleased(object? sender, PointerReleasedEventArgs e)
@@ -375,6 +415,8 @@ public partial class ConsolidatedImageCropWindow : Window
 
     private void PerformDrag(Point currentPosition)
     {
+        if (_currentBitmap == null || _imageDisplaySize.Width <= 0 || _imageDisplaySize.Height <= 0) return;
+        
         var delta = currentPosition - _pointerStartPosition;
         var newX = Math.Clamp(
             _dragStartCropArea.X + delta.X,
@@ -386,11 +428,18 @@ public partial class ConsolidatedImageCropWindow : Window
             _imageDisplayOffset.Y,
             _imageDisplayOffset.Y + _imageDisplaySize.Height - _dragStartCropArea.Height
         );
-        _cropArea = new Rect(newX, newY, _dragStartCropArea.Width, _dragStartCropArea.Height);
+        
+        // Ensure the crop area is within valid bounds
+        var cropWidth = Math.Max(1, Math.Min(_dragStartCropArea.Width, _imageDisplaySize.Width));
+        var cropHeight = Math.Max(1, Math.Min(_dragStartCropArea.Height, _imageDisplaySize.Height));
+        
+        _cropArea = new Rect(newX, newY, cropWidth, cropHeight);
     }
 
     private void PerformResize(Point currentPosition)
     {
+        if (_currentBitmap == null || _imageDisplaySize.Width <= 0 || _imageDisplaySize.Height <= 0) return;
+        
         var centerX = _dragStartCropArea.X + _dragStartCropArea.Width / 2;
         var centerY = _dragStartCropArea.Y + _dragStartCropArea.Height / 2;
         
@@ -414,12 +463,23 @@ public partial class ConsolidatedImageCropWindow : Window
         halfNewSize = Math.Min(halfNewSize, Math.Min(centerX - _imageDisplayOffset.X, _imageDisplayOffset.X + _imageDisplaySize.Width - centerX));
         halfNewSize = Math.Min(halfNewSize, Math.Min(centerY - _imageDisplayOffset.Y, _imageDisplayOffset.Y + _imageDisplaySize.Height - centerY));
         
+        // Ensure minimum size
+        halfNewSize = Math.Max(halfNewSize, MinCropSize / 2);
+        
         _cropArea = new Rect(centerX - halfNewSize, centerY - halfNewSize, halfNewSize * 2, halfNewSize * 2);
     }
 
     private void EndDrag()
     {
         _isDragging = false;
+        
+        // Update preview when drag ends for better performance
+        if (_isPreviewUpdatePending)
+        {
+            UpdatePreview();
+            _isPreviewUpdatePending = false;
+        }
+        
         // Pointer capture is released automatically when pointer is released
     }
 
@@ -427,6 +487,14 @@ public partial class ConsolidatedImageCropWindow : Window
     {
         _isResizing = false;
         _activeHandle = null;
+        
+        // Update preview when resize ends for better performance
+        if (_isPreviewUpdatePending)
+        {
+            UpdatePreview();
+            _isPreviewUpdatePending = false;
+        }
+        
         // Pointer capture is released automatically when pointer is released
     }
 
@@ -449,10 +517,10 @@ public partial class ConsolidatedImageCropWindow : Window
             if (string.IsNullOrEmpty(_tempPreviewPath))
             {
                 var tempDir = Path.Combine(Path.GetTempPath(), "SchoolOrganizer", "CropPreview");
-                Directory.CreateDirectory(tempDir);
+                System.IO.Directory.CreateDirectory(tempDir);
                 _tempPreviewPath = Path.Combine(tempDir, "crop_preview.png");
             }
-            
+
             bitmap.Save(_tempPreviewPath);
             return _tempPreviewPath;
         }
@@ -466,53 +534,136 @@ public partial class ConsolidatedImageCropWindow : Window
     {
         if (_currentBitmap == null) return null;
 
-        var scaleX = _currentBitmap.PixelSize.Width / _imageDisplaySize.Width;
-        var scaleY = _currentBitmap.PixelSize.Height / _imageDisplaySize.Height;
-        
+        // Use full resolution bitmap if available, otherwise fall back to display bitmap
+        var sourceBitmap = _fullResolutionBitmap ?? _currentBitmap;
+
+        var scaleX = sourceBitmap.PixelSize.Width / _imageDisplaySize.Width;
+        var scaleY = sourceBitmap.PixelSize.Height / _imageDisplaySize.Height;
+
         var cropX = (_cropArea.X - _imageDisplayOffset.X) * scaleX;
         var cropY = (_cropArea.Y - _imageDisplayOffset.Y) * scaleY;
         var cropWidth = _cropArea.Width * scaleX;
         var cropHeight = _cropArea.Height * scaleY;
-        
-        var outputSize = (int)Math.Ceiling(Math.Max(cropWidth, cropHeight));
+
+        // Use a consistent high-quality output size for all profile images
+        var outputSize = ProfileImageOutputSize;
+
         var renderTarget = new RenderTargetBitmap(new PixelSize(outputSize, outputSize));
-        
+
         using var drawingContext = renderTarget.CreateDrawingContext();
-        var centerX = cropX + cropWidth / 2.0;
-        var centerY = cropY + cropHeight / 2.0;
+
+        // Define the circular clip area for the output
         var clipRect = new Rect(0, 0, outputSize, outputSize);
-        
+
         using (drawingContext.PushClip(clipRect))
         using (drawingContext.PushGeometryClip(new EllipseGeometry(clipRect)))
         {
             if (Math.Abs(_rotationAngle) <= 0.01)
             {
-                var sourceX = Math.Max(0, centerX - outputSize / 2.0);
-                var sourceY = Math.Max(0, centerY - outputSize / 2.0);
-                var sourceWidth = Math.Min(outputSize, _currentBitmap.PixelSize.Width - sourceX);
-                var sourceHeight = Math.Min(outputSize, _currentBitmap.PixelSize.Height - sourceY);
-                
-                var sourceRect = new Rect(sourceX, sourceY, sourceWidth, sourceHeight);
+                // No rotation: Scale the cropped region to fill the output size
+                var sourceRect = new Rect(cropX, cropY, cropWidth, cropHeight);
                 var destRect = new Rect(0, 0, outputSize, outputSize);
-                drawingContext.DrawImage(_currentBitmap, sourceRect, destRect);
+                drawingContext.DrawImage(sourceBitmap, sourceRect, destRect);
             }
             else
             {
+                // With rotation: apply transform and scale
+                var centerX = cropX + cropWidth / 2.0;
+                var centerY = cropY + cropHeight / 2.0;
+                var scale = outputSize / Math.Max(cropWidth, cropHeight);
+
                 using (drawingContext.PushTransform(
                     Matrix.CreateTranslation(-centerX, -centerY) *
                     Matrix.CreateRotation(_rotationAngle * Math.PI / 180) *
+                    Matrix.CreateScale(scale, scale) *
                     Matrix.CreateTranslation(outputSize / 2.0, outputSize / 2.0)))
                 {
                     drawingContext.DrawImage(
-                        _currentBitmap,
-                        new Rect(0, 0, _currentBitmap.PixelSize.Width, _currentBitmap.PixelSize.Height),
-                        new Rect(0, 0, _currentBitmap.PixelSize.Width, _currentBitmap.PixelSize.Height)
+                        sourceBitmap,
+                        new Rect(0, 0, sourceBitmap.PixelSize.Width, sourceBitmap.PixelSize.Height),
+                        new Rect(0, 0, sourceBitmap.PixelSize.Width, sourceBitmap.PixelSize.Height)
                     );
                 }
             }
         }
-        
+
         return renderTarget;
+    }
+
+    private void RotateImage(double degrees)
+    {
+        try
+        {
+            Log.Information("ConsolidatedImageCropWindow.RotateImage called - degrees: {Degrees}, _currentBitmap: {HasCurrentBitmap}, _fullResolutionBitmap: {HasFullBitmap}", 
+                degrees, _currentBitmap != null, _fullResolutionBitmap != null);
+
+            if (_currentBitmap == null || _fullResolutionBitmap == null) 
+            {
+                Log.Warning("ConsolidatedImageCropWindow.RotateImage - Missing bitmaps, returning");
+                return;
+            }
+
+            _rotationAngle += degrees;
+            
+            // Normalize rotation angle to -180 to 180 range
+            while (_rotationAngle <= -180) _rotationAngle += 360;
+            while (_rotationAngle > 180) _rotationAngle -= 360;
+
+            Log.Information("ConsolidatedImageCropWindow.RotateImage - New rotation angle: {RotationAngle}", _rotationAngle);
+
+            // Apply rotation to the display bitmap
+            if (_currentBitmap != null)
+            {
+                var rotatedDisplay = RotateBitmap(_currentBitmap, (int)degrees);
+                if (rotatedDisplay != null)
+                {
+                    _currentBitmap = rotatedDisplay;
+                }
+                else
+                {
+                    Log.Error("ConsolidatedImageCropWindow.RotateImage - Failed to rotate display bitmap");
+                    throw new InvalidOperationException("Failed to rotate display bitmap");
+                }
+            }
+
+            // Apply rotation to the full resolution bitmap
+            if (_fullResolutionBitmap != null)
+            {
+                var rotatedFull = RotateBitmap(_fullResolutionBitmap, (int)degrees);
+                if (rotatedFull != null)
+                {
+                    _fullResolutionBitmap = rotatedFull;
+                }
+                else
+                {
+                    Log.Error("ConsolidatedImageCropWindow.RotateImage - Failed to rotate full resolution bitmap");
+                    throw new InvalidOperationException("Failed to rotate full resolution bitmap");
+                }
+            }
+
+            // Update the main image display
+            if (_currentBitmap != null)
+            {
+                MainImage.Source = _currentBitmap;
+            }
+
+            // Update crop area and preview
+            InitializeCropArea();
+            UpdatePreview();
+            
+            // Reset drag state to prevent issues with stale coordinates
+            _isDragging = false;
+            _isResizing = false;
+
+            Log.Information("ConsolidatedImageCropWindow.RotateImage completed successfully");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error in ConsolidatedImageCropWindow.RotateImage: {Message}", ex.Message);
+            // Reset rotation angle on error
+            _rotationAngle -= degrees;
+            throw;
+        }
     }
 
     private async Task LoadImageGallery()
@@ -523,12 +674,12 @@ public partial class ConsolidatedImageCropWindow : Window
         {
             _imageGalleryGrid.Children.Clear();
             _imageGalleryGrid.RowDefinitions.Clear();
-            
+
             // Load recent images from temp directory
             var tempDir = Path.Combine(Path.GetTempPath(), "SchoolOrganizer", "CropPreview");
-            if (Directory.Exists(tempDir))
+            if (System.IO.Directory.Exists(tempDir))
             {
-                var imageFiles = Directory.GetFiles(tempDir, "*.png")
+                var imageFiles = System.IO.Directory.GetFiles(tempDir, "*.png")
                     .OrderByDescending(File.GetLastWriteTime)
                     .Take(6)
                     .ToArray();
@@ -601,8 +752,15 @@ public partial class ConsolidatedImageCropWindow : Window
         try
         {
             using var fileStream = File.OpenRead(imagePath);
-            var bitmap = new Bitmap(fileStream);
-            await LoadBitmap(bitmap);
+            var bitmap = LoadBitmapWithCorrectOrientation(fileStream, imagePath);
+
+            // Keep full resolution bitmap for high-quality final crop
+            _fullResolutionBitmap?.Dispose();
+            _fullResolutionBitmap = bitmap;
+
+            // Create a resized version for display if needed
+            var displayBitmap = ResizeImageIfNeeded(bitmap);
+            await LoadBitmap(displayBitmap);
         }
         catch (Exception ex)
         {
@@ -610,16 +768,170 @@ public partial class ConsolidatedImageCropWindow : Window
         }
     }
 
+    #region EXIF Orientation Handling
+    private static Bitmap LoadBitmapWithCorrectOrientation(Stream stream, string? filePath)
+    {
+        Log.Information("LoadBitmapWithCorrectOrientation called with filePath: {FilePath}", filePath ?? "null");
+
+        // Read EXIF orientation if available
+        int orientation = 1; // Default: no rotation needed
+
+        // Try reading EXIF from file path first
+        if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+        {
+            try
+            {
+                var directories = ImageMetadataReader.ReadMetadata(filePath);
+                var exifSubIfdDirectory = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
+
+                if (exifSubIfdDirectory != null && exifSubIfdDirectory.TryGetInt32(ExifDirectoryBase.TagOrientation, out int orientationValue))
+                {
+                    orientation = orientationValue;
+                    Log.Information("EXIF Orientation detected: {Orientation} from file: {FilePath}", orientation, filePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to read EXIF from file path: {FilePath}", filePath);
+            }
+        }
+        // If no file path, try reading from stream
+        else if (stream.CanSeek)
+        {
+            try
+            {
+                var position = stream.Position;
+                var directories = ImageMetadataReader.ReadMetadata(stream);
+                stream.Position = position; // Reset stream position
+
+                var exifSubIfdDirectory = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
+
+                if (exifSubIfdDirectory != null && exifSubIfdDirectory.TryGetInt32(ExifDirectoryBase.TagOrientation, out int orientationValue))
+                {
+                    orientation = orientationValue;
+                    Log.Information("EXIF Orientation detected: {Orientation} from stream", orientation);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to read EXIF from stream");
+            }
+        }
+
+        // Load the bitmap
+        var originalBitmap = new Bitmap(stream);
+
+        // Apply rotation based on EXIF orientation
+        if (orientation != 1)
+        {
+            Log.Information("EXIF Orientation detected: {Orientation}, but skipping auto-rotation to preserve original orientation", orientation);
+        }
+
+        // Always return the original bitmap without EXIF-based rotation
+        // This prevents unwanted rotations when the image is already correctly oriented
+        return originalBitmap;
+    }
+
+    private static Bitmap RotateBitmap(Bitmap source, int degrees)
+    {
+        if (source == null)
+        {
+            System.Diagnostics.Debug.WriteLine("RotateBitmap: source is null");
+            return source!;
+        }
+
+        if (degrees % 360 == 0)
+            return source;
+
+        try
+        {
+            // Normalize degrees to 0-360 range for easier handling
+            int normalizedDegrees = ((degrees % 360) + 360) % 360;
+            
+            // Calculate new dimensions based on rotation
+            int newWidth, newHeight;
+            if (normalizedDegrees == 90 || normalizedDegrees == 270)
+            {
+                // Swap dimensions for 90° and 270° rotations
+                newWidth = source.PixelSize.Height;
+                newHeight = source.PixelSize.Width;
+            }
+            else
+            {
+                newWidth = source.PixelSize.Width;
+                newHeight = source.PixelSize.Height;
+            }
+
+        // Create a new bitmap with rotated dimensions
+        var rotated = new RenderTargetBitmap(new PixelSize(newWidth, newHeight));
+
+        using (var context = rotated.CreateDrawingContext())
+        {
+            // Apply rotation transformation
+            var matrix = Matrix.Identity;
+
+            switch (normalizedDegrees)
+            {
+                case 90:
+                    matrix = Matrix.CreateTranslation(-source.PixelSize.Width / 2.0, -source.PixelSize.Height / 2.0) *
+                             Matrix.CreateRotation(Math.PI / 2) *
+                             Matrix.CreateTranslation(newWidth / 2.0, newHeight / 2.0);
+                    break;
+                case 180:
+                    matrix = Matrix.CreateTranslation(-source.PixelSize.Width / 2.0, -source.PixelSize.Height / 2.0) *
+                             Matrix.CreateRotation(Math.PI) *
+                             Matrix.CreateTranslation(newWidth / 2.0, newHeight / 2.0);
+                    break;
+                case 270:
+                    matrix = Matrix.CreateTranslation(-source.PixelSize.Width / 2.0, -source.PixelSize.Height / 2.0) *
+                             Matrix.CreateRotation(3 * Math.PI / 2) *
+                             Matrix.CreateTranslation(newWidth / 2.0, newHeight / 2.0);
+                    break;
+            }
+
+            using (context.PushTransform(matrix))
+            {
+                context.DrawImage(source,
+                    new Rect(0, 0, source.PixelSize.Width, source.PixelSize.Height),
+                    new Rect(0, 0, source.PixelSize.Width, source.PixelSize.Height));
+            }
+        }
+
+            // Dispose the original bitmap
+            source.Dispose();
+
+            return rotated;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in RotateBitmap: {ex.Message}");
+            return source; // Return original bitmap on error
+        }
+    }
+    #endregion
+
     private void UpdatePreviewState(bool showActions, bool resetEnabled, bool saveEnabled)
     {
         ActionButtonsPanel.IsVisible = showActions;
         ResetButton.IsEnabled = resetEnabled;
         SaveButton.IsEnabled = saveEnabled;
+        RotateLeftButton.IsEnabled = showActions && _currentBitmap != null;
+        RotateRightButton.IsEnabled = showActions && _currentBitmap != null;
     }
 
     private void OnBackClick(object? sender, RoutedEventArgs e)
     {
         ResetImageState();
+    }
+
+    private void OnRotateLeftClick(object? sender, RoutedEventArgs e)
+    {
+        RotateImage(-90);
+    }
+
+    private void OnRotateRightClick(object? sender, RoutedEventArgs e)
+    {
+        RotateImage(90);
     }
 
     private void OnResetClick(object? sender, RoutedEventArgs e)

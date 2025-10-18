@@ -84,6 +84,14 @@
                     <materialIcons:MaterialIcon Kind="Close" />
                 </Button>
 
+                <Button Name="RotateLeftButton" Classes="IconButton" IsEnabled="False" ToolTip.Tip="Rotate Left" Click="RotateLeftButton_Click">
+                    <materialIcons:MaterialIcon Kind="RotateLeft" />
+                </Button>
+
+                <Button Name="RotateRightButton" Classes="IconButton" IsEnabled="False" ToolTip.Tip="Rotate Right" Click="RotateRightButton_Click">
+                    <materialIcons:MaterialIcon Kind="RotateRight" />
+                </Button>
+
                 <Button Name="ResetButton" Classes="IconButton" IsEnabled="False" ToolTip.Tip="Reset" Click="ResetButton_Click">
                     <materialIcons:MaterialIcon Kind="Refresh" />
                 </Button>
