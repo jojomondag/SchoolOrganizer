@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using SchoolOrganizer.Src.Models.Students;
 
 namespace SchoolOrganizer.Src.Services

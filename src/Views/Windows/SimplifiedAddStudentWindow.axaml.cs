@@ -8,7 +8,6 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Avalonia.Input;
 using SchoolOrganizer.Src.Views.Windows.ImageCrop;
 using SchoolOrganizer.Src.Models.Students;
 using SchoolOrganizer.Src.Services;

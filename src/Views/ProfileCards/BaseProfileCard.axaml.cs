@@ -1,17 +1,10 @@
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia;
-using Avalonia.Animation;
 using System;
-using Avalonia.Threading;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using SchoolOrganizer.Src.Models.Students;
-using SchoolOrganizer.Src.Views.Windows;
-using SchoolOrganizer.Src.Views.Windows.ImageCrop;
-using SchoolOrganizer.Src.Views.ProfileCards.Components;
 
 namespace SchoolOrganizer.Src.Views.ProfileCards
 {

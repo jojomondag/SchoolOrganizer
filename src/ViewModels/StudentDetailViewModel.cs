@@ -8,17 +8,10 @@ using ReactiveUI;
 using Serilog;
 using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia.Media.Imaging;
-using System.Text;
-using Avalonia.Controls;
-using Avalonia;
-using Avalonia.VisualTree;
 using Avalonia.Threading;
 using SchoolOrganizer.Src.Services;
-using SchoolOrganizer.Src.Models.Students;
 using SchoolOrganizer.Src.Models.Assignments;
 using SchoolOrganizer.Src.Models.UI;
-using Avalonia.ReactiveUI;
 
 namespace SchoolOrganizer.Src.ViewModels;
 

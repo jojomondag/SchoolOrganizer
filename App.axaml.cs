@@ -1,15 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
-using Avalonia.Threading;
 using SchoolOrganizer.Src.ViewModels;
 using SchoolOrganizer.Src.Views;
 using SchoolOrganizer.Src.Services;
@@ -49,9 +44,6 @@ public partial class App : Application
             desktop.MainWindow = mainWindow;
             mainWindow.Show();
             Log.Information("Opened MainWindow - authentication handled in Student Gallery.");
-
-            // Auto-open StudentDetailView with first real classroom - DISABLED to show StudentGallery first
-            // await OpenFirstRealClassroom();
         }
 
         base.OnFrameworkInitializationCompleted();

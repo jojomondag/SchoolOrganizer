@@ -1,12 +1,9 @@
 using System;
-using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Input;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using SchoolOrganizer.Src.ViewModels;
-using SchoolOrganizer.Src.Views.Windows.ImageCrop;
 
 namespace SchoolOrganizer.Src.Views.StudentGallery;
 

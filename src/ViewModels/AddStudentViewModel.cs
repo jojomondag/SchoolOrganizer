@@ -3,16 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SchoolOrganizer.Src.Models.Students;
-using SchoolOrganizer.Src.Models.UI;
 using SchoolOrganizer.Src.Services;
-using SchoolOrganizer.Src.Views.Windows;
-using SchoolOrganizer.Src.Views.Windows.ImageCrop;
 using Google.Apis.Classroom.v1.Data;
 
 namespace SchoolOrganizer.Src.ViewModels;

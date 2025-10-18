@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Google.Apis.Classroom.v1.Data;
 using Google.Apis.Drive.v3;
-using SchoolOrganizer.Src.Services;
 using SchoolOrganizer.Src.Services.Utilities;
 using Serilog;
 
@@ -302,8 +301,6 @@ public class DownloadManager
 
                 string statusMessage = $"Downloading: {attachment.DriveFile.Title} for {studentName} - {assignmentName}";
                 UpdateStatus(statusMessage);
-                // Remove this duplicate log
-                // Log.Information(statusMessage);
 
                 // Check if the file needs to be unpacked
                 if (NeedsUnpacking(file.MimeType))
@@ -323,8 +320,6 @@ public class DownloadManager
             {
                 string statusMessage = $"Saving link: {attachment.Link.Title} for {studentName} - {assignmentName}";
                 UpdateStatus(statusMessage);
-                // Remove this duplicate log
-                // Log.Information(statusMessage);
                 string linkPath = Path.Combine(assignmentDirectory, DirectoryUtil.SanitizeFolderName(attachment.Link.Title ?? "Link") + ".url");
                 await File.WriteAllTextAsync(linkPath, $"[InternetShortcut]\nURL={attachment.Link.Url}");
                 _downloadedFiles[submissionId] = new DownloadedFileInfo(attachment.Link.Url, attachment.Link.Title ?? "Link", linkPath, DateTime.UtcNow, studentName, assignmentName, true);
@@ -395,7 +390,6 @@ public class DownloadManager
             _downloadedFiles[submissionId] = new DownloadedFileInfo(fileId, Path.GetFileName(filePath), filePath, DateTime.UtcNow, studentName, assignmentName, false);
             string successMessage = $"Downloaded: {Path.GetFileName(filePath)} for {studentName} - {assignmentName}";
             UpdateStatus(successMessage);
-            // Log.Information(successMessage); // Removed this line
         }
         catch (Exception ex)
         {
@@ -479,8 +473,6 @@ public class DownloadManager
     {
         string trimmedMessage = message.Replace(Environment.NewLine, " ").Trim();
         _updateStatus(trimmedMessage);
-        // Decide whether to keep or remove this line based on where you want logging to occur
-        // Log.Information(message);
     }
 
     private string GetOrCreateCourseDirectory(string baseFolderPath, string courseName, string? section, string courseId, string teacherName)

@@ -4,8 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
-using Avalonia.Media;
 using Serilog;
 using SchoolOrganizer.Src.Models.Assignments;
 using SchoolOrganizer.Src.Models.UI;

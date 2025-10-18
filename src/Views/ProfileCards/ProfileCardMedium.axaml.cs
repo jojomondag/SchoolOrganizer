@@ -1,6 +1,4 @@
-using Avalonia.Controls;
 using SchoolOrganizer.Src.Models.Students;
-using System;
 
 namespace SchoolOrganizer.Src.Views.ProfileCards
 {

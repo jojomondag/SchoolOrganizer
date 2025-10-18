@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using System;
 using System.Threading.Tasks;
 
 namespace SchoolOrganizer.Src.Views.Windows;

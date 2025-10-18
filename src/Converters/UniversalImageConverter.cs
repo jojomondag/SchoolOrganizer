@@ -3,7 +3,6 @@ using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using System.Globalization;
 using System.IO;
-using System.Threading;
 using System.Collections.Concurrent;
 
 namespace SchoolOrganizer.Src.Converters;

@@ -5,22 +5,8 @@ namespace SchoolOrganizer.Src.Models.UI;
 /// </summary>
 public enum ProfileCardDisplayLevel
 {
-    /// <summary>
-    /// Small view - Name and image only
-    /// Used when many cards are displayed
-    /// </summary>
     Small,
-    
-    /// <summary>
-    /// Medium view - Name, class, teacher name, and image
-    /// Used for normal gallery view
-    /// </summary>
     Medium,
-    
-    /// <summary>
-    /// Full view - Single card in full detail view
-    /// Used when showing one student in detail
-    /// </summary>
     Full
 }
 

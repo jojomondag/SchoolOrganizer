@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s \"C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\src\")",
+      "Bash(find src/ViewModels -name \"*.cs\" -exec grep -l \"^[[:space:]]*//.*\" {} ;)",
+      "Bash(find src/Views -name \"*.cs\" -exec grep -l \"^[[:space:]]*//.*\" {} ;)",
+      "Bash(find src/Converters -name \"*.cs\" -exec grep -l \"^[[:space:]]*//.*\" {} ;)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

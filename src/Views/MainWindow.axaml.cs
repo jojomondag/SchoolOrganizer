@@ -1,9 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Native;
-using SchoolOrganizer.Src.ViewModels;
-using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 

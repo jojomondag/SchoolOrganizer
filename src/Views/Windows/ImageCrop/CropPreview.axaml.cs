@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
-using Avalonia.VisualTree;
 using System;
 using System.IO;
 using SchoolOrganizer.Src.Views.ProfileCards.Components;

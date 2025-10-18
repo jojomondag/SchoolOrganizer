@@ -1,6 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
-using Avalonia.Input;
 using Avalonia.Media;
 using System;
 using AvaloniaPath = Avalonia.Controls.Shapes.Path;

@@ -47,20 +47,20 @@
   <Border Grid.Row="1" Background="{DynamicResource BackgroundTertiaryBrush}">
     <Grid>
       <!-- Add Student View - Completely replaces gallery when IsAddingStudent is true -->
-      <addStudent:AddStudentView Name="AddStudentView" 
-                                 IsVisible="{Binding $parent[UserControl].DataContext.IsAddingStudent}"
+      <addStudent:AddStudentView Name="AddStudentView"
+                                 IsVisible="{Binding $parent[UserControl].DataContext.IsAddingStudent, FallbackValue=False}"
                                  HorizontalAlignment="Stretch"
                                  VerticalAlignment="Stretch"/>
-      
+
       <!-- Student Gallery Content - Only shown when NOT adding student -->
-      <ScrollViewer Name="StudentsScrollViewer" 
-                    Padding="0,20,0,40" 
-                    VerticalScrollBarVisibility="Auto" 
+      <ScrollViewer Name="StudentsScrollViewer"
+                    Padding="0,20,0,40"
+                    VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled"
                     ClipToBounds="False"
                     VerticalAlignment="Stretch"
                     HorizontalAlignment="Stretch"
-                    IsVisible="{Binding $parent[UserControl].DataContext.IsAddingStudent, Converter={x:Static BoolConverters.Not}}">
+                    IsVisible="{Binding $parent[UserControl].DataContext.IsAddingStudent, Converter={x:Static BoolConverters.Not}, FallbackValue=True}">
       <Grid HorizontalAlignment="Stretch" VerticalAlignment="Top" ClipToBounds="False">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
@@ -272,7 +272,7 @@
                   <DataTemplate x:DataType="models:IPerson">
                     <Grid>
                       <!-- Student Card Template -->
-                      <Panel IsVisible="{Binding Id, Converter={StaticResource ComparisonConverter}, ConverterParameter='!=,-1'}">
+                      <Panel IsVisible="{Binding Id, Converter={StaticResource ComparisonConverter}, ConverterParameter='!=,-1', FallbackValue=True}">
                         <!-- Small Card for Small DisplayLevel -->
                         <profileCard:ProfileCardSmall Name="{Binding Name}"
                                                      RoleInfo="{Binding RoleInfo}"
@@ -303,13 +303,13 @@
                         </Panel.IsVisible>
                         <!-- Add Student Card for Small DisplayLevel -->
                         <profileCard:AddStudentProfileCard Name="AddStudentCardSmall"
-                                                           Width="{Binding $parent[UserControl].DataContext.DisplayConfig.CardWidth}"
-                                                           Height="{Binding $parent[UserControl].DataContext.DisplayConfig.CardHeight}"
+                                                           Width="{Binding $parent[UserControl].DataContext.DisplayConfig.CardWidth, FallbackValue=200}"
+                                                           Height="{Binding $parent[UserControl].DataContext.DisplayConfig.CardHeight, FallbackValue=200}"
                                                            Margin="20,30,20,30"
                                                            CornerRadius="12"
                                                            Padding="8"
-                                                           IconSize="{Binding $parent[UserControl].DataContext.DisplayConfig.ImageSize}"
-                                                           TitleFontSize="{Binding $parent[UserControl].DataContext.DisplayConfig.NameFontSize}"
+                                                           IconSize="{Binding $parent[UserControl].DataContext.DisplayConfig.ImageSize, FallbackValue=80}"
+                                                           TitleFontSize="{Binding $parent[UserControl].DataContext.DisplayConfig.NameFontSize, FallbackValue=12}"
                                                            AddStudentSubtitleText="Click to add"
                                                            SubtitleFontSize="11"
                                                            CardClicked="OnAddStudentCardClicked"
@@ -317,13 +317,13 @@
 
                         <!-- Add Student Card for Medium DisplayLevel -->
                         <profileCard:AddStudentProfileCard Name="AddStudentCardMedium"
-                                                           Width="{Binding $parent[UserControl].DataContext.DisplayConfig.CardWidth}"
-                                                           Height="{Binding $parent[UserControl].DataContext.DisplayConfig.CardHeight}"
+                                                           Width="{Binding $parent[UserControl].DataContext.DisplayConfig.CardWidth, FallbackValue=240}"
+                                                           Height="{Binding $parent[UserControl].DataContext.DisplayConfig.CardHeight, FallbackValue=240}"
                                                            Margin="20,40,20,40"
                                                            CornerRadius="16"
                                                            Padding="12"
-                                                           IconSize="{Binding $parent[UserControl].DataContext.DisplayConfig.ImageSize}"
-                                                           TitleFontSize="{Binding $parent[UserControl].DataContext.DisplayConfig.NameFontSize}"
+                                                           IconSize="{Binding $parent[UserControl].DataContext.DisplayConfig.ImageSize, FallbackValue=100}"
+                                                           TitleFontSize="{Binding $parent[UserControl].DataContext.DisplayConfig.NameFontSize, FallbackValue=14}"
                                                            AddStudentSubtitleText="Click to add a new student"
                                                            SubtitleFontSize="12"
                                                            CardClicked="OnAddStudentCardClicked"

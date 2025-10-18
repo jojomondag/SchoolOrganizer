@@ -4,18 +4,12 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Google.Apis.Classroom.v1.Data;
-using ReactiveUI;
 using Serilog;
-using SchoolOrganizer.Src.Models.Students;
 using SchoolOrganizer.Src.Models.Plagiarism;
 using SchoolOrganizer.Src.Services;
-using SchoolOrganizer.Src.Services.Utilities;
 
 namespace SchoolOrganizer.Src.ViewModels;
 

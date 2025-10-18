@@ -11,9 +11,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Input;
 using SchoolOrganizer.Src.Views.Windows.ImageCrop;
 using SchoolOrganizer.Src.Models.Students;
-using SchoolOrganizer.Src.Models.UI;
 using SchoolOrganizer.Src.Services;
-using Google.Apis.Classroom.v1.Data;
 
 namespace SchoolOrganizer.Src.Views.Windows;
 

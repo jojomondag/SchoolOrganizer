@@ -12,8 +12,6 @@ using DiffPlex.DiffBuilder;
 using FuzzySharp;
 using Serilog;
 using SchoolOrganizer.Src.Models.Plagiarism;
-using SchoolOrganizer.Src.Models.Assignments;
-using SchoolOrganizer.Src.Services.Utilities;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using SixLabors.ImageSharp;

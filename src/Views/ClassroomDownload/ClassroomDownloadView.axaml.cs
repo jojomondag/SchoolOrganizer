@@ -2,9 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Media;
-using Avalonia;
 using SchoolOrganizer.Src.ViewModels;
-using System.Linq;
 
 namespace SchoolOrganizer.Src.Views.ClassroomDownload;
 

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using SchoolOrganizer.Src.Models.Students;
-using SchoolOrganizer.Src.Models.UI;
 using SchoolOrganizer.Src.Services.Utilities;
 using Google.Apis.Classroom.v1.Data;
 using Google.Apis.Drive.v3;

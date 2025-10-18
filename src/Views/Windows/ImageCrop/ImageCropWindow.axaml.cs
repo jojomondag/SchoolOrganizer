@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -13,7 +12,6 @@ using System.Linq;
 using System.Text.Json;
 using IOPath = System.IO.Path;
 using AvaloniaPath = Avalonia.Controls.Shapes.Path;
-using SchoolOrganizer.Src.Views.Windows.ImageCrop;
 
 namespace SchoolOrganizer.Src.Views.Windows.ImageCrop;
 

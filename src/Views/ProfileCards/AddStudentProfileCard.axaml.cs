@@ -1,9 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
 using System;
 using SchoolOrganizer.Src.Views.ProfileCards.Components;
-using Serilog;
 
 namespace SchoolOrganizer.Src.Views.ProfileCards
 {

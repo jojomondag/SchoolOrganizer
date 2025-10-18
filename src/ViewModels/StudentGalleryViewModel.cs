@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,8 +14,6 @@ using SchoolOrganizer.Src.Models.UI;
 using SchoolOrganizer.Src.Services;
 using SchoolOrganizer.Src.Converters;
 using SchoolOrganizer.Src.Views.Windows;
-using Avalonia.Controls;
-using SchoolOrganizer.Src.Views.Windows.ImageCrop;
 using Serilog;
 
 namespace SchoolOrganizer.Src.ViewModels;

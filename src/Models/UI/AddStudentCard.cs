@@ -1,4 +1,3 @@
-using System;
 using SchoolOrganizer.Src.Models.Students;
 
 namespace SchoolOrganizer.Src.Models.UI;
