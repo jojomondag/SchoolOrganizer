@@ -40,15 +40,15 @@
     "PersonType": 0,
     "Id": 3,
     "Name": "Theus Jinnevall Br\u00FCggmann",
-    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Theus Jinnevall Br\u00FCggmann_20251018_111657.jpg",
-    "OriginalImagePath": null,
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data/ProfileImages\\student_3_1760783988276.png",
+    "OriginalImagePath": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data/ProfileImages/Originals\\1760781374136_20240812_103728.jpg",
     "ClassName": "TILL\u00C4MPAD_PROGRAMMERING_2_IT_2",
     "Teachers": [
       "Josef Nobach"
     ],
     "Email": "theus.jinnevallbruggmann@elev.ga.ntig.se",
     "EnrollmentDate": "2025-10-18T11:16:57.4595515",
-    "CropSettings": null
+    "CropSettings": "{\u0022X\u0022:142.52000000000004,\u0022Y\u0022:59.71999999999997,\u0022Width\u0022:182.16,\u0022Height\u0022:182.16,\u0022RotationAngle\u0022:0,\u0022ImageDisplayWidth\u0022:809.6,\u0022ImageDisplayHeight\u0022:364.32,\u0022ImageDisplayOffsetX\u0022:0,\u0022ImageDisplayOffsetY\u0022:53.44}"
   },
   {
     "Teacher": "Josef Nobach",

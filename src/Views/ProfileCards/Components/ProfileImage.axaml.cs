@@ -1,22 +1,15 @@
 using System;
-using System.IO;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Serilog;
-using SchoolOrganizer.Src.Views.Windows.ImageCrop;
-using Avalonia.VisualTree;
-using Avalonia.Threading;
 using SchoolOrganizer.Src.Converters;
 
 namespace SchoolOrganizer.Src.Views.ProfileCards.Components;
 
 public partial class ProfileImage : UserControl
 {
-    private static bool _isAnyImageSelectionInProgress = false;
-    private bool _isProcessingImageSelection = false;
     private static DateTime _lastImageClickTime = DateTime.MinValue;
     private const int MinClickIntervalMs = 1000; // Minimum 1 second between clicks
     
@@ -203,9 +196,9 @@ public partial class ProfileImage : UserControl
         }
         _lastImageClickTime = currentTime;
 
-        if (!IsClickable || _isProcessingImageSelection || _isAnyImageSelectionInProgress)
+        if (!IsClickable)
         {
-            Log.Warning("ProfileImage.OnImageClick - Early return due to guard conditions");
+            Log.Warning("ProfileImage.OnImageClick - Not clickable, ignoring");
             return;
         }
 
@@ -221,20 +214,19 @@ public partial class ProfileImage : UserControl
     /// </summary>
     public void ForceImageRefresh()
     {
-        // Don't refresh if we're currently processing an image selection
-        if (_isProcessingImageSelection || _isAnyImageSelectionInProgress || string.IsNullOrEmpty(ImagePath))
+        if (string.IsNullOrEmpty(ImagePath))
             return;
 
         System.Diagnostics.Debug.WriteLine($"ProfileImage.ForceImageRefresh called for: {ImagePath}");
-        
+
         // Clear the cache for this path to ensure fresh image loading
         UniversalImageConverter.ClearCache(ImagePath);
-        
+
         // Force a property change notification to refresh the image
         var currentPath = ImagePath;
         ImagePath = string.Empty;
         ImagePath = currentPath;
-        
+
         System.Diagnostics.Debug.WriteLine($"ProfileImage.ForceImageRefresh set ImagePath to: {ImagePath}");
     }
 }
