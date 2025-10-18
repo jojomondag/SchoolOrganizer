@@ -24,7 +24,8 @@
             Cursor="{Binding Cursor, ElementName=Root}"
             ClipToBounds="False"
             BoxShadow="0 0 0 0 transparent"
-            PointerPressed="OnImageClick"
+            PointerPressed="OnImagePointerPressed"
+            Tapped="OnImageClick"
             IsHitTestVisible="True"
             ZIndex="100">
       

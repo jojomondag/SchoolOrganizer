@@ -6,52 +6,54 @@
              x:Class="SchoolOrganizer.Src.Views.Windows.ImageCrop.ImageHistory">
 
     <UserControl.Styles>
-        <!-- Delete button style for gallery thumbnails - use a stable template so hover effects keep the border and icon visible -->
+        <!-- Delete button style for gallery thumbnails - white background, light blue on hover -->
         <Style Selector="Button.DeleteButton">
-            <!-- Small thumbnail delete button: white start background and small size (16x16) like before -->
-            <Setter Property="Width" Value="16"/>
-            <Setter Property="Height" Value="16"/>
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
             <Setter Property="Background" Value="{DynamicResource WhiteBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource IconBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="9"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Opacity" Value="1"/>
-            <Setter Property="Foreground" Value="{DynamicResource IconBrush}"/>
+            <Setter Property="Opacity" Value="0.9"/>
+            <Setter Property="Foreground" Value="{DynamicResource ActionRedBrush}"/>
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="PART_Background"
+                            Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}"
                             Width="{TemplateBinding Width}"
                             Height="{TemplateBinding Height}"
-                            Padding="{TemplateBinding Padding}"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
+                            Padding="{TemplateBinding Padding}">
                         <ContentPresenter
                             Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Foreground="{TemplateBinding Foreground}"/>
                     </Border>
                 </ControlTemplate>
             </Setter>
         </Style>
 
-        <!-- Hover and pressed visuals for the delete button - only change background and foreground so border stays visible -->
-        <Style Selector="Button.DeleteButton:pointerover">
-            <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource IconBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+        <!-- Hover effect for the delete button - change to light blue background -->
+        <Style Selector="Button.DeleteButton:pointerover /template/ Border#PART_Background">
+            <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
         </Style>
+
+        <Style Selector="Button.DeleteButton:pointerover">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+
+        <Style Selector="Button.DeleteButton:pressed /template/ Border#PART_Background">
+            <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
+        </Style>
+
         <Style Selector="Button.DeleteButton:pressed">
-            <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource IconBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Opacity" Value="0.85"/>
         </Style>
         <!-- Always-thin scrollbar for the gallery - use a custom template to prevent any hover expansion -->
         <Style Selector="ScrollBar:vertical">

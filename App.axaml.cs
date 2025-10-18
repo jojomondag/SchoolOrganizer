@@ -21,12 +21,12 @@ public partial class App : Application
 {
     public override void Initialize()
     {
-        // Initialize Serilog - only show warnings and errors in console, reduce file logging
+        // Initialize Serilog - show information and above in console, reduce file logging
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console(restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
+            .WriteTo.Console(restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
             .WriteTo.File("logs/schoolorganizer-.txt", 
                 rollingInterval: RollingInterval.Day,
-                restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
+                restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
             .CreateLogger();
 
         AvaloniaXamlLoader.Load(this);

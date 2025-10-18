@@ -19,7 +19,8 @@
     <views:DisplayConfigConverter x:Key="DisplayConfigConverter"/>
     <views:ComparisonConverter x:Key="ComparisonConverter"/>
     <ControlTemplate x:Key="FlatButtonTemplate">
-      <Border Background="{TemplateBinding Background}"
+      <Border x:Name="PART_Border"
+              Background="{TemplateBinding Background}"
               BorderBrush="{TemplateBinding BorderBrush}"
               BorderThickness="{TemplateBinding BorderThickness}"
               CornerRadius="{TemplateBinding CornerRadius}">
@@ -451,43 +452,70 @@
               BoxShadow="{DynamicResource ShadowMedium}">
         <Grid>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Spacing="8">
+            <!-- Edit Student Button -->
             <Button Width="24" Height="24"
-                    Background="{DynamicResource ActionBlueLightBrush}" 
-                    BorderBrush="{DynamicResource ActionBlueBrush}"
+                    Background="{DynamicResource WhiteBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
                     BorderThickness="1"
+                    CornerRadius="4"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     Padding="0"
                     Command="{Binding EditStudentCommand}"
                     CommandParameter="{Binding SelectedStudent}"
-                    Template="{StaticResource FlatButtonTemplate}">
-              <materialIcons:MaterialIcon Kind="AccountEdit" 
-                                         Width="18" 
+                    Template="{StaticResource FlatButtonTemplate}"
+                    x:Name="EditButton">
+              <materialIcons:MaterialIcon Kind="AccountEdit"
+                                         Width="18"
                                          Height="18"
                                          Foreground="{DynamicResource ActionBlueBrush}"/>
               <Button.Styles>
-                <Style Selector="Button:pointerover">
-                  <Setter Property="Background" Value="{DynamicResource ActionBlueBrush}"/>
-                  <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+                <Style Selector="Button#EditButton:pointerover /template/ Border#PART_Border">
+                  <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
                 </Style>
               </Button.Styles>
             </Button>
+
+            <!-- Delete Student Button -->
             <Button Width="24" Height="24"
-                    Background="{DynamicResource ActionRedLightBrush}" 
-                    BorderBrush="{DynamicResource ActionRedBrush}"
+                    Background="{DynamicResource WhiteBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
                     BorderThickness="1"
+                    CornerRadius="4"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                     Padding="0"
                     Command="{Binding DeleteStudentCommand}"
                     CommandParameter="{Binding SelectedStudent}"
-                    Template="{StaticResource FlatButtonTemplate}">
-              <materialIcons:MaterialIcon Kind="AccountRemove" 
-                                         Width="18" 
+                    Template="{StaticResource FlatButtonTemplate}"
+                    x:Name="DeleteButton">
+              <materialIcons:MaterialIcon Kind="AccountRemove"
+                                         Width="18"
                                          Height="18"
                                          Foreground="{DynamicResource ActionRedBrush}"/>
               <Button.Styles>
-                <Style Selector="Button:pointerover">
-                  <Setter Property="Background" Value="{DynamicResource ActionRedBrush}"/>
-                  <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+                <Style Selector="Button#DeleteButton:pointerover /template/ Border#PART_Border">
+                  <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
+                </Style>
+              </Button.Styles>
+            </Button>
+
+            <!-- Close Details Button -->
+            <Button Width="24" Height="24"
+                    Background="{DynamicResource WhiteBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Padding="0"
+                    Command="{Binding DeselectStudentCommand}"
+                    Template="{StaticResource FlatButtonTemplate}"
+                    x:Name="CloseButton">
+              <materialIcons:MaterialIcon Kind="Close"
+                                         Width="18"
+                                         Height="18"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
+              <Button.Styles>
+                <Style Selector="Button#CloseButton:pointerover /template/ Border#PART_Border">
+                  <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
                 </Style>
               </Button.Styles>
             </Button>

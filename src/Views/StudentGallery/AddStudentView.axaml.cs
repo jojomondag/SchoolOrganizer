@@ -128,19 +128,6 @@ public partial class AddStudentView : UserControl
         }
     }
 
-    private async void OnChooseImageClick(object? sender, RoutedEventArgs e)
-    {
-        if (ViewModel == null) return;
-
-        var parentWindow = TopLevel.GetTopLevel(this) as Window;
-        if (parentWindow == null) return;
-
-        string? path = await ImageCropWindow.ShowAsync(parentWindow);
-        if (!string.IsNullOrWhiteSpace(path))
-        {
-            ViewModel.SelectedImagePath = path;
-        }
-    }
 
     private void OnAddTeacherClick(object? sender, RoutedEventArgs e)
     {
@@ -180,10 +167,6 @@ public partial class AddStudentView : UserControl
     }
 
 
-    private void OnProfileImageControlClicked(object? sender, EventArgs e)
-    {
-        OnChooseImageClick(sender, new RoutedEventArgs());
-    }
 
     private StudentGalleryViewModel? GetParentStudentGalleryViewModel()
     {

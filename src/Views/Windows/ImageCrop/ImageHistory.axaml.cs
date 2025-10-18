@@ -114,7 +114,7 @@ public partial class ImageHistory : UserControl
                 {
                     if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed) return;
                     var pt = e.GetPosition(container);
-                    if (new Rect(container.Bounds.Width - 19, 3, 16, 16).Contains(pt)) return;
+                    if (new Rect(container.Bounds.Width - 20, 2, 18, 18).Contains(pt)) return;
                     ImageSelected?.Invoke(this, localPath2);
                     e.Handled = true;
                 };
@@ -133,34 +133,24 @@ public partial class ImageHistory : UserControl
     }
     private Button CreateDeleteButton()
     {
-        var grid = new Grid
+        var icon = new MaterialIcon
         {
-            Width = 16,
-            Height = 16
-        };
-        grid.Children.Add(new MaterialIcon
-        {
-            Kind = MaterialIconKind.Close,
-            Width = 10,
-            Height = 10,
+            Kind = MaterialIconKind.CloseCircleOutline,
+            Width = 18,
+            Height = 18,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
-        });
+        };
+
         return new Button
         {
-            Content = grid,
-            Width = 16,
-            Height = 16,
-            Padding = new Thickness(0),
-            HorizontalContentAlignment = HorizontalAlignment.Center,
-            VerticalContentAlignment = VerticalAlignment.Center,
+            Content = icon,
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(0, 3, 3, 0),
+            Margin = new Thickness(0, 2, 2, 0),
             Cursor = new Cursor(StandardCursorType.Hand),
             ZIndex = 10,
-            Classes = { "DeleteButton" },
-            Foreground = GetBrush("IconBrush", Colors.Black)
+            Classes = { "DeleteButton" }
         };
     }
     private IBrush GetBrush(string key, Color fallback)

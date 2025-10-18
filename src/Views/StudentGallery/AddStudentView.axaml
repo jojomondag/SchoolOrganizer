@@ -119,8 +119,7 @@
               <StackPanel Grid.Column="0" Spacing="8">
                 <components:ProfileImage Width="100" 
                                                Height="100" 
-                                               ImagePath="{Binding SelectedImagePath}"
-                                               ImageClicked="OnProfileImageControlClicked"/>
+                                               ImagePath="{Binding SelectedImagePath, Mode=TwoWay}"/>
                 <TextBlock Text="Add Photo" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
               </StackPanel>
 
