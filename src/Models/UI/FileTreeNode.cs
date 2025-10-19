@@ -38,7 +38,7 @@ public class FileTreeNode
         try
         {
             var extension = Path.GetExtension(FullPath).ToLowerInvariant();
-            
+
             if (IsImageFile(extension))
             {
                 await LoadImageContent();
@@ -51,11 +51,17 @@ public class FileTreeNode
             {
                 await LoadTextContent();
             }
+            else if (IsDocumentFile(extension))
+            {
+                // Document files (docx, xlsx, pptx, pdf) - show as "none" rather than binary
+                // This allows them to be handled specially in the UI
+                IsNone = true;
+            }
             else
             {
                 IsBinary = true;
             }
-            
+
             IsContentLoaded = true;
         }
         catch (Exception ex)
@@ -82,6 +88,12 @@ public class FileTreeNode
     {
         var textExtensions = new[] { ".txt", ".md", ".rtf" };
         return Array.Exists(textExtensions, ext => string.Equals(ext, extension, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool IsDocumentFile(string extension)
+    {
+        var documentExtensions = new[] { ".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt", ".pdf" };
+        return Array.Exists(documentExtensions, ext => string.Equals(ext, extension, StringComparison.OrdinalIgnoreCase));
     }
 
     private Task LoadImageContent()

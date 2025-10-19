@@ -976,10 +976,10 @@ public partial class StudentGalleryViewModel : ObservableObject
             // Create and show AssignmentViewer
             var detailViewModel = new SchoolOrganizer.Src.ViewModels.StudentDetailViewModel();
             var detailWindow = new SchoolOrganizer.Src.Views.AssignmentManagement.AssignmentViewer(detailViewModel);
-            
-            // Load the student files asynchronously
-            await detailViewModel.LoadStudentFilesAsync(student.Name, student.ClassName, studentFolderPath);
-            
+
+            // Load the student files asynchronously, passing the student object for rating persistence
+            await detailViewModel.LoadStudentFilesAsync(student.Name, student.ClassName, studentFolderPath, student);
+
             detailWindow.Show();
         }
         catch (Exception ex)

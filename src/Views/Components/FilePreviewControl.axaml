@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:controls="using:SchoolOrganizer.Src.Controls"
+             xmlns:components="using:SchoolOrganizer.Src.Views.Components"
              xmlns:models="using:SchoolOrganizer.Src.Models.Assignments"
              x:Class="SchoolOrganizer.Src.Views.Components.FilePreviewControl"
              x:DataType="models:StudentFile">
@@ -85,29 +86,62 @@
       <!-- File Content Preview -->
       <ScrollViewer Grid.Row="1"
                     x:Name="ContentScrollViewer"
-                    VerticalScrollBarVisibility="Auto" 
+                    VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Auto"
                     MaxHeight="400"
                     Margin="0,0,0,0"
                     Padding="0">
           <Grid>
+            <!-- Google Docs Viewer (Highest Priority) -->
+            <components:GoogleDocsViewer IsVisible="{Binding IsGoogleDoc}"/>
+
+            <!-- Document Files (docx, xlsx, pptx, pdf) -->
+            <StackPanel IsVisible="{Binding IsNone}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Spacing="16"
+                        Margin="40">
+              <materialIcons:MaterialIcon Kind="FileDocument"
+                                          Width="64"
+                                          Height="64"
+                                          Foreground="{DynamicResource TextSecondaryBrush}"/>
+              <TextBlock Text="{Binding FileName}"
+                         FontWeight="SemiBold"
+                         FontSize="16"
+                         HorizontalAlignment="Center"
+                         TextWrapping="Wrap"
+                         MaxWidth="400"/>
+              <TextBlock Text="Document file - click below to open"
+                         FontSize="12"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         HorizontalAlignment="Center"/>
+              <Button Click="OnFileOpenClick"
+                      Padding="12,6"
+                      HorizontalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <materialIcons:MaterialIcon Kind="FolderOpen" Width="16" Height="16"/>
+                  <TextBlock Text="Open File" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Button>
+            </StackPanel>
+
             <!-- Image Content -->
-            <Image Source="{Binding ImageSource}" 
-                   Stretch="Uniform" 
+            <Image Source="{Binding ImageSource}"
+                   Stretch="Uniform"
                    MaxHeight="300"
                    HorizontalAlignment="Stretch"
                    IsVisible="{Binding IsImage}"/>
-            
+
             <!-- Code Content -->
-            <controls:SyntaxHighlightedCodeViewer 
+            <controls:SyntaxHighlightedCodeViewer
                 CodeContent="{Binding CodeContent}"
                 FileExtension="{Binding FileExtension}"
                 IsVisible="{Binding IsCode}"
                 MaxHeight="300"
                 HorizontalAlignment="Stretch"/>
-            
+
             <!-- Text Content -->
-            <TextBlock Text="{Binding TextContent}" 
+            <TextBlock Text="{Binding TextContent}"
                        FontFamily="Consolas, Courier New, monospace"
                        FontSize="12"
                        TextWrapping="Wrap"
@@ -115,28 +149,21 @@
                        MaxHeight="300"
                        TextTrimming="CharacterEllipsis"
                        HorizontalAlignment="Stretch"/>
-            
-            <!-- Binary/Unsupported Content -->
-            <StackPanel IsVisible="{Binding IsBinary}" 
+
+            <!-- Binary/Unsupported Content (Lowest Priority - Fallback) -->
+            <StackPanel IsVisible="{Binding IsBinary}"
                         HorizontalAlignment="Center"
                         Margin="20">
-              <TextBlock Text="Binary file - cannot preview" 
-                         FontStyle="Italic" 
+              <TextBlock Text="Binary file - cannot preview"
+                         FontStyle="Italic"
                          Foreground="Gray"
                          HorizontalAlignment="Center"/>
-              <TextBlock Text="{Binding FileSizeFormatted, StringFormat='Size: {0}'}" 
-                         FontSize="10" 
+              <TextBlock Text="{Binding FileSizeFormatted, StringFormat='Size: {0}'}"
+                         FontSize="10"
                          Foreground="Gray"
                          HorizontalAlignment="Center"
                          Margin="0,5,0,0"/>
             </StackPanel>
-            
-            <!-- No Content -->
-            <TextBlock Text="No content available" 
-                       FontStyle="Italic" 
-                       Foreground="Gray"
-                       HorizontalAlignment="Center"
-                       IsVisible="{Binding IsNone}"/>
           </Grid>
       </ScrollViewer>
     </Grid>

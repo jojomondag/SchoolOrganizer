@@ -36,6 +36,18 @@ public partial class Student : ObservableObject, IPerson
     [ObservableProperty]
     private string? cropSettings;
 
+    [ObservableProperty]
+    private Dictionary<string, int> assignmentRatings = new();
+
+    [ObservableProperty]
+    private Dictionary<string, string> assignmentNotes = new();
+
+    [ObservableProperty]
+    private Dictionary<string, DateTime> assignmentNotesTimestamps = new();
+
+    [ObservableProperty]
+    private Dictionary<string, double> assignmentNotesSidebarWidths = new();
+
     // Backward compatibility property for JSON serialization
     [JsonPropertyName("Teacher")]
     public string? LegacyTeacher 

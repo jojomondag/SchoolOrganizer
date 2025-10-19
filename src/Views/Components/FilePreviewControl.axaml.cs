@@ -1,8 +1,10 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using SchoolOrganizer.Src.Models.Assignments;
 using SchoolOrganizer.Src.Services;
+using Serilog;
 
 namespace SchoolOrganizer.Src.Views.Components;
 
@@ -34,6 +36,23 @@ public partial class FilePreviewControl : UserControl
         _scrollAnimationService = new ScrollAnimationService();
         _fileHandlingService = new FileHandlingService();
         _panelManagementService = new PanelManagementService();
+        
+        // Add debugging for DataContext changes
+        DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(object? sender, EventArgs e)
+    {
+        if (DataContext is StudentFile file)
+        {
+            Log.Information("FilePreviewControl DataContext changed - File: {FileName}, IsGoogleDoc: {IsGoogleDoc}, IsImage: {IsImage}, IsCode: {IsCode}, IsText: {IsText}, IsBinary: {IsBinary}", 
+                file.FileName, file.IsGoogleDoc, file.IsImage, file.IsCode, file.IsText, file.IsBinary);
+        }
+        else
+        {
+            Log.Warning("FilePreviewControl DataContext is not a StudentFile. Type: {Type}",
+                DataContext?.GetType().Name ?? "null");
+        }
     }
 
     private void InitializeComponent()

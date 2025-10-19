@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
@@ -23,6 +24,8 @@ public partial class AssignmentViewer : Window
 {
     private FileViewerScrollService? _scrollService;
     private DateTime _lastScrollTime = DateTime.MinValue;
+    private Dictionary<string, DispatcherTimer> _notesAutoSaveTimers = new();
+    private Dictionary<string, DispatcherTimer> _widthAutoSaveTimers = new();
 
     public AssignmentViewer()
     {
@@ -46,6 +49,7 @@ public partial class AssignmentViewer : Window
     {
         base.OnDataContextChanged(e);
         SubscribeToFilePreviewEvents();
+        SubscribeToAssignmentGroupEvents();
     }
 
     /// <summary>
@@ -59,7 +63,176 @@ public partial class AssignmentViewer : Window
         this.AddHandler(FilePreviewControl.MaximizeClickedEvent, OnFilePreviewMaximizeClicked);
         Log.Information("Successfully subscribed to MaximizeClickedEvent");
     }
-    
+
+    /// <summary>
+    /// Subscribes to AssignmentGroup PropertyChanged events to detect width changes
+    /// </summary>
+    private void SubscribeToAssignmentGroupEvents()
+    {
+        if (DataContext is not StudentDetailViewModel viewModel)
+            return;
+
+        // Subscribe to PropertyChanged events on each AssignmentGroup
+        foreach (var assignmentGroup in viewModel.AllFilesGrouped)
+        {
+            // Remove existing handler to prevent duplicates
+            assignmentGroup.PropertyChanged -= OnAssignmentGroupPropertyChanged;
+            assignmentGroup.PropertyChanged += OnAssignmentGroupPropertyChanged;
+        }
+
+        // Set initial column widths for notes sidebars after a delay to ensure visual tree is loaded
+        _ = Task.Delay(100).ContinueWith(_ =>
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                UpdateAllNotesColumnWidths();
+            });
+        });
+
+        Log.Information("Subscribed to {Count} AssignmentGroup PropertyChanged events", viewModel.AllFilesGrouped.Count);
+    }
+
+    /// <summary>
+    /// Updates all notes sidebar column widths based on saved values
+    /// </summary>
+    private void UpdateAllNotesColumnWidths()
+    {
+        try
+        {
+            // Find all AssignmentContentGrid instances and update their column widths
+            var mainContentPanel = this.FindControl<Border>("MainContentPanel");
+            if (mainContentPanel == null)
+            {
+                Log.Warning("MainContentPanel not found");
+                return;
+            }
+
+            var grids = mainContentPanel.GetVisualDescendants()
+                .OfType<Grid>()
+                .Where(g => g.Name == "AssignmentContentGrid")
+                .ToList();
+
+            Log.Information("Found {Count} AssignmentContentGrid instances", grids.Count);
+
+            if (DataContext is not StudentDetailViewModel viewModel)
+            {
+                Log.Warning("DataContext is not StudentDetailViewModel");
+                return;
+            }
+
+            int updated = 0;
+            foreach (var grid in grids)
+            {
+                // Find the corresponding assignment group by checking the grid's DataContext
+                if (grid.DataContext is AssignmentGroup assignmentGroup && grid.ColumnDefinitions.Count >= 3)
+                {
+                    var columnDef = grid.ColumnDefinitions[2];
+
+                    // If notes are expanded, use the saved width; otherwise collapse to 0
+                    if (assignmentGroup.IsNotesExpanded)
+                    {
+                        // Use saved width, or default to 220 if too small
+                        var width = assignmentGroup.NotesSidebarWidth;
+                        if (width < 150)
+                        {
+                            width = 220; // Use default width if saved width is too small
+                            assignmentGroup.NotesSidebarWidth = width; // Update the saved width
+                        }
+                        else
+                        {
+                            width = Math.Min(600, width); // Clamp to max
+                        }
+
+                        columnDef.Width = new GridLength(width, GridUnitType.Pixel);
+                        columnDef.MinWidth = 150;
+                        columnDef.MaxWidth = 600;
+                        Log.Information("Set column width for {Assignment} to {Width} (expanded)",
+                            assignmentGroup.AssignmentName, width);
+                    }
+                    else
+                    {
+                        columnDef.Width = new GridLength(0, GridUnitType.Pixel);
+                        columnDef.MinWidth = 0;
+                        columnDef.MaxWidth = double.PositiveInfinity;
+                        Log.Information("Set column width for {Assignment} to 0 (collapsed)",
+                            assignmentGroup.AssignmentName);
+                    }
+                    updated++;
+                }
+                else
+                {
+                    Log.Warning("Grid DataContext is not AssignmentGroup or doesn't have 3 columns. DataContext type: {Type}",
+                        grid.DataContext?.GetType().Name ?? "null");
+                }
+            }
+
+            Log.Information("Updated {UpdatedCount} out of {TotalCount} grids", updated, grids.Count);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error updating notes column widths");
+        }
+    }
+
+    /// <summary>
+    /// Handles PropertyChanged events from AssignmentGroup (reserved for future use)
+    /// </summary>
+    private void OnAssignmentGroupPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        // Currently not handling any property changes here
+        // Width changes are handled via GridSplitter DragCompleted event
+    }
+
+    /// <summary>
+    /// Handles GridSplitter drag completed to save the new sidebar width
+    /// </summary>
+    private async void OnNotesSplitterDragCompleted(object? sender, Avalonia.Input.VectorEventArgs e)
+    {
+        try
+        {
+            if (sender is not GridSplitter splitter)
+                return;
+
+            // Find the parent Grid (AssignmentContentGrid)
+            var grid = splitter.GetVisualAncestors().OfType<Grid>().FirstOrDefault(g => g.Name == "AssignmentContentGrid");
+            if (grid == null || grid.ColumnDefinitions.Count < 3)
+            {
+                Log.Warning("Could not find parent grid or grid doesn't have enough columns");
+                return;
+            }
+
+            // Get the assignment group from the grid's DataContext
+            if (grid.DataContext is not AssignmentGroup assignmentGroup)
+            {
+                Log.Warning("Grid DataContext is not an AssignmentGroup");
+                return;
+            }
+
+            // Get the new width from the column definition
+            var columnDef = grid.ColumnDefinitions[2];
+            var newWidth = columnDef.Width.Value;
+
+            // Clamp to valid range (150-600)
+            newWidth = Math.Max(150, Math.Min(600, newWidth));
+
+            Log.Information("GridSplitter drag completed for {Assignment}, new width: {Width}",
+                assignmentGroup.AssignmentName, newWidth);
+
+            // Update the assignment group's width property
+            assignmentGroup.NotesSidebarWidth = newWidth;
+
+            // Save to student data
+            if (DataContext is StudentDetailViewModel viewModel)
+            {
+                await viewModel.SaveAssignmentNotesSidebarWidthAsync(assignmentGroup.AssignmentName, newWidth);
+                Log.Information("Saved notes sidebar width for {Assignment}", assignmentGroup.AssignmentName);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error handling notes splitter drag completed");
+        }
+    }
 
     /// <summary>
     /// Initializes the scroll service after the UI components are loaded
@@ -439,6 +612,251 @@ public partial class AssignmentViewer : Window
         {
             Log.Error(ex, "Error finding assignment header border");
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Handles the rating changed event from the StarRating control
+    /// </summary>
+    private async void OnAssignmentRatingChanged(object? sender, int newRating)
+    {
+        try
+        {
+            if (sender is not Components.StarRating starRating)
+            {
+                Log.Warning("OnAssignmentRatingChanged - sender is not a StarRating control");
+                return;
+            }
+
+            // Get the assignment name from the DataContext
+            if (starRating.DataContext is not AssignmentGroup assignmentGroup)
+            {
+                Log.Warning("OnAssignmentRatingChanged - DataContext is not an AssignmentGroup");
+                return;
+            }
+
+            if (DataContext is not StudentDetailViewModel viewModel)
+            {
+                Log.Warning("OnAssignmentRatingChanged - DataContext is not a StudentDetailViewModel");
+                return;
+            }
+
+            Log.Information("Rating changed for assignment {AssignmentName} to {Rating}",
+                assignmentGroup.AssignmentName, newRating);
+
+            // Save the rating
+            await viewModel.SaveAssignmentRatingAsync(assignmentGroup.AssignmentName, newRating);
+
+            Log.Information("Rating saved successfully for assignment {AssignmentName}", assignmentGroup.AssignmentName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error handling assignment rating change");
+        }
+    }
+
+    /// <summary>
+    /// Handles the toggle notes button click
+    /// </summary>
+    private void OnToggleNotesClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not Button button)
+            {
+                Log.Warning("OnToggleNotesClick - sender is not a Button");
+                return;
+            }
+
+            // Get the assignment from the DataContext
+            if (button.DataContext is not AssignmentGroup assignmentGroup)
+            {
+                Log.Warning("OnToggleNotesClick - DataContext is not an AssignmentGroup");
+                return;
+            }
+
+            // Toggle the notes expanded state
+            assignmentGroup.IsNotesExpanded = !assignmentGroup.IsNotesExpanded;
+
+            Log.Information("Toggled notes for assignment {AssignmentName} - IsExpanded: {IsExpanded}",
+                assignmentGroup.AssignmentName, assignmentGroup.IsNotesExpanded);
+
+            // Find the AssignmentContentGrid - it's a sibling, not an ancestor
+            // Navigate up to the parent Border, then down to find the grid
+            var parentBorder = button.GetVisualAncestors()
+                .OfType<Border>()
+                .FirstOrDefault(b => b.Name == "AssignmentHeaderBorder");
+
+            Grid? grid = null;
+            if (parentBorder != null)
+            {
+                // Get the parent of the border (should be the Grid with Row="0" and Row="1")
+                var parentGrid = parentBorder.GetVisualAncestors().OfType<Grid>().FirstOrDefault();
+                if (parentGrid != null)
+                {
+                    // Find the AssignmentContentGrid in the parent's children
+                    grid = parentGrid.GetVisualDescendants()
+                        .OfType<Grid>()
+                        .FirstOrDefault(g => g.Name == "AssignmentContentGrid");
+                }
+            }
+
+            if (grid != null && grid.ColumnDefinitions.Count >= 3)
+            {
+                var notesColumnDef = grid.ColumnDefinitions[2];
+
+                if (assignmentGroup.IsNotesExpanded)
+                {
+                    // Opening notes - use saved width, or default to 220 if too small
+                    var width = assignmentGroup.NotesSidebarWidth;
+                    if (width < 150)
+                    {
+                        width = 220; // Use default width if saved width is too small
+                        assignmentGroup.NotesSidebarWidth = width; // Update the saved width
+                    }
+                    else
+                    {
+                        width = Math.Min(600, width); // Clamp to max
+                    }
+
+                    notesColumnDef.Width = new GridLength(width, GridUnitType.Pixel);
+                    notesColumnDef.MinWidth = 150;
+                    notesColumnDef.MaxWidth = 600;
+                    Log.Information("Opened notes sidebar for {Assignment} - restored width to {Width}",
+                        assignmentGroup.AssignmentName, width);
+                }
+                else
+                {
+                    // Closing notes - collapse to 0 and remove constraints
+                    notesColumnDef.Width = new GridLength(0, GridUnitType.Pixel);
+                    notesColumnDef.MinWidth = 0;
+                    notesColumnDef.MaxWidth = double.PositiveInfinity;
+                    Log.Information("Closed notes sidebar for {Assignment} - collapsed to 0",
+                        assignmentGroup.AssignmentName);
+                }
+            }
+            else
+            {
+                Log.Warning("Could not find AssignmentContentGrid to update column width");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error toggling notes");
+        }
+    }
+
+    /// <summary>
+    /// Handles text changed event for notes TextBox with auto-save debouncing
+    /// </summary>
+    private void OnNotesTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        try
+        {
+            if (sender is not TextBox textBox)
+            {
+                Log.Warning("OnNotesTextChanged - sender is not a TextBox");
+                return;
+            }
+
+            // Get the assignment from the DataContext
+            if (textBox.DataContext is not AssignmentGroup assignmentGroup)
+            {
+                Log.Warning("OnNotesTextChanged - DataContext is not an AssignmentGroup");
+                return;
+            }
+
+            if (DataContext is not StudentDetailViewModel viewModel)
+            {
+                Log.Warning("OnNotesTextChanged - DataContext is not a StudentDetailViewModel");
+                return;
+            }
+
+            var assignmentName = assignmentGroup.AssignmentName;
+
+            // Cancel existing timer if any
+            if (_notesAutoSaveTimers.TryGetValue(assignmentName, out var existingTimer))
+            {
+                existingTimer.Stop();
+                _notesAutoSaveTimers.Remove(assignmentName);
+            }
+
+            // Create new timer for auto-save (500ms debounce)
+            var timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(500)
+            };
+
+            timer.Tick += async (s, args) =>
+            {
+                timer.Stop();
+                _notesAutoSaveTimers.Remove(assignmentName);
+
+                try
+                {
+                    Log.Information("Auto-saving notes for assignment {AssignmentName}", assignmentName);
+                    await viewModel.SaveAssignmentNoteAsync(assignmentName, assignmentGroup.Notes);
+                    Log.Information("Notes auto-saved successfully for assignment {AssignmentName}", assignmentName);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error auto-saving notes for assignment {AssignmentName}", assignmentName);
+                }
+            };
+
+            _notesAutoSaveTimers[assignmentName] = timer;
+            timer.Start();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error handling notes text change");
+        }
+    }
+
+    /// <summary>
+    /// Handles the open in browser button click for an assignment
+    /// </summary>
+    private void OnOpenInBrowserClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not Button button)
+            {
+                Log.Warning("OnOpenInBrowserClick - sender is not a Button");
+                return;
+            }
+
+            // Get the assignment from the DataContext
+            if (button.DataContext is not AssignmentGroup assignmentGroup)
+            {
+                Log.Warning("OnOpenInBrowserClick - DataContext is not an AssignmentGroup");
+                return;
+            }
+
+            // Find the first Google Doc file in this assignment
+            var googleDocFile = assignmentGroup.Files.FirstOrDefault(f => f.IsGoogleDoc);
+            if (googleDocFile?.GoogleDocMetadata != null)
+            {
+                var url = googleDocFile.GoogleDocUrl;
+                if (string.IsNullOrEmpty(url))
+                {
+                    url = googleDocFile.GoogleDocMetadata.GetEditUrl();
+                }
+
+                if (!string.IsNullOrEmpty(url))
+                {
+                    Log.Information("Opening Google Doc in browser: {Url}", url);
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error opening Google Doc in browser");
         }
     }
 

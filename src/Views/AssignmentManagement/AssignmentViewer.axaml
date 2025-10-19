@@ -145,34 +145,122 @@
           <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Border Background="{DynamicResource BackgroundTertiaryBrush}" 
-                        Margin="0,0,0,0">
+                <Border Background="{DynamicResource BackgroundTertiaryBrush}"
+                        Margin="0,0,0,16"
+                        BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="0,0,0,2">
                   <Grid>
                     <Grid.RowDefinitions>
                       <RowDefinition Height="Auto"/>
                       <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    
+
                     <!-- Assignment Header -->
-                    <Border Grid.Row="0" 
+                    <Border Grid.Row="0"
                             x:Name="AssignmentHeaderBorder"
-                            Background="{DynamicResource BackgroundSecondaryBrush}" 
-                            Padding="15">
-                      <TextBlock Text="{Binding AssignmentName}" 
-                                 FontWeight="Bold" 
-                                 FontSize="18"
-                                 Foreground="{DynamicResource TextPrimaryBrush}"
-                                 HorizontalAlignment="Center"/>
+                            Background="{DynamicResource BackgroundSecondaryBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}"
+                            BorderThickness="0,0,0,1"
+                            Padding="15,12">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left: Google Docs Button -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="0,0,16,0">
+                          <!-- Open in Browser Button -->
+                          <Button Click="OnOpenInBrowserClick"
+                                  Padding="8"
+                                  ToolTip.Tip="Open Google Doc in browser">
+                            <materialIcons:MaterialIcon Kind="GoogleDrive" Width="20" Height="20"/>
+                            <Button.IsVisible>
+                              <Binding Path="HasGoogleDocs"/>
+                            </Button.IsVisible>
+                          </Button>
+                        </StackPanel>
+
+                        <!-- Middle: Assignment Title -->
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding AssignmentName}"
+                                   FontWeight="Bold"
+                                   FontSize="18"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"/>
+
+                        <!-- Right: Star Rating and Notes Button -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                          <components:StarRating VerticalAlignment="Center"
+                                                 Rating="{Binding Rating, Mode=TwoWay}"
+                                                 RatingChanged="OnAssignmentRatingChanged"/>
+
+                          <Button Background="Transparent"
+                                  BorderThickness="0"
+                                  Padding="8"
+                                  ToolTip.Tip="Toggle Notes"
+                                  Click="OnToggleNotesClick">
+                            <materialIcons:MaterialIcon Kind="NoteText" Width="20" Height="20"/>
+                          </Button>
+                        </StackPanel>
+                      </Grid>
                     </Border>
-                    
-                    <!-- Assignment Files -->
-                    <ItemsControl Grid.Row="1" ItemsSource="{Binding Files}">
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                          <components:FilePreviewControl/>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+
+                    <!-- Assignment Files and Notes Sidebar -->
+                    <Grid Grid.Row="1" x:Name="AssignmentContentGrid">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="0"/>
+                      </Grid.ColumnDefinitions>
+
+                      <!-- Assignment Files -->
+                      <ItemsControl Grid.Column="0" ItemsSource="{Binding Files}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <components:FilePreviewControl/>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <!-- GridSplitter for Resizing -->
+                      <GridSplitter Grid.Column="1"
+                                    Width="4"
+                                    Background="{DynamicResource CardBorderBrush}"
+                                    HorizontalAlignment="Center"
+                                    IsVisible="{Binding IsNotesExpanded}"
+                                    DragCompleted="OnNotesSplitterDragCompleted"/>
+
+                      <!-- Notes Sidebar -->
+                      <Border Grid.Column="2"
+                              Background="{DynamicResource BackgroundSecondaryBrush}"
+                              BorderBrush="{DynamicResource CardBorderBrush}"
+                              BorderThickness="1,0,0,0"
+                              Padding="12"
+                              IsVisible="{Binding IsNotesExpanded}">
+                        <Grid RowDefinitions="*,Auto">
+                          <!-- Notes TextBox -->
+                          <TextBox Grid.Row="0"
+                                   Text="{Binding Notes, Mode=TwoWay}"
+                                   AcceptsReturn="True"
+                                   TextWrapping="Wrap"
+                                   Watermark="Add notes about this assignment..."
+                                   BorderThickness="0"
+                                   Background="Transparent"
+                                   TextChanged="OnNotesTextChanged"/>
+
+                          <!-- Timestamp -->
+                          <TextBlock Grid.Row="1"
+                                     Text="{Binding LastModifiedText}"
+                                     FontSize="11"
+                                     Foreground="{DynamicResource TextSecondaryBrush}"
+                                     Margin="0,8,0,0"
+                                     IsVisible="{Binding LastModified, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        </Grid>
+                      </Border>
+                    </Grid>
                   </Grid>
                 </Border>
               </DataTemplate>

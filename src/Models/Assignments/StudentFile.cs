@@ -18,10 +18,15 @@ public class StudentFile : INotifyPropertyChanged
     private bool _isText;
     private bool _isBinary;
     private bool _isNone;
+    private bool _isGoogleDoc;
+    private string _googleDocUrl = string.Empty;
+    private string _googleDocEmbedUrl = string.Empty;
+    private bool _showEmbeddedGoogleDoc = true;
 
     public string FileName { get; set; } = string.Empty;
     public string FilePath { get; set; } = string.Empty;
     public string AssignmentName { get; set; } = string.Empty;
+    public GoogleDocMetadata? GoogleDocMetadata { get; set; }
     public long FileSize { get; set; }
     public DateTime LastModified { get; set; }
     public string RelativePath { get; set; } = string.Empty;
@@ -113,6 +118,46 @@ public class StudentFile : INotifyPropertyChanged
         set
         {
             _isNone = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool IsGoogleDoc
+    {
+        get => _isGoogleDoc;
+        set
+        {
+            _isGoogleDoc = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string GoogleDocUrl
+    {
+        get => _googleDocUrl;
+        set
+        {
+            _googleDocUrl = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string GoogleDocEmbedUrl
+    {
+        get => _googleDocEmbedUrl;
+        set
+        {
+            _googleDocEmbedUrl = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool ShowEmbeddedGoogleDoc
+    {
+        get => _showEmbeddedGoogleDoc;
+        set
+        {
+            _showEmbeddedGoogleDoc = value;
             OnPropertyChanged();
         }
     }

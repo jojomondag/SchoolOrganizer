@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:components="using:SchoolOrganizer.Src.Views.ProfileCards.Components"
-             mc:Ignorable="d" d:DesignWidth="260" d:DesignHeight="230"
+             mc:Ignorable="d" d:DesignWidth="340" d:DesignHeight="230"
              x:Class="SchoolOrganizer.Src.Views.Windows.ImageCrop.CropPreview">
 
     <UserControl.Styles>
@@ -66,8 +66,8 @@
             <!-- Preview Circle -->
             <components:ProfileImage Grid.Row="1"
                                           x:Name="PreviewImageBorder"
-                                          Width="120" 
-                                          Height="120"
+                                          Width="140"
+                                          Height="140"
                                           BorderThickness="3"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center"

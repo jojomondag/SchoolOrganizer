@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="150" d:DesignHeight="30"
+             x:Class="SchoolOrganizer.Src.Views.Components.StarRating">
+
+  <UserControl.Styles>
+    <Style Selector="Button.StarButton">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="2"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+
+    <Style Selector="Button.StarButton:pointerover">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="materialIcons|MaterialIcon.StarIcon">
+      <Setter Property="Width" Value="24"/>
+      <Setter Property="Height" Value="24"/>
+    </Style>
+
+    <Style Selector="materialIcons|MaterialIcon.StarFilled">
+      <Setter Property="Foreground" Value="#FFD700"/>
+    </Style>
+
+    <Style Selector="materialIcons|MaterialIcon.StarEmpty">
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Orientation="Horizontal" Spacing="4">
+    <Button Classes="StarButton" Name="Star1" Click="OnStarClick" Tag="1">
+      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star1Icon" Kind="Star"/>
+    </Button>
+    <Button Classes="StarButton" Name="Star2" Click="OnStarClick" Tag="2">
+      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star2Icon" Kind="Star"/>
+    </Button>
+    <Button Classes="StarButton" Name="Star3" Click="OnStarClick" Tag="3">
+      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star3Icon" Kind="Star"/>
+    </Button>
+    <Button Classes="StarButton" Name="Star4" Click="OnStarClick" Tag="4">
+      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star4Icon" Kind="Star"/>
+    </Button>
+    <Button Classes="StarButton" Name="Star5" Click="OnStarClick" Tag="5">
+      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star5Icon" Kind="Star"/>
+    </Button>
+  </StackPanel>
+</UserControl>

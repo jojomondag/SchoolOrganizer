@@ -9,6 +9,7 @@ using System.Text.Json;
 using Google.Apis.Classroom.v1.Data;
 using Google.Apis.Drive.v3;
 using SchoolOrganizer.Src.Services.Utilities;
+using SchoolOrganizer.Src.Models.Assignments;
 using Serilog;
 
 namespace SchoolOrganizer.Src.Services;
@@ -357,15 +358,30 @@ public class DownloadManager
                 fileExtension = GetFileExtension(exportMimeType);
                 filePath = Path.Combine(destinationFolder, $"{sanitizedFileName}{fileExtension}");
 
-                // Check if file already exists
-                if (File.Exists(filePath))
+                bool fileExists = File.Exists(filePath);
+                string metadataPath = filePath + ".gdocmeta.json";
+                bool metadataExists = File.Exists(metadataPath);
+
+                // Check if both file and metadata exist
+                if (fileExists && metadataExists)
                 {
-                    Log.Information($"File already exists, skipping: {filePath}");
+                    Log.Information($"File and metadata already exist, skipping: {filePath}");
                     return;
                 }
 
-                using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
-                await _driveService.Files.Export(fileId, exportMimeType).DownloadAsync(fileStream);
+                // Download file if it doesn't exist
+                if (!fileExists)
+                {
+                    using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+                    await _driveService.Files.Export(fileId, exportMimeType).DownloadAsync(fileStream);
+                    Log.Information($"Downloaded Google Doc: {filePath}");
+                }
+
+                // Always save Google Docs metadata if it doesn't exist
+                if (!metadataExists)
+                {
+                    await SaveGoogleDocMetadataAsync(fileId, fileName, mimeType, filePath);
+                }
             }
             else
             {
@@ -467,6 +483,37 @@ public class DownloadManager
     private bool NeedsUnpacking(string mimeType)
     {
         return mimeType == "application/zip" || mimeType == "application/x-rar-compressed";
+    }
+
+    /// <summary>
+    /// Saves Google Docs metadata as a JSON file alongside the downloaded file
+    /// </summary>
+    private async Task SaveGoogleDocMetadataAsync(string fileId, string fileName, string mimeType, string downloadedFilePath)
+    {
+        try
+        {
+            var metadata = new GoogleDocMetadata
+            {
+                FileId = fileId,
+                OriginalTitle = fileName,
+                MimeType = mimeType,
+                DocType = GoogleDocMetadata.GetDocTypeFromMimeType(mimeType),
+                WebViewLink = $"https://drive.google.com/file/d/{fileId}/view",
+                DownloadedFilePath = downloadedFilePath,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Save metadata file with .gdocmeta.json extension
+            string metadataPath = downloadedFilePath + ".gdocmeta.json";
+            var json = JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(metadataPath, json);
+
+            Log.Information($"Saved Google Docs metadata: {metadataPath}");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, $"Error saving Google Docs metadata for {fileName}");
+        }
     }
 
     private void UpdateStatus(string message)

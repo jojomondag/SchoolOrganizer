@@ -17,7 +17,7 @@
     <Grid Name="ContentGrid" Margin="20" RowSpacing="10" ColumnSpacing="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="260" />
+            <ColumnDefinition Width="340" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <!-- Let the crop preview size to its content so the history can move up when the preview is empty -->

@@ -12,6 +12,7 @@ using Avalonia.Threading;
 using SchoolOrganizer.Src.Services;
 using SchoolOrganizer.Src.Models.Assignments;
 using SchoolOrganizer.Src.Models.UI;
+using SchoolOrganizer.Src.Models.Students;
 
 namespace SchoolOrganizer.Src.ViewModels;
 
@@ -31,7 +32,8 @@ public class StudentDetailViewModel : ReactiveObject
     private ObservableCollection<FileTreeNode> _folderFiles = new();
     private ObservableCollection<AssignmentGroup> _allFilesGrouped = new();
     private FileViewerScrollService? _scrollService;
-    
+    private Student? _student;
+
     // Navigation properties
     private string _selectedAssignment = string.Empty;
     private string _selectedViewMode = "AllFiles";
@@ -138,6 +140,11 @@ public class StudentDetailViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _isNavigationOpen, value);
     }
 
+    public Student? Student
+    {
+        get => _student;
+        set => this.RaiseAndSetIfChanged(ref _student, value);
+    }
 
     public ReactiveCommand<StudentFile, Unit> OpenFileCommand { get; }
     public ReactiveCommand<Unit, Unit> CloseCommand { get; }
@@ -235,11 +242,12 @@ public class StudentDetailViewModel : ReactiveObject
     /// <summary>
     /// Loads student files from the specified folder
     /// </summary>
-    public async Task LoadStudentFilesAsync(string studentName, string courseName, string studentFolderPath)
+    public async Task LoadStudentFilesAsync(string studentName, string courseName, string studentFolderPath, Student? student = null)
     {
         StudentName = studentName;
         CourseName = courseName;
         StudentFolderPath = studentFolderPath;
+        Student = student;
         IsLoading = true;
         StatusText = "Loading student files...";
 
@@ -264,7 +272,15 @@ public class StudentDetailViewModel : ReactiveObject
             // Build grouped files for the main scroll view
             var groupedFiles = BuildGroupedFiles(files);
             AllFilesGrouped = new ObservableCollection<AssignmentGroup>(groupedFiles);
-            
+
+            // Load ratings and notes from student data
+            LoadAssignmentRatings();
+            LoadAssignmentNotes();
+            LoadAssignmentNotesSidebarWidths();
+
+            // Load content for all files to show images in the assignment gallery
+            await LoadContentForAllFilesAsync();
+
             // Load content lazily only when files are selected - removed eager loading for performance
             
             // Automatically select the first file and load its content
@@ -320,13 +336,17 @@ public class StudentDetailViewModel : ReactiveObject
         try
         {
             var directory = new DirectoryInfo(directoryPath);
-            
+
             foreach (var file in directory.GetFiles())
             {
+                // Skip metadata files - they will be loaded with their associated files
+                if (file.Name.EndsWith(".gdocmeta.json"))
+                    continue;
+
                 var relativePath = Path.GetRelativePath(basePath, file.FullName);
                 var assignmentName = GetAssignmentNameFromPath(relativePath);
-                
-                files.Add(new StudentFile
+
+                var studentFile = new StudentFile
                 {
                     FileName = file.Name,
                     FilePath = file.FullName,
@@ -334,7 +354,70 @@ public class StudentDetailViewModel : ReactiveObject
                     FileSize = file.Length,
                     LastModified = file.LastWriteTime,
                     RelativePath = relativePath
-                });
+                };
+
+                Log.Information("Processing file: Name={FileName}, FullPath={FullPath}, Extension={Extension}",
+                    file.Name, file.FullName, file.Extension);
+
+                // Check if this file has Google Docs metadata
+                var metadataPath = file.FullName + ".gdocmeta.json";
+                var metadataExists = File.Exists(metadataPath);
+
+                Log.Information("Checking for metadata: OriginalPath={OriginalPath}, MetadataPath={MetadataPath}, Exists={Exists}",
+                    file.FullName, metadataPath, metadataExists);
+
+                // Try to find metadata file even with potential path variations
+                if (!metadataExists)
+                {
+                    // Try alternate paths
+                    var fileDirectory = Path.GetDirectoryName(file.FullName);
+                    var alternatePath1 = Path.Combine(fileDirectory ?? "", file.Name + ".gdocmeta.json");
+
+                    Log.Information("Trying alternate metadata path: {AlternatePath}", alternatePath1);
+                    if (File.Exists(alternatePath1))
+                    {
+                        metadataPath = alternatePath1;
+                        metadataExists = true;
+                        Log.Information("Found metadata at alternate path!");
+                    }
+                }
+
+                if (metadataExists)
+                {
+                    try
+                    {
+                        Log.Information("Loading metadata from {MetadataPath}", metadataPath);
+                        var metadataJson = await File.ReadAllTextAsync(metadataPath);
+                        Log.Information("Metadata JSON loaded, length: {Length}", metadataJson.Length);
+
+                        var metadata = System.Text.Json.JsonSerializer.Deserialize<GoogleDocMetadata>(metadataJson);
+
+                        if (metadata != null)
+                        {
+                            studentFile.GoogleDocMetadata = metadata;
+                            studentFile.IsGoogleDoc = true;
+                            studentFile.GoogleDocUrl = metadata.GetEditUrl();
+                            studentFile.GoogleDocEmbedUrl = metadata.GetEmbedUrl();
+
+                            Log.Information("✓ Successfully loaded Google Docs metadata for {FileName}: DocType={DocType}, FileId={FileId}, IsGoogleDoc={IsGoogleDoc}",
+                                file.Name, metadata.DocType, metadata.FileId, studentFile.IsGoogleDoc);
+                        }
+                        else
+                        {
+                            Log.Warning("Metadata deserialization returned null for {MetadataPath}", metadataPath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Error loading Google Docs metadata from {MetadataPath}", metadataPath);
+                    }
+                }
+                else
+                {
+                    Log.Information("No Google Docs metadata found for {FileName}", file.Name);
+                }
+
+                files.Add(studentFile);
             }
 
             foreach (var subdirectory in directory.GetDirectories())
@@ -602,6 +685,13 @@ public class StudentDetailViewModel : ReactiveObject
                 var targetFile = targetGroup.Files.FirstOrDefault(f => f.FileName == loadedFile.Name);
                 if (targetFile != null)
                 {
+                    // Skip updating Google Docs - they have their own viewer
+                    if (targetFile.IsGoogleDoc)
+                    {
+                        Log.Information("Skipping content update for Google Doc: {FileName}", targetFile.FileName);
+                        continue;
+                    }
+
                     // Update on UI thread to ensure proper data binding
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
@@ -641,6 +731,238 @@ public class StudentDetailViewModel : ReactiveObject
     }
 
     /// <summary>
+    /// Loads assignment ratings from the student's saved data
+    /// </summary>
+    private void LoadAssignmentRatings()
+    {
+        if (Student == null || Student.AssignmentRatings == null)
+            return;
+
+        foreach (var assignment in AllFilesGrouped)
+        {
+            if (Student.AssignmentRatings.TryGetValue(assignment.AssignmentName, out int rating))
+            {
+                assignment.Rating = rating;
+            }
+        }
+
+        Log.Information("Loaded assignment ratings for student {StudentName}", StudentName);
+    }
+
+    /// <summary>
+    /// Saves an assignment rating to the student's data and persists to JSON
+    /// </summary>
+    public async Task SaveAssignmentRatingAsync(string assignmentName, int rating)
+    {
+        if (Student == null)
+        {
+            Log.Warning("Cannot save assignment rating - Student object is null");
+            return;
+        }
+
+        try
+        {
+            // Update the rating in the student's data
+            if (rating > 0)
+            {
+                Student.AssignmentRatings[assignmentName] = rating;
+            }
+            else
+            {
+                // Remove rating if set to 0
+                Student.AssignmentRatings.Remove(assignmentName);
+            }
+
+            // Save to JSON (delegating to a service would be better, but for now we'll save directly)
+            await SaveStudentToJson();
+
+            Log.Information("Saved rating {Rating} for assignment {AssignmentName} for student {StudentName}",
+                rating, assignmentName, StudentName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error saving assignment rating for {AssignmentName}", assignmentName);
+        }
+    }
+
+    /// <summary>
+    /// Loads assignment notes from the student's saved data
+    /// </summary>
+    private void LoadAssignmentNotes()
+    {
+        if (Student == null || Student.AssignmentNotes == null)
+            return;
+
+        foreach (var assignment in AllFilesGrouped)
+        {
+            if (Student.AssignmentNotes.TryGetValue(assignment.AssignmentName, out string? notes))
+            {
+                assignment.Notes = notes ?? string.Empty;
+            }
+
+            if (Student.AssignmentNotesTimestamps.TryGetValue(assignment.AssignmentName, out DateTime timestamp))
+            {
+                assignment.LastModified = timestamp;
+            }
+        }
+
+        Log.Information("Loaded assignment notes for student {StudentName}", StudentName);
+    }
+
+    /// <summary>
+    /// Loads assignment notes sidebar widths from the student's data
+    /// </summary>
+    private void LoadAssignmentNotesSidebarWidths()
+    {
+        if (Student == null || Student.AssignmentNotesSidebarWidths == null)
+            return;
+
+        foreach (var assignment in AllFilesGrouped)
+        {
+            if (Student.AssignmentNotesSidebarWidths.TryGetValue(assignment.AssignmentName, out double width))
+            {
+                assignment.NotesSidebarWidth = width;
+            }
+        }
+
+        Log.Information("Loaded assignment notes sidebar widths for student {StudentName}", StudentName);
+    }
+
+    /// <summary>
+    /// Saves an assignment note to the student's data and persists to JSON
+    /// </summary>
+    public async Task SaveAssignmentNoteAsync(string assignmentName, string notes)
+    {
+        if (Student == null)
+        {
+            Log.Warning("Cannot save assignment note - Student object is null");
+            return;
+        }
+
+        try
+        {
+            var now = DateTime.Now;
+
+            // Update the note and timestamp in the student's data
+            if (!string.IsNullOrWhiteSpace(notes))
+            {
+                Student.AssignmentNotes[assignmentName] = notes;
+                Student.AssignmentNotesTimestamps[assignmentName] = now;
+
+                // Update the LastModified in the AssignmentGroup as well
+                var assignment = AllFilesGrouped.FirstOrDefault(a => a.AssignmentName == assignmentName);
+                if (assignment != null)
+                {
+                    assignment.LastModified = now;
+                }
+            }
+            else
+            {
+                // Remove note if empty
+                Student.AssignmentNotes.Remove(assignmentName);
+                Student.AssignmentNotesTimestamps.Remove(assignmentName);
+
+                // Clear timestamp in AssignmentGroup
+                var assignment = AllFilesGrouped.FirstOrDefault(a => a.AssignmentName == assignmentName);
+                if (assignment != null)
+                {
+                    assignment.LastModified = null;
+                }
+            }
+
+            // Save to JSON
+            await SaveStudentToJson();
+
+            Log.Information("Saved note for assignment {AssignmentName} for student {StudentName}",
+                assignmentName, StudentName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error saving assignment note for {AssignmentName}", assignmentName);
+        }
+    }
+
+    /// <summary>
+    /// Saves an assignment notes sidebar width to the student's data and persists to JSON
+    /// </summary>
+    public async Task SaveAssignmentNotesSidebarWidthAsync(string assignmentName, double width)
+    {
+        if (Student == null)
+        {
+            Log.Warning("Cannot save assignment notes sidebar width - Student object is null");
+            return;
+        }
+
+        try
+        {
+            // Update the sidebar width in the student's data
+            Student.AssignmentNotesSidebarWidths[assignmentName] = width;
+
+            // Save to JSON
+            await SaveStudentToJson();
+
+            Log.Information("Saved notes sidebar width {Width} for assignment {AssignmentName} for student {StudentName}",
+                width, assignmentName, StudentName);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error saving assignment notes sidebar width for {AssignmentName}", assignmentName);
+        }
+    }
+
+    /// <summary>
+    /// Saves the student data to JSON file
+    /// </summary>
+    private async Task SaveStudentToJson()
+    {
+        try
+        {
+            // Load all students from JSON
+            var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
+            var jsonPath = Path.Combine(projectRoot, "Data", "students.json");
+
+            if (!File.Exists(jsonPath))
+            {
+                Log.Warning("students.json file not found at {JsonPath}", jsonPath);
+                return;
+            }
+
+            var jsonContent = await File.ReadAllTextAsync(jsonPath);
+            var students = System.Text.Json.JsonSerializer.Deserialize<List<Student>>(jsonContent);
+
+            if (students == null)
+            {
+                Log.Warning("Failed to deserialize students from JSON");
+                return;
+            }
+
+            // Find and update the current student
+            var studentToUpdate = students.FirstOrDefault(s => s.Id == Student?.Id);
+            if (studentToUpdate != null)
+            {
+                studentToUpdate.AssignmentRatings = Student!.AssignmentRatings;
+                studentToUpdate.AssignmentNotes = Student!.AssignmentNotes;
+                studentToUpdate.AssignmentNotesTimestamps = Student!.AssignmentNotesTimestamps;
+
+                // Save back to JSON
+                var updatedJsonContent = System.Text.Json.JsonSerializer.Serialize(students,
+                    new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(jsonPath, updatedJsonContent);
+
+                Log.Information("Successfully saved student data to JSON");
+            }
+            else
+            {
+                Log.Warning("Could not find student with ID {StudentId} in the JSON file", Student?.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error saving student data to JSON");
+        }
+    }
+
+    /// <summary>
     /// Loads content for all files to enable preview functionality
     /// </summary>
     private async Task LoadContentForAllFilesAsync()
@@ -652,6 +974,14 @@ public class StudentDetailViewModel : ReactiveObject
             {
                 foreach (var file in assignmentGroup.Files)
                 {
+                    // Skip content loading for Google Docs - they have their own viewer
+                    if (file.IsGoogleDoc)
+                    {
+                        Log.Information("Google Doc detected: {FileName}, IsGoogleDoc={IsGoogleDoc}",
+                            file.FileName, file.IsGoogleDoc);
+                        continue;
+                    }
+
                     // Create a FileTreeNode to load content
                     var fileNode = new FileTreeNode
                     {
@@ -664,13 +994,13 @@ public class StudentDetailViewModel : ReactiveObject
                         IsDirectory = false,
                         FileType = GetFileType(Path.GetExtension(file.FilePath))
                     };
-                    
+
                     // Only load content if not already loaded
                     if (!fileNode.IsContentLoaded)
                     {
                         await fileNode.LoadContentAsync();
                     }
-                    
+
                     // Update the StudentFile with the loaded content on the UI thread
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
@@ -682,6 +1012,9 @@ public class StudentDetailViewModel : ReactiveObject
                         file.IsText = fileNode.IsText;
                         file.IsBinary = fileNode.IsBinary;
                         file.IsNone = fileNode.IsNone;
+
+                        Log.Debug("Loaded content for {FileName}: IsImage={IsImage}, IsCode={IsCode}, IsText={IsText}, IsBinary={IsBinary}, IsNone={IsNone}",
+                            file.FileName, file.IsImage, file.IsCode, file.IsText, file.IsBinary, file.IsNone);
                     });
                 }
             }
