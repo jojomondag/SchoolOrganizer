@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Get-Content ''C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\Data\\students.json'' -ErrorAction SilentlyContinue\")",
+      "Bash(powershell -Command \"Test-Path ''C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\Data\\students.json''\")",
+      "Bash(powershell -Command \"Test-Path ''C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\Data''\")",
+      "Bash(powershell -Command \"New-Item -ItemType Directory -Path ''C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\Data'' -Force\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

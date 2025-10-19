@@ -686,16 +686,31 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     private async Task SaveAllStudentsToJson()
     {
+        await StudentDataLock.FileLock.WaitAsync();
         try
         {
             var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
-            var jsonPath = Path.Combine(projectRoot, "Data", "students.json");
+            var dataFolder = Path.Combine(projectRoot, "Data");
+            var jsonPath = Path.Combine(dataFolder, "students.json");
+
+            // Ensure Data folder exists
+            if (!Directory.Exists(dataFolder))
+            {
+                Directory.CreateDirectory(dataFolder);
+                Log.Information("Created Data folder at: {DataFolder}", dataFolder);
+            }
+
             var jsonContent = JsonSerializer.Serialize(allStudents.ToList(), new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(jsonPath, jsonContent);
+            Log.Information("Saved {Count} students to {JsonPath}", allStudents.Count, jsonPath);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error saving students collection");
+        }
+        finally
+        {
+            StudentDataLock.FileLock.Release();
         }
     }
 

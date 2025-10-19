@@ -136,9 +136,9 @@ namespace SchoolOrganizer.Src.Views.Components
                 {
                     string message = extension switch
                     {
-                        ".xlsx" => "📊 Excel Spreadsheet\n\nThis is a Microsoft Excel file. Click 'Open in External App' to view it in Excel or a spreadsheet application.",
-                        ".pptx" => "📽️ PowerPoint Presentation\n\nThis is a Microsoft PowerPoint presentation. Click 'Open in External App' to view it in PowerPoint.",
-                        _ => $"This file type ({extension}) cannot be previewed. Click 'Open in External App' to view it."
+                        ".xlsx" => "Excel Spreadsheet\n\nThis file cannot be previewed. Open the file to view it.",
+                        ".pptx" => "PowerPoint Presentation\n\nThis file cannot be previewed. Open the file to view it.",
+                        _ => $"This file type ({extension}) cannot be previewed. Open the file to view it."
                     };
 
                     await Dispatcher.UIThread.InvokeAsync(() =>
@@ -276,16 +276,7 @@ namespace SchoolOrganizer.Src.Views.Components
                         return;
                     }
 
-                    // Add header
-                    _documentPreviewContainer?.Children.Add(new TextBlock
-                    {
-                        Text = "📄 Document Preview:",
-                        FontWeight = Avalonia.Media.FontWeight.Bold,
-                        FontSize = 14,
-                        Margin = new Avalonia.Thickness(0, 0, 0, 8)
-                    });
-
-                    // Add content items
+                    // Add content items directly (no header needed)
                     if (contentData.Count == 0)
                     {
                         _documentPreviewContainer?.Children.Add(new TextBlock
@@ -318,7 +309,7 @@ namespace SchoolOrganizer.Src.Views.Components
                                         Source = item.ImageData,
                                         MaxWidth = 600,
                                         Stretch = Avalonia.Media.Stretch.Uniform,
-                                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+                                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                                         Margin = new Avalonia.Thickness(0, 8, 0, 8)
                                     });
                                     break;
@@ -334,7 +325,7 @@ namespace SchoolOrganizer.Src.Views.Components
                                         Margin = new Avalonia.Thickness(0, 8, 0, 8),
                                         Child = new TextBlock
                                         {
-                                            Text = "📊 Table (cannot be previewed - open file to view)",
+                                            Text = "Table (cannot be previewed - open file to view)",
                                             FontStyle = Avalonia.Media.FontStyle.Italic,
                                             FontSize = 11
                                         }

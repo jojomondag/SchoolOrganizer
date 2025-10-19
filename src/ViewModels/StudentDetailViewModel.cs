@@ -915,6 +915,7 @@ public class StudentDetailViewModel : ReactiveObject
     /// </summary>
     private async Task SaveStudentToJson()
     {
+        await StudentDataLock.FileLock.WaitAsync();
         try
         {
             // Load all students from JSON
@@ -943,6 +944,7 @@ public class StudentDetailViewModel : ReactiveObject
                 studentToUpdate.AssignmentRatings = Student!.AssignmentRatings;
                 studentToUpdate.AssignmentNotes = Student!.AssignmentNotes;
                 studentToUpdate.AssignmentNotesTimestamps = Student!.AssignmentNotesTimestamps;
+                studentToUpdate.AssignmentNotesSidebarWidths = Student!.AssignmentNotesSidebarWidths;
 
                 // Save back to JSON
                 var updatedJsonContent = System.Text.Json.JsonSerializer.Serialize(students,
@@ -959,6 +961,10 @@ public class StudentDetailViewModel : ReactiveObject
         catch (Exception ex)
         {
             Log.Error(ex, "Error saving student data to JSON");
+        }
+        finally
+        {
+            StudentDataLock.FileLock.Release();
         }
     }
 
