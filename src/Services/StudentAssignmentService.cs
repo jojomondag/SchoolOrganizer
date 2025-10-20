@@ -259,8 +259,18 @@ namespace SchoolOrganizer.Src.Services
                     string mimeType = file.MimeType ?? "";
                     string filePath;
 
+                    // Check if the file needs to be unpacked (ZIP/RAR) - create URL shortcut instead of downloading
+                    if (NeedsUnpacking(mimeType))
+                    {
+                        // Create a link for files that need unpacking
+                        string linkPath = Path.Combine(assignmentDirectory, fileName + ".url");
+                        linkPath = DirectoryUtil.GetUniqueFilePath(linkPath);
+                        await File.WriteAllTextAsync(linkPath, $"[InternetShortcut]\nURL=https://drive.google.com/file/d/{attachment.DriveFile.Id}/view");
+                        Log.Information("Created URL shortcut for archive: {LinkPath}", linkPath);
+                        return true;
+                    }
                     // Check if this is a Google Docs file
-                    if (mimeType.StartsWith("application/vnd.google-apps"))
+                    else if (mimeType.StartsWith("application/vnd.google-apps"))
                     {
                         // Handle Google Docs - export to appropriate format
                         var exportMimeType = GetExportMimeType(mimeType);
@@ -268,60 +278,46 @@ namespace SchoolOrganizer.Src.Services
                         string sanitizedFileName = DirectoryUtil.SanitizeFolderName(Path.GetFileNameWithoutExtension(fileName));
                         filePath = Path.Combine(assignmentDirectory, $"{sanitizedFileName}{fileExtension}");
 
-                        // Check if both file and metadata already exist
-                        bool fileExists = File.Exists(filePath);
+                        // Get unique file path to handle duplicates
+                        filePath = DirectoryUtil.GetUniqueFilePath(filePath);
                         string metadataPath = filePath + ".gdocmeta.json";
-                        bool metadataExists = File.Exists(metadataPath);
 
-                        if (fileExists && metadataExists)
-                        {
-                            Log.Information("Google Doc file and metadata already exist, skipping: {FilePath}", filePath);
-                            return true;
-                        }
+                        // Download the file
+                        using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+                        await driveService.Files.Export(attachment.DriveFile.Id, exportMimeType).DownloadAsync(fileStream);
+                        Log.Information("Downloaded Google Doc: {FilePath}", filePath);
 
-                        // Download file if it doesn't exist
-                        if (!fileExists)
-                        {
-                            using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
-                            await driveService.Files.Export(attachment.DriveFile.Id, exportMimeType).DownloadAsync(fileStream);
-                            Log.Information("Downloaded Google Doc: {FilePath}", filePath);
-                        }
-
-                        // Always save Google Docs metadata if it doesn't exist
-                        if (!metadataExists)
-                        {
-                            await SaveGoogleDocMetadataAsync(attachment.DriveFile.Id, fileName, mimeType, filePath);
-                        }
+                        // Save Google Docs metadata
+                        await SaveGoogleDocMetadataAsync(attachment.DriveFile.Id, fileName, mimeType, filePath);
                     }
                     else
                     {
                         // Handle regular files
                         filePath = Path.Combine(assignmentDirectory, fileName);
 
-                        // Check if the file already exists
-                        if (File.Exists(filePath))
-                        {
-                            return true;
-                        }
+                        // Get unique file path to handle duplicates
+                        filePath = DirectoryUtil.GetUniqueFilePath(filePath);
 
                         // Download the file
                         using var stream = new MemoryStream();
                         var request = driveService.Files.Get(attachment.DriveFile.Id);
                         await request.DownloadAsync(stream);
-                        
+
                         // Write to file
                         await File.WriteAllBytesAsync(filePath, stream.ToArray());
                         Log.Information("Downloaded regular file: {FilePath}", filePath);
                     }
-                    
+
                     return true;
                 }
                 else if (attachment.Link != null)
                 {
-                    // Handle link attachments (URLs)
-                    // For now, just log the link - could implement URL download later
-                    Log.Information("Skipping link attachment: {Link}", attachment.Link.Url);
-                    return false;
+                    // Handle link attachments by creating .url files
+                    string linkPath = Path.Combine(assignmentDirectory, DirectoryUtil.SanitizeFolderName(attachment.Link.Title ?? "Link") + ".url");
+                    linkPath = DirectoryUtil.GetUniqueFilePath(linkPath);
+                    await File.WriteAllTextAsync(linkPath, $"[InternetShortcut]\nURL={attachment.Link.Url}");
+                    Log.Information("Saved link attachment: {LinkPath}", linkPath);
+                    return true;
                 }
                 
                 return false;
@@ -395,6 +391,14 @@ namespace SchoolOrganizer.Src.Services
             "application/vnd.google-apps.folder" => "",
             _ => ".bin",
         };
+
+        /// <summary>
+        /// Checks if a file needs unpacking (ZIP or RAR)
+        /// </summary>
+        private bool NeedsUnpacking(string mimeType)
+        {
+            return mimeType == "application/zip" || mimeType == "application/x-rar-compressed";
+        }
 
         /// <summary>
         /// Saves Google Docs metadata as a JSON file alongside the downloaded file

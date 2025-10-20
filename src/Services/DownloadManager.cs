@@ -293,12 +293,8 @@ public class DownloadManager
                 var file = await _driveService.Files.Get(attachment.DriveFile.Id).ExecuteAsync();
                 string filePath = Path.Combine(assignmentDirectory, DirectoryUtil.SanitizeFolderName(attachment.DriveFile.Title ?? "File"));
 
-                // Check if the file already exists
-                if (File.Exists(filePath))
-                {
-                    Log.Information($"File already exists: {filePath}. Skipping download.");
-                    return;
-                }
+                // Get unique file path to handle duplicates
+                filePath = DirectoryUtil.GetUniqueFilePath(filePath);
 
                 string statusMessage = $"Downloading: {attachment.DriveFile.Title} for {studentName} - {assignmentName}";
                 UpdateStatus(statusMessage);
@@ -358,30 +354,17 @@ public class DownloadManager
                 fileExtension = GetFileExtension(exportMimeType);
                 filePath = Path.Combine(destinationFolder, $"{sanitizedFileName}{fileExtension}");
 
-                bool fileExists = File.Exists(filePath);
+                // Get unique file path to handle duplicates
+                filePath = DirectoryUtil.GetUniqueFilePath(filePath);
                 string metadataPath = filePath + ".gdocmeta.json";
-                bool metadataExists = File.Exists(metadataPath);
 
-                // Check if both file and metadata exist
-                if (fileExists && metadataExists)
-                {
-                    Log.Information($"File and metadata already exist, skipping: {filePath}");
-                    return;
-                }
+                // Download the file
+                using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+                await _driveService.Files.Export(fileId, exportMimeType).DownloadAsync(fileStream);
+                Log.Information($"Downloaded Google Doc: {filePath}");
 
-                // Download file if it doesn't exist
-                if (!fileExists)
-                {
-                    using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
-                    await _driveService.Files.Export(fileId, exportMimeType).DownloadAsync(fileStream);
-                    Log.Information($"Downloaded Google Doc: {filePath}");
-                }
-
-                // Always save Google Docs metadata if it doesn't exist
-                if (!metadataExists)
-                {
-                    await SaveGoogleDocMetadataAsync(fileId, fileName, mimeType, filePath);
-                }
+                // Save Google Docs metadata
+                await SaveGoogleDocMetadataAsync(fileId, fileName, mimeType, filePath);
             }
             else
             {
@@ -391,12 +374,8 @@ public class DownloadManager
                 }
                 filePath = Path.Combine(destinationFolder, $"{sanitizedFileName}{fileExtension}");
 
-                // Check if file already exists
-                if (File.Exists(filePath))
-                {
-                    Log.Information($"File already exists, skipping: {filePath}");
-                    return;
-                }
+                // Get unique file path to handle duplicates
+                filePath = DirectoryUtil.GetUniqueFilePath(filePath);
 
                 using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
                 await _driveService.Files.Get(fileId).DownloadAsync(fileStream);
