@@ -26,14 +26,12 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
         public ObservableCollection<string> AvailableClasses { get; } = new();
         public ObservableCollection<string> AvailableTeachers { get; } = new();
         public ObservableCollection<string> SelectedTeachers { get; } = new();
-        public ObservableCollection<Course> AvailableClassrooms { get; } = new();
+        public ObservableCollection<ClassroomWrapper> AvailableClassrooms { get; } = new();
+        public ObservableCollection<ClassroomStudentGroup> ClassroomStudentGroups { get; } = new();
         public ObservableCollection<ClassroomStudentWrapper> ClassroomStudents { get; } = new();
         
         [ObservableProperty]
         private WindowMode windowMode = WindowMode.Manual;
-        
-        [ObservableProperty]
-        private Course? selectedClassroom;
         
         [ObservableProperty]
         private bool isLoadingClassrooms = false;
@@ -66,19 +64,28 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
         
         public void SelectAllClassroomStudents()
         {
-            foreach (var student in ClassroomStudents)
-                student.IsSelected = true;
+            foreach (var group in ClassroomStudentGroups)
+            {
+                foreach (var student in group.Students)
+                    student.IsSelected = true;
+            }
         }
         
         public void DeselectAllClassroomStudents()
         {
-            foreach (var student in ClassroomStudents)
-                student.IsSelected = false;
+            foreach (var group in ClassroomStudentGroups)
+            {
+                foreach (var student in group.Students)
+                    student.IsSelected = false;
+            }
         }
         
         public List<ClassroomStudentWrapper> GetSelectedClassroomStudents()
         {
-            return ClassroomStudents.Where(s => s.IsSelected).ToList();
+            return ClassroomStudentGroups
+                .SelectMany(g => g.Students)
+                .Where(s => s.IsSelected)
+                .ToList();
         }
     }
 
@@ -140,7 +147,6 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
         _teacherBox?.AddHandler(ComboBox.SelectionChangedEvent, OnTeacherSelected);
         
         // Classroom management
-        _classroomBox?.AddHandler(ComboBox.SelectionChangedEvent, OnClassroomSelected);
         this.FindControl<Button>("SelectAllStudentsButton")?.AddHandler(Button.ClickEvent, OnSelectAllStudentsClick);
         this.FindControl<Button>("DeselectAllStudentsButton")?.AddHandler(Button.ClickEvent, OnDeselectAllStudentsClick);
         
@@ -245,7 +251,11 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
             {
                 _state.AvailableClassrooms.Clear();
                 foreach (var classroom in classrooms)
-                    _state.AvailableClassrooms.Add(classroom);
+                {
+                    var wrapper = new ClassroomWrapper(classroom);
+                    wrapper.PropertyChanged += OnClassroomToggled;
+                    _state.AvailableClassrooms.Add(wrapper);
+                }
             });
         }
         catch (Exception)
@@ -258,21 +268,53 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
         }
     }
 
-    private async void OnClassroomSelected(object? sender, SelectionChangedEventArgs e)
+    private async void OnClassroomToggled(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (_state.SelectedClassroom == null || _classroomService == null) return;
+        if (e.PropertyName != nameof(ClassroomWrapper.IsToggled) || sender is not ClassroomWrapper wrapper)
+            return;
+
+        System.Diagnostics.Debug.WriteLine($"Classroom toggled: {wrapper.Name}, IsToggled: {wrapper.IsToggled}");
+
+        if (wrapper.IsToggled)
+        {
+            await LoadStudentsForClassroom(wrapper);
+        }
+        else
+        {
+            RemoveStudentsForClassroom(wrapper);
+        }
+    }
+
+    private async Task LoadStudentsForClassroom(ClassroomWrapper classroomWrapper)
+    {
+        if (_classroomService == null) return;
 
         try
         {
             _state.IsLoadingStudents = true;
-            _state.ClassroomStudents.Clear();
             
-            var students = await _classroomService.GetStudentsInCourseAsync(_state.SelectedClassroom.Id);
+            var students = await _classroomService.GetStudentsInCourseAsync(classroomWrapper.Id);
             
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                var group = new ClassroomStudentGroup(classroomWrapper.Name, classroomWrapper.Id);
+                
                 foreach (var student in students)
-                    _state.ClassroomStudents.Add(new ClassroomStudentWrapper(student));
+                {
+                    var wrapper = new ClassroomStudentWrapper(student);
+                    wrapper.IsSelected = true; // Auto-select students when classroom is toggled on
+                    group.Students.Add(wrapper);
+                }
+                
+                _state.ClassroomStudentGroups.Add(group);
+                
+                // Update the flat list for backward compatibility
+                _state.ClassroomStudents.Clear();
+                foreach (var g in _state.ClassroomStudentGroups)
+                {
+                    foreach (var s in g.Students)
+                        _state.ClassroomStudents.Add(s);
+                }
             });
         }
         catch (Exception)
@@ -282,6 +324,25 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
         finally
         {
             _state.IsLoadingStudents = false;
+        }
+    }
+
+    private void RemoveStudentsForClassroom(ClassroomWrapper classroomWrapper)
+    {
+        var groupToRemove = _state.ClassroomStudentGroups
+            .FirstOrDefault(g => g.ClassroomId == classroomWrapper.Id);
+        
+        if (groupToRemove != null)
+        {
+            _state.ClassroomStudentGroups.Remove(groupToRemove);
+            
+            // Update the flat list for backward compatibility
+            _state.ClassroomStudents.Clear();
+            foreach (var g in _state.ClassroomStudentGroups)
+            {
+                foreach (var s in g.Students)
+                    _state.ClassroomStudents.Add(s);
+            }
         }
     }
 
@@ -337,9 +398,9 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
             return;
         }
 
-        if (_state.SelectedClassroom == null)
+        if (_state.ClassroomStudentGroups.Count == 0)
         {
-            _validationText!.Text = "Please select a classroom";
+            _validationText!.Text = "Please toggle at least one classroom";
             return;
         }
 
@@ -348,28 +409,33 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
             var results = new List<AddedStudentResult>();
             var teacherName = _authService?.TeacherName ?? "Unknown Teacher";
 
-            foreach (var wrapper in selectedStudents)
+            foreach (var group in _state.ClassroomStudentGroups)
             {
-                var student = wrapper.ClassroomStudent;
-                var result = new AddedStudentResult
+                var selectedStudentsInGroup = group.Students.Where(s => s.IsSelected).ToList();
+                
+                foreach (var wrapper in selectedStudentsInGroup)
                 {
-                    Name = student.Profile?.Name?.FullName ?? "Unknown Student",
-                    ClassName = _state.SelectedClassroom.Name ?? "Unknown Class",
-                    Email = student.Profile?.EmailAddress ?? string.Empty,
-                    EnrollmentDate = DateTime.Now,
-                    Teachers = new List<string> { teacherName },
-                    PicturePath = string.Empty
-                };
+                    var student = wrapper.ClassroomStudent;
+                    var result = new AddedStudentResult
+                    {
+                        Name = student.Profile?.Name?.FullName ?? "Unknown Student",
+                        ClassName = group.ClassroomName,
+                        Email = student.Profile?.EmailAddress ?? string.Empty,
+                        EnrollmentDate = DateTime.Now,
+                        Teachers = new List<string> { teacherName },
+                        PicturePath = string.Empty
+                    };
 
-                if (!string.IsNullOrEmpty(wrapper.ProfilePhotoUrl) && _imageDownloadService != null)
-                {
-                    var localPath = await _imageDownloadService.DownloadProfileImageAsync(
-                        wrapper.ProfilePhotoUrl, 
-                        result.Name);
-                    result.PicturePath = localPath;
+                    if (!string.IsNullOrEmpty(wrapper.ProfilePhotoUrl) && _imageDownloadService != null)
+                    {
+                        var localPath = await _imageDownloadService.DownloadProfileImageAsync(
+                            wrapper.ProfilePhotoUrl, 
+                            result.Name);
+                        result.PicturePath = localPath;
+                    }
+
+                    results.Add(result);
                 }
-
-                results.Add(result);
             }
 
             // For now, just use the first result - could be extended to handle multiple
@@ -402,9 +468,26 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
 
     private void OnClassroomCardPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Border border && border.DataContext is Google.Apis.Classroom.v1.Data.Course classroom)
+        if (sender is Border border && border.DataContext is ClassroomWrapper classroomWrapper)
         {
-            _state.SelectedClassroom = classroom;
+            System.Diagnostics.Debug.WriteLine($"Toggling classroom: {classroomWrapper.Name} from {classroomWrapper.IsToggled} to {!classroomWrapper.IsToggled}");
+            classroomWrapper.IsToggled = !classroomWrapper.IsToggled;
+            
+            // Update the CSS class for visual feedback
+            if (classroomWrapper.IsToggled)
+            {
+                border.Classes.Add("toggled");
+                System.Diagnostics.Debug.WriteLine($"Added 'toggled' class to classroom: {classroomWrapper.Name}");
+            }
+            else
+            {
+                border.Classes.Remove("toggled");
+                System.Diagnostics.Debug.WriteLine($"Removed 'toggled' class from classroom: {classroomWrapper.Name}");
+            }
+            
+            // Debug: Print current classes
+            var classes = string.Join(", ", border.Classes);
+            System.Diagnostics.Debug.WriteLine($"Current classes for {classroomWrapper.Name}: {classes}");
         }
     }
 }

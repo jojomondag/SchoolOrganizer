@@ -96,6 +96,39 @@
       <Setter Property="CornerRadius" Value="6"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
+    
+    <!-- Classroom card styles -->
+    <Style Selector="Border.classroom-card">
+      <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Margin" Value="4"/>
+      <Setter Property="Padding" Value="16,12"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Transitions">
+        <Transitions>
+          <Transitions>
+            <ColorTransition Property="Background" Duration="0:0:0.2"/>
+            <ColorTransition Property="BorderBrush" Duration="0:0:0.2"/>
+          </Transitions>
+        </Transitions>
+      </Setter>
+    </Style>
+    
+    <Style Selector="Border.classroom-card:pointerover">
+      <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
+    </Style>
+    
+    <Style Selector="Border.classroom-card.toggled">
+      <Setter Property="Background" Value="{DynamicResource TextSecondaryBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+    
+    <Style Selector="Border.classroom-card.toggled:pointerover">
+      <Setter Property="Background" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
   </Window.Styles>
 
   <Border Background="{DynamicResource BackgroundTertiaryBrush}" Padding="24">
@@ -248,13 +281,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <Border Background="{DynamicResource BackgroundPrimaryBrush}" 
-                                BorderBrush="{DynamicResource BlackBrush}" 
-                                BorderThickness="1" 
-                                CornerRadius="8" 
-                                Margin="4"
-                                Padding="16,12"
-                                Cursor="Hand"
+                        <Border Classes="classroom-card"
                                 PointerPressed="OnClassroomCardPressed">
                           <Grid RowDefinitions="Auto,Auto">
                             <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
@@ -263,11 +290,17 @@
                                          FontWeight="SemiBold" 
                                          Foreground="{DynamicResource TextPrimaryBrush}"
                                          TextWrapping="Wrap"/>
-                              <TextBlock Grid.Column="1" Text="{Binding Section}" 
-                                         FontSize="11" 
-                                         Foreground="{DynamicResource TextSecondaryBrush}"
-                                         HorizontalAlignment="Right"
-                                         IsVisible="{Binding Section, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="{Binding Section}" 
+                                           FontSize="11" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           IsVisible="{Binding Section, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                <TextBlock Text="✓" 
+                                           FontSize="12" 
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           IsVisible="{Binding IsToggled}"/>
+                              </StackPanel>
                             </Grid>
                             <TextBlock Grid.Row="1" Text="{Binding Description}" 
                                        FontSize="10" 
@@ -316,25 +349,47 @@
                 <Border Background="{DynamicResource BackgroundSecondaryBrush}" 
                         CornerRadius="6" Padding="12" MaxHeight="300">
                   <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding ClassroomStudents}">
+                    <ItemsControl ItemsSource="{Binding ClassroomStudentGroups}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                          <Border Background="{DynamicResource BackgroundTertiaryBrush}" 
-                                  CornerRadius="4" Padding="8" Margin="0,2">
-                            <Grid ColumnDefinitions="Auto,*,Auto">
-                              <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Margin="0,0,12,0"/>
-                              <StackPanel Grid.Column="1">
-                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Medium" 
+                          <StackPanel Spacing="8" Margin="0,0,0,12">
+                            <!-- Classroom Header -->
+                            <Border Background="{DynamicResource BackgroundTertiaryBrush}" 
+                                    CornerRadius="4" Padding="8,6">
+                              <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="{Binding ClassroomName}" 
+                                           FontSize="12" FontWeight="SemiBold" 
                                            Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="{Binding Email}" FontSize="11" 
+                                <TextBlock Grid.Column="1" Text="{Binding SelectedStudentCount, StringFormat='{}{0} selected'}" 
+                                           FontSize="10" 
                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
-                              </StackPanel>
-                              <Border Grid.Column="2" Width="32" Height="32" CornerRadius="16" ClipToBounds="True">
-                                <Image Source="{Binding ProfilePhotoUrl, Converter={StaticResource UniversalImageConverter}}"
-                                       IsVisible="{Binding HasProfilePhoto}"/>
-                              </Border>
-                            </Grid>
-                          </Border>
+                              </Grid>
+                            </Border>
+                            
+                            <!-- Students in this classroom -->
+                            <ItemsControl ItemsSource="{Binding Students}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                  <Border Background="{DynamicResource BackgroundTertiaryBrush}" 
+                                          CornerRadius="4" Padding="8" Margin="0,2">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                      <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Margin="0,0,12,0"/>
+                                      <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Medium" 
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding Email}" FontSize="11" 
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                      </StackPanel>
+                                      <Border Grid.Column="2" Width="32" Height="32" CornerRadius="16" ClipToBounds="True">
+                                        <Image Source="{Binding ProfilePhotoUrl, Converter={StaticResource UniversalImageConverter}}"
+                                               IsVisible="{Binding HasProfilePhoto}"/>
+                                      </Border>
+                                    </Grid>
+                                  </Border>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </StackPanel>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>

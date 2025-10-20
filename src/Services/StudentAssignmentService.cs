@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
 using SchoolOrganizer.Src.Services.Utilities;
+using SchoolOrganizer.Src.Models.Assignments;
 using Google.Apis.Classroom.v1.Data;
 using Google.Apis.Drive.v3;
+using Serilog;
 
 namespace SchoolOrganizer.Src.Services
 {
@@ -253,22 +256,63 @@ namespace SchoolOrganizer.Src.Services
                 {
                     var file = await driveService.Files.Get(attachment.DriveFile.Id).ExecuteAsync();
                     string fileName = DirectoryUtil.SanitizeFolderName(attachment.DriveFile.Title ?? "File");
-                    string filePath = Path.Combine(assignmentDirectory, fileName);
+                    string mimeType = file.MimeType ?? "";
+                    string filePath;
 
-                    // Check if the file already exists
-                    if (File.Exists(filePath))
+                    // Check if this is a Google Docs file
+                    if (mimeType.StartsWith("application/vnd.google-apps"))
                     {
-                        return true;
+                        // Handle Google Docs - export to appropriate format
+                        var exportMimeType = GetExportMimeType(mimeType);
+                        var fileExtension = GetFileExtension(exportMimeType);
+                        string sanitizedFileName = DirectoryUtil.SanitizeFolderName(Path.GetFileNameWithoutExtension(fileName));
+                        filePath = Path.Combine(assignmentDirectory, $"{sanitizedFileName}{fileExtension}");
+
+                        // Check if both file and metadata already exist
+                        bool fileExists = File.Exists(filePath);
+                        string metadataPath = filePath + ".gdocmeta.json";
+                        bool metadataExists = File.Exists(metadataPath);
+
+                        if (fileExists && metadataExists)
+                        {
+                            Log.Information("Google Doc file and metadata already exist, skipping: {FilePath}", filePath);
+                            return true;
+                        }
+
+                        // Download file if it doesn't exist
+                        if (!fileExists)
+                        {
+                            using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+                            await driveService.Files.Export(attachment.DriveFile.Id, exportMimeType).DownloadAsync(fileStream);
+                            Log.Information("Downloaded Google Doc: {FilePath}", filePath);
+                        }
+
+                        // Always save Google Docs metadata if it doesn't exist
+                        if (!metadataExists)
+                        {
+                            await SaveGoogleDocMetadataAsync(attachment.DriveFile.Id, fileName, mimeType, filePath);
+                        }
                     }
+                    else
+                    {
+                        // Handle regular files
+                        filePath = Path.Combine(assignmentDirectory, fileName);
 
+                        // Check if the file already exists
+                        if (File.Exists(filePath))
+                        {
+                            return true;
+                        }
 
-                    // Download the file
-                    using var stream = new MemoryStream();
-                    var request = driveService.Files.Get(attachment.DriveFile.Id);
-                    await request.DownloadAsync(stream);
-                    
-                    // Write to file
-                    await File.WriteAllBytesAsync(filePath, stream.ToArray());
+                        // Download the file
+                        using var stream = new MemoryStream();
+                        var request = driveService.Files.Get(attachment.DriveFile.Id);
+                        await request.DownloadAsync(stream);
+                        
+                        // Write to file
+                        await File.WriteAllBytesAsync(filePath, stream.ToArray());
+                        Log.Information("Downloaded regular file: {FilePath}", filePath);
+                    }
                     
                     return true;
                 }
@@ -276,13 +320,15 @@ namespace SchoolOrganizer.Src.Services
                 {
                     // Handle link attachments (URLs)
                     // For now, just log the link - could implement URL download later
+                    Log.Information("Skipping link attachment: {Link}", attachment.Link.Url);
                     return false;
                 }
                 
                 return false;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log.Error(ex, "Error downloading attachment for {StudentName} - {AssignmentName}", studentName, assignmentName);
                 return false;
             }
         }
@@ -304,6 +350,80 @@ namespace SchoolOrganizer.Src.Services
             catch (Exception)
             {
                 return 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the export MIME type for Google Docs files
+        /// </summary>
+        private string GetExportMimeType(string mimeType) => mimeType switch
+        {
+            "application/vnd.google-apps.document" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.google-apps.spreadsheet" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.google-apps.presentation" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.google-apps.drawing" => "image/png",
+            "application/vnd.google-apps.script" => "application/vnd.google-apps.script+json",
+            "application/vnd.google-apps.form" => "application/pdf",
+            "application/vnd.google-apps.jam" => "application/pdf",
+            "application/vnd.google-apps.site" => "text/html",
+            "application/vnd.google-apps.folder" => "application/vnd.google-apps.folder",
+            _ => "application/pdf",
+        };
+
+        /// <summary>
+        /// Gets the file extension for a given MIME type
+        /// </summary>
+        private string GetFileExtension(string mimeType) => mimeType switch
+        {
+            "application/pdf" => ".pdf",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ".xlsx",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation" => ".pptx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => ".docx",
+            "application/zip" => ".zip",
+            "application/x-rar-compressed" => ".rar",
+            "image/png" => ".png",
+            "image/jpeg" => ".jpg",
+            "image/gif" => ".gif",
+            "image/bmp" => ".bmp",
+            "text/plain" => ".txt",
+            "text/csv" => ".csv",
+            "application/vnd.ms-excel" => ".xls",
+            "application/vnd.ms-powerpoint" => ".ppt",
+            "application/msword" => ".doc",
+            "application/vnd.google-apps.script+json" => ".json",
+            "text/html" => ".html",
+            "application/vnd.google-apps.folder" => "",
+            _ => ".bin",
+        };
+
+        /// <summary>
+        /// Saves Google Docs metadata as a JSON file alongside the downloaded file
+        /// </summary>
+        private async Task SaveGoogleDocMetadataAsync(string fileId, string fileName, string mimeType, string downloadedFilePath)
+        {
+            try
+            {
+                var metadata = new GoogleDocMetadata
+                {
+                    FileId = fileId,
+                    OriginalTitle = fileName,
+                    MimeType = mimeType,
+                    DocType = GoogleDocMetadata.GetDocTypeFromMimeType(mimeType),
+                    WebViewLink = $"https://drive.google.com/file/d/{fileId}/view",
+                    DownloadedFilePath = downloadedFilePath,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                // Save metadata file with .gdocmeta.json extension
+                string metadataPath = downloadedFilePath + ".gdocmeta.json";
+                var json = JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(metadataPath, json);
+
+                Log.Information("Saved Google Docs metadata: {MetadataPath}", metadataPath);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error saving Google Docs metadata for {FileName}", fileName);
             }
         }
     }

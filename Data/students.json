@@ -1,0 +1,422 @@
+[
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "Fahad Khan",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Fahad Khan_20251020_130905.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "fahad.khan@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:05.955476",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 2,
+    "Name": "Mohamed Ramo",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Mohamed Ramo_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mohamed.ramo@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.121567",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 3,
+    "Name": "Abdullah Hamdan",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Abdullah Hamdan_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "abdullah.hamdan@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.175312",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 4,
+    "Name": "Ward Heidar",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Ward Heidar_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "ward.heidar@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.226912",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 5,
+    "Name": "Shaza Zaher",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Shaza Zaher_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "shaza.zaher@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.28055",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 6,
+    "Name": "Vildan Kapetanovic",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Vildan Kapetanovic_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "vildan.kapetanovic@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.33868",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 7,
+    "Name": "Lujain Shaar",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Lujain Shaar_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "lujain.shaar@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.388127",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 8,
+    "Name": "Oskar Hansson Berg",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Oskar Hansson Berg_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "oskar.hanssonberg@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.435871",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 9,
+    "Name": "Mohammad Masri",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Mohammad Masri_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mohammad.masri@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.544656",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 10,
+    "Name": "Neithan Jakobsen",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Neithan Jakobsen_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "neithan.jakobsen@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.832829",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 11,
+    "Name": "Hadil Tlas",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Hadil Tlas_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "hadil.tlas@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.889813",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 12,
+    "Name": "Dante Sj\u00F6vall Fridh",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Dante Sj\u00F6vall Fridh_20251020_130906.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "dante.sjovallfridh@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:06.933516",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 13,
+    "Name": "Emil Aspenberg",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Emil Aspenberg_20251020_130907.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "emil.aspenberg@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:07.061268",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 14,
+    "Name": "Sixten \u00C5berg",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Sixten \u00C5berg_20251020_130907.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "sixten.aberg@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:07.108572",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 15,
+    "Name": "Oliver Wikstr\u00F6m",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Oliver Wikstr\u00F6m_20251020_130907.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "oliver.wikstrom@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:07.295538",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 16,
+    "Name": "Mathias Andersson",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Mathias Andersson_20251020_130907.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mathias.andersson@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:07.406709",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 17,
+    "Name": "Majd Alshehadat",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Majd Alshehadat_20251020_130907.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "majdaldin.alshehadat@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:07.453765",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 18,
+    "Name": "Filip H\u00E5kansson",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Filip H\u00E5kansson_20251020_130907.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "filip.hakansson@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:07.500544",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 19,
+    "Name": "Milo Sandengrip",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Milo Sandengrip_20251020_130907.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "milo.sandengrip@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:07.544062",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "PersonType": 0,
+    "Id": 20,
+    "Name": "Gunnar Nord",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Gunnar Nord_20251020_130907.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "gunnar.nord@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-20T13:09:07.699048",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  }
+]
