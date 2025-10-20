@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -397,5 +398,13 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
         public string Email { get; set; } = string.Empty;
         public DateTime EnrollmentDate { get; set; }
         public string PicturePath { get; set; } = string.Empty;
+    }
+
+    private void OnClassroomCardPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Border border && border.DataContext is Google.Apis.Classroom.v1.Data.Course classroom)
+        {
+            _state.SelectedClassroom = classroom;
+        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -65,20 +66,23 @@ public partial class ClassroomDownloadViewModel : ObservableObject
     /// <summary>
     /// Refreshes the folder status for all courses to update the UI
     /// </summary>
-    private void RefreshAllCourseFolderStatus()
+    private async void RefreshAllCourseFolderStatus(bool forceRefresh = false)
     {
-        foreach (var course in Classrooms)
+        // Run folder existence checks in parallel to avoid blocking UI
+        var tasks = Classrooms.Select(async course => 
         {
-            course.UpdateFolderStatus();
-        }
+            await Task.Run(() => course.UpdateFolderStatus(forceRefresh));
+        });
+        
+        await Task.WhenAll(tasks);
     }
 
     /// <summary>
     /// Public method to refresh all course folder status - useful for external calls
     /// </summary>
-    public void RefreshCourseStatus()
+    public void RefreshCourseStatus(bool forceRefresh = false)
     {
-        RefreshAllCourseFolderStatus();
+        RefreshAllCourseFolderStatus(forceRefresh);
     }
 
 
@@ -292,12 +296,7 @@ public partial class ClassroomDownloadViewModel : ObservableObject
 
         try
         {
-            if (!Directory.Exists(courseWrapper.CourseFolderPath))
-            {
-                StatusText = $"Course folder does not exist. Please download the course first.";
-                return;
-            }
-
+            // Show UI immediately, check folder existence asynchronously
             var contentViewModel = new ContentViewModel(
                 courseWrapper.Course.Name ?? "Unknown Course",
                 courseWrapper.CourseFolderPath
@@ -306,6 +305,18 @@ public partial class ClassroomDownloadViewModel : ObservableObject
             CurrentContentViewModel = contentViewModel;
             IsShowingContent = true;
             StatusText = $"Viewing content for {courseWrapper.Course.Name}";
+            
+            // Check folder existence asynchronously and update status if needed
+            _ = Task.Run(() =>
+            {
+                if (!Directory.Exists(courseWrapper.CourseFolderPath))
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        StatusText = $"Course folder does not exist. Please download the course first.";
+                    });
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -325,6 +336,8 @@ public partial class CourseWrapper : ObservableObject
     private bool _hasNewSubmissions;
     private bool _isSelected;
     private bool _isMouseOver;
+    private DateTime _lastFolderCheck = DateTime.MinValue;
+    private static readonly TimeSpan FolderCheckCacheDuration = TimeSpan.FromSeconds(5);
 
     public bool HasNewSubmissions
     {
@@ -387,16 +400,23 @@ public partial class CourseWrapper : ObservableObject
 
     public string CourseFolderPath => _courseFolderPath;
 
-    public void UpdateFolderStatus()
+    public void UpdateFolderStatus(bool forceRefresh = false)
     {
-        HasFolder = Directory.Exists(_courseFolderPath);
-        // If folder exists, assume it was downloaded (set IsDownloaded to true)
-        if (HasFolder)
+        // Only check folder existence if cache has expired or forced refresh
+        if (forceRefresh || DateTime.Now - _lastFolderCheck > FolderCheckCacheDuration)
         {
-            IsDownloaded = true;
+            HasFolder = Directory.Exists(_courseFolderPath);
+            _lastFolderCheck = DateTime.Now;
+            
+            // If folder exists, assume it was downloaded (set IsDownloaded to true)
+            if (HasFolder)
+            {
+                IsDownloaded = true;
+            }
+            
+            OnPropertyChanged(nameof(HasFolder));
+            OnPropertyChanged(nameof(IsDownloaded));
         }
-        OnPropertyChanged(nameof(HasFolder));
-        OnPropertyChanged(nameof(IsDownloaded));
     }
 
     public void UpdateDownloadStatus(bool isDownloaded)

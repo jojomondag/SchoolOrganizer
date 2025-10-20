@@ -38,7 +38,8 @@ public partial class ContentViewModel : ObservableObject
         _courseName = courseName;
         _courseFolder = courseFolder;
 
-        Task.Run(LoadContentAsync);
+        // Start loading content asynchronously without blocking UI
+        _ = Task.Run(LoadContentAsync);
     }
 
     private async Task LoadContentAsync()
@@ -61,24 +62,31 @@ public partial class ContentViewModel : ObservableObject
                 return;
             }
 
+            // Get student directories in parallel
             var studentDirs = await Task.Run(() => Directory.GetDirectories(CourseFolder));
             Log.Information($"Found {studentDirs.Length} student directories");
 
-            var studentItems = new List<StudentItem>();
-            foreach (var studentDir in studentDirs)
+            // Process student directories in parallel for better performance
+            var studentTasks = studentDirs.Select(async studentDir =>
             {
                 var studentName = Path.GetFileName(studentDir);
-                var assignmentDirs = await Task.Run(() => Directory.GetDirectories(studentDir));
-                var fileCount = await Task.Run(() => Directory.GetFiles(studentDir, "*.*", SearchOption.AllDirectories).Length);
-
-                studentItems.Add(new StudentItem
+                
+                // Run file system operations in parallel
+                var assignmentDirsTask = Task.Run(() => Directory.GetDirectories(studentDir));
+                var fileCountTask = Task.Run(() => Directory.GetFiles(studentDir, "*.*", SearchOption.AllDirectories).Length);
+                
+                await Task.WhenAll(assignmentDirsTask, fileCountTask);
+                
+                return new StudentItem
                 {
                     Name = studentName,
                     FolderPath = studentDir,
-                    AssignmentCount = assignmentDirs.Length,
-                    FileCount = fileCount
-                });
-            }
+                    AssignmentCount = assignmentDirsTask.Result.Length,
+                    FileCount = fileCountTask.Result
+                };
+            });
+
+            var studentItems = await Task.WhenAll(studentTasks);
 
             // Update UI on the UI thread
             await Dispatcher.UIThread.InvokeAsync(() =>

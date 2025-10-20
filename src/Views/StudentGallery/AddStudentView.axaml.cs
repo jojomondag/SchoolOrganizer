@@ -163,6 +163,14 @@ public partial class AddStudentView : UserControl
         }
     }
 
+    private void OnClassroomCardPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (ViewModel != null && sender is Border border && border.DataContext is Google.Apis.Classroom.v1.Data.Course classroom)
+        {
+            ViewModel.SelectedClassroom = classroom;
+        }
+    }
+
 
 
     private StudentGalleryViewModel? GetParentStudentGalleryViewModel()

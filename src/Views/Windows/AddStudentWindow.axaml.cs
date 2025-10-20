@@ -483,6 +483,14 @@ public partial class AddStudentWindow : Window
         public DateTime EnrollmentDate { get; set; }
         public string PicturePath { get; set; } = string.Empty;
     }
+
+    private void OnClassroomCardPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Border border && border.DataContext is Google.Apis.Classroom.v1.Data.Course classroom)
+        {
+            state.SelectedClassroom = classroom;
+        }
+    }
 }
 
 

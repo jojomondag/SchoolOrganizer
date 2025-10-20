@@ -270,13 +270,19 @@ public partial class AddStudentViewModel : ObservableObject
                 ClassroomStudents.Add(new ClassroomStudentWrapper(student));
             }
             
+            // Automatically select all students when classroom is selected
+            foreach (var student in ClassroomStudents)
+            {
+                student.IsSelected = true;
+            }
+            
             if (students.Count == 0)
             {
                 ValidationText = "No students found in this classroom";
             }
             else
             {
-                ValidationText = $"Found {students.Count} students. Select the ones you want to import.";
+                ValidationText = $"Found {students.Count} students. All students are selected for import.";
             }
         }
         catch (Exception ex)

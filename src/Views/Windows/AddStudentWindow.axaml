@@ -264,13 +264,75 @@
             <!-- Classroom Selection -->
             <StackPanel Spacing="16">
               <StackPanel>
-                <TextBlock Text="Select Classroom" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
-                <ComboBox Name="ClassroomBox" ItemsSource="{Binding AvailableClassrooms}" 
-                          SelectedItem="{Binding SelectedClassroom}"
-                          SelectionChanged="OnClassroomSelected"
-                          DisplayMemberBinding="{Binding Name}"/>
-                <TextBlock Text="Loading classrooms..." IsVisible="{Binding IsLoadingClassrooms}" 
-                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                
+                <!-- Loading State -->
+                <StackPanel IsVisible="{Binding IsLoadingClassrooms}" HorizontalAlignment="Center" Margin="0,20">
+                  <TextBlock Text="Loading classrooms..." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                </StackPanel>
+                
+                <!-- Classroom Cards Grid -->
+                <ScrollViewer IsVisible="{Binding !IsLoadingClassrooms}" 
+                             VerticalScrollBarVisibility="Auto" 
+                             MaxHeight="200"
+                             HorizontalScrollBarVisibility="Disabled">
+                  <ItemsControl ItemsSource="{Binding AvailableClassrooms}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <UniformGrid Columns="2" Margin="0,0,0,8"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="{DynamicResource BackgroundPrimaryBrush}" 
+                                BorderBrush="{DynamicResource BlackBrush}" 
+                                BorderThickness="1" 
+                                CornerRadius="8" 
+                                Margin="4"
+                                Padding="16,12"
+                                Cursor="Hand"
+                                PointerPressed="OnClassroomCardPressed">
+                          <Grid RowDefinitions="Auto,Auto">
+                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                              <TextBlock Grid.Column="0" Text="{Binding Name}" 
+                                         FontSize="14" 
+                                         FontWeight="SemiBold" 
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         TextWrapping="Wrap"/>
+                              <TextBlock Grid.Column="1" Text="{Binding Section}" 
+                                         FontSize="11" 
+                                         Foreground="{DynamicResource TextSecondaryBrush}"
+                                         HorizontalAlignment="Right"
+                                         IsVisible="{Binding Section, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            </Grid>
+                            <TextBlock Grid.Row="1" Text="{Binding Description}" 
+                                       FontSize="10" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap"
+                                       MaxHeight="32"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                       Margin="0,2,0,0"/>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+                
+                <!-- No Classrooms Message -->
+                <StackPanel IsVisible="{Binding !IsLoadingClassrooms}" 
+                           HorizontalAlignment="Center" 
+                           Margin="0,20">
+                  <StackPanel IsVisible="{Binding AvailableClassrooms.Count, Converter={x:Static views:ComparisonConverter.Instance}, ConverterParameter='==,0'}">
+                    <TextBlock Text="No classrooms available" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Make sure you're logged in with Google and have access to Google Classroom" 
+                               FontSize="10" 
+                               Foreground="{DynamicResource TextSecondaryBrush}" 
+                               HorizontalAlignment="Center" 
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,0"/>
+                  </StackPanel>
+                </StackPanel>
               </StackPanel>
 
               <!-- Students List -->
