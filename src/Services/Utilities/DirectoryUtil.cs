@@ -38,37 +38,6 @@ public static class DirectoryUtil
         return sanitized;
     }
 
-    /// <summary>
-    /// Gets a unique file path by adding a numeric suffix if the file already exists.
-    /// Example: main.java -> main_1.java -> main_2.java
-    /// </summary>
-    /// <param name="desiredFilePath">The desired file path</param>
-    /// <returns>A unique file path that doesn't exist yet</returns>
-    public static string GetUniqueFilePath(string desiredFilePath)
-    {
-        if (!File.Exists(desiredFilePath))
-        {
-            return desiredFilePath;
-        }
-
-        string directory = Path.GetDirectoryName(desiredFilePath) ?? string.Empty;
-        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(desiredFilePath);
-        string extension = Path.GetExtension(desiredFilePath);
-
-        int counter = 1;
-        string newFilePath;
-
-        do
-        {
-            string newFileName = $"{fileNameWithoutExtension}_{counter}{extension}";
-            newFilePath = Path.Combine(directory, newFileName);
-            counter++;
-        }
-        while (File.Exists(newFilePath));
-
-        Log.Debug($"File already exists. Renamed {desiredFilePath} to {newFilePath}");
-        return newFilePath;
-    }
 
     public static string GetCourseDirectoryName(string courseName, string className, string courseId, string teacherName)
     {

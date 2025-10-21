@@ -259,12 +259,18 @@ namespace SchoolOrganizer.Src.Services
                     string mimeType = file.MimeType ?? "";
                     string filePath;
 
+                    // Create a subfolder using file ID to allow duplicate filenames
+                    // This preserves original filenames (important for Java class names)
+                    string fileId = attachment.DriveFile.Id;
+                    string shortFileId = fileId.Length > 8 ? fileId.Substring(0, 8) : fileId;
+                    string fileFolder = Path.Combine(assignmentDirectory, shortFileId);
+                    Directory.CreateDirectory(fileFolder);
+
                     // Check if the file needs to be unpacked (ZIP/RAR) - create URL shortcut instead of downloading
                     if (NeedsUnpacking(mimeType))
                     {
                         // Create a link for files that need unpacking
-                        string linkPath = Path.Combine(assignmentDirectory, fileName + ".url");
-                        linkPath = DirectoryUtil.GetUniqueFilePath(linkPath);
+                        string linkPath = Path.Combine(fileFolder, fileName + ".url");
                         await File.WriteAllTextAsync(linkPath, $"[InternetShortcut]\nURL=https://drive.google.com/file/d/{attachment.DriveFile.Id}/view");
                         Log.Information("Created URL shortcut for archive: {LinkPath}", linkPath);
                         return true;
@@ -276,13 +282,11 @@ namespace SchoolOrganizer.Src.Services
                         var exportMimeType = GetExportMimeType(mimeType);
                         var fileExtension = GetFileExtension(exportMimeType);
                         string sanitizedFileName = DirectoryUtil.SanitizeFolderName(Path.GetFileNameWithoutExtension(fileName));
-                        filePath = Path.Combine(assignmentDirectory, $"{sanitizedFileName}{fileExtension}");
+                        filePath = Path.Combine(fileFolder, $"{sanitizedFileName}{fileExtension}");
 
-                        // Get unique file path to handle duplicates
-                        filePath = DirectoryUtil.GetUniqueFilePath(filePath);
                         string metadataPath = filePath + ".gdocmeta.json";
 
-                        // Download the file
+                        // Download the file (overwrite if exists)
                         using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
                         await driveService.Files.Export(attachment.DriveFile.Id, exportMimeType).DownloadAsync(fileStream);
                         Log.Information("Downloaded Google Doc: {FilePath}", filePath);
@@ -293,12 +297,9 @@ namespace SchoolOrganizer.Src.Services
                     else
                     {
                         // Handle regular files
-                        filePath = Path.Combine(assignmentDirectory, fileName);
+                        filePath = Path.Combine(fileFolder, fileName);
 
-                        // Get unique file path to handle duplicates
-                        filePath = DirectoryUtil.GetUniqueFilePath(filePath);
-
-                        // Download the file
+                        // Download the file (overwrite if exists)
                         using var stream = new MemoryStream();
                         var request = driveService.Files.Get(attachment.DriveFile.Id);
                         await request.DownloadAsync(stream);
@@ -314,7 +315,6 @@ namespace SchoolOrganizer.Src.Services
                 {
                     // Handle link attachments by creating .url files
                     string linkPath = Path.Combine(assignmentDirectory, DirectoryUtil.SanitizeFolderName(attachment.Link.Title ?? "Link") + ".url");
-                    linkPath = DirectoryUtil.GetUniqueFilePath(linkPath);
                     await File.WriteAllTextAsync(linkPath, $"[InternetShortcut]\nURL={attachment.Link.Url}");
                     Log.Information("Saved link attachment: {LinkPath}", linkPath);
                     return true;

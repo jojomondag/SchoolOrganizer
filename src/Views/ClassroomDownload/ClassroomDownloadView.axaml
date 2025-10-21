@@ -193,8 +193,41 @@
                                             </Button.Styles>
                                         </Button>
 
-                                        <!-- Download Button -->
+                                        <!-- Sync Button (only visible if folder exists) -->
+                                        <Button Command="{Binding SyncCommand}"
+                                                IsVisible="{Binding HasFolder}"
+                                                Padding="10,6"
+                                                CornerRadius="4"
+                                                ToolTip.Tip="{Binding IsAutoSyncEnabled, Converter={StaticResource ParameterizedConverter}, ConverterParameter=Auto-sync enabled - click to disable|Enable auto-sync}">
+                                            <Button.Background>
+                                                <SolidColorBrush Color="{Binding IsAutoSyncEnabled, Converter={StaticResource ParameterizedConverter}, ConverterParameter=#2563eb|Transparent}"/>
+                                            </Button.Background>
+                                            <Button.BorderBrush>
+                                                <SolidColorBrush Color="{Binding IsAutoSyncEnabled, Converter={StaticResource ParameterizedConverter}, ConverterParameter=#2563eb|#2563eb}"/>
+                                            </Button.BorderBrush>
+                                            <Button.BorderThickness>
+                                                <Binding Path="IsAutoSyncEnabled" Converter="{StaticResource ParameterizedConverter}" ConverterParameter="0|1"/>
+                                            </Button.BorderThickness>
+                                            <materialIcons:MaterialIcon Kind="Sync"
+                                                                       Width="18"
+                                                                       Height="18">
+                                                <materialIcons:MaterialIcon.Foreground>
+                                                    <SolidColorBrush Color="{Binding IsAutoSyncEnabled, Converter={StaticResource ParameterizedConverter}, ConverterParameter=White|#2563eb}"/>
+                                                </materialIcons:MaterialIcon.Foreground>
+                                            </materialIcons:MaterialIcon>
+                                            <Button.Styles>
+                                                <Style Selector="Button:pointerover">
+                                                    <Setter Property="Background" Value="#2563eb"/>
+                                                </Style>
+                                                <Style Selector="Button:pointerover materialIcons|MaterialIcon">
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </Style>
+                                            </Button.Styles>
+                                        </Button>
+
+                                        <!-- Download Button (hidden when auto-sync is active) -->
                                         <Button Command="{Binding DownloadCommand}"
+                                                IsVisible="{Binding !IsAutoSyncEnabled}"
                                                 Padding="12,6"
                                                 Content="Download"
                                                 Background="{DynamicResource AccentButtonBackground}"

@@ -20,6 +20,9 @@ public partial class ClassroomDownloadViewModel : ObservableObject
     private ClassroomDataService? _classroomService;
     private CachedClassroomDataService? _cachedClassroomService;
     private DownloadManager? _downloadManager;
+    private System.Threading.Timer? _autoSyncTimer;
+    private readonly List<CourseWrapper> _autoSyncCourses = new();
+    private readonly object _autoSyncLock = new();
 
     [ObservableProperty]
     private ObservableCollection<CourseWrapper> _classrooms = new();
@@ -233,14 +236,14 @@ public partial class ClassroomDownloadViewModel : ObservableObject
             Log.Information($"Calling DownloadManager.DownloadAssignmentsAsync for {courseWrapper.Course.Name}");
 
             // Run the download in a background task to avoid UI thread blocking
-            await Task.Run(async () => await _downloadManager.DownloadAssignmentsAsync(courseWrapper.Course));
+            await Task.Run(async () => await _downloadManager.DownloadAssignmentsAsync(courseWrapper.Course, incrementalSync: false));
 
             Log.Information($"Download completed, updating status for {courseWrapper.Course.Name}");
             Dispatcher.UIThread.Post(() => {
                 courseWrapper.UpdateDownloadStatus(true);
                 courseWrapper.UpdateFolderStatus();
                 StatusText = $"Download completed for {courseWrapper.Course.Name}.";
-                
+
                 // Refresh folder status for all courses to update UI
                 RefreshAllCourseFolderStatus();
             });
@@ -250,6 +253,57 @@ public partial class ClassroomDownloadViewModel : ObservableObject
         {
             Dispatcher.UIThread.Post(() => StatusText = $"Error downloading assignments: {ex.Message}");
             Log.Error(ex, $"Error during download for {courseWrapper?.Course?.Name ?? "Unknown"}");
+        }
+    }
+
+    public async Task SyncAssignmentsAsync(CourseWrapper courseWrapper)
+    {
+        if (courseWrapper?.Course == null)
+        {
+            StatusText = "Course is null.";
+            Log.Error("CourseWrapper or Course is null in SyncAssignmentsAsync");
+            return;
+        }
+
+        try
+        {
+            Log.Information($"Starting sync for course: {courseWrapper.Course.Name}");
+
+            // Initialize download manager if needed
+            if (_downloadManager == null)
+            {
+                Log.Information("Initializing DownloadManager");
+                InitializeDownloadManager();
+
+                if (_downloadManager == null)
+                {
+                    StatusText = "Failed to initialize download manager.";
+                    Log.Error("DownloadManager initialization failed");
+                    return;
+                }
+            }
+
+            StatusText = $"Syncing assignments for {courseWrapper.Course.Name}...";
+            Log.Information($"Calling DownloadManager.DownloadAssignmentsAsync (incremental) for {courseWrapper.Course.Name}");
+
+            // Run the sync in a background task to avoid UI thread blocking
+            await Task.Run(async () => await _downloadManager.DownloadAssignmentsAsync(courseWrapper.Course, incrementalSync: true));
+
+            Log.Information($"Sync completed, updating status for {courseWrapper.Course.Name}");
+            Dispatcher.UIThread.Post(() => {
+                courseWrapper.UpdateDownloadStatus(true);
+                courseWrapper.UpdateFolderStatus();
+                StatusText = $"Sync completed for {courseWrapper.Course.Name}.";
+
+                // Refresh folder status for all courses to update UI
+                RefreshAllCourseFolderStatus();
+            });
+            Log.Information($"Successfully completed sync for {courseWrapper.Course.Name}");
+        }
+        catch (Exception ex)
+        {
+            Dispatcher.UIThread.Post(() => StatusText = $"Error syncing assignments: {ex.Message}");
+            Log.Error(ex, $"Error during sync for {courseWrapper?.Course?.Name ?? "Unknown"}");
         }
     }
 
@@ -305,7 +359,7 @@ public partial class ClassroomDownloadViewModel : ObservableObject
             CurrentContentViewModel = contentViewModel;
             IsShowingContent = true;
             StatusText = $"Viewing content for {courseWrapper.Course.Name}";
-            
+
             // Check folder existence asynchronously and update status if needed
             _ = Task.Run(() =>
             {
@@ -322,6 +376,83 @@ public partial class ClassroomDownloadViewModel : ObservableObject
         {
             StatusText = $"Error opening content view: {ex.Message}";
             Log.Error(ex, "Error opening content view");
+        }
+    }
+
+    public void RegisterCourseForAutoSync(CourseWrapper courseWrapper)
+    {
+        lock (_autoSyncLock)
+        {
+            if (!_autoSyncCourses.Contains(courseWrapper))
+            {
+                _autoSyncCourses.Add(courseWrapper);
+                Log.Information($"Registered {courseWrapper.Course.Name} for auto-sync");
+
+                // Start timer if this is the first course
+                if (_autoSyncCourses.Count == 1)
+                {
+                    StartAutoSyncTimer();
+                }
+            }
+        }
+    }
+
+    public void UnregisterCourseFromAutoSync(CourseWrapper courseWrapper)
+    {
+        lock (_autoSyncLock)
+        {
+            if (_autoSyncCourses.Remove(courseWrapper))
+            {
+                Log.Information($"Unregistered {courseWrapper.Course.Name} from auto-sync");
+
+                // Stop timer if no more courses
+                if (_autoSyncCourses.Count == 0)
+                {
+                    StopAutoSyncTimer();
+                }
+            }
+        }
+    }
+
+    private void StartAutoSyncTimer()
+    {
+        // Sync every 30 minutes
+        var intervalMs = 30 * 60 * 1000;
+        _autoSyncTimer = new System.Threading.Timer(AutoSyncTimerCallback, null, intervalMs, intervalMs);
+        Log.Information("Started auto-sync timer (30 minute interval)");
+    }
+
+    private void StopAutoSyncTimer()
+    {
+        _autoSyncTimer?.Dispose();
+        _autoSyncTimer = null;
+        Log.Information("Stopped auto-sync timer");
+    }
+
+    private async void AutoSyncTimerCallback(object? state)
+    {
+        List<CourseWrapper> coursesToSync;
+        lock (_autoSyncLock)
+        {
+            coursesToSync = _autoSyncCourses.ToList();
+        }
+
+        foreach (var course in coursesToSync)
+        {
+            try
+            {
+                Log.Information($"Auto-syncing {course.Course.Name}");
+                await Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    course.IsSyncing = true;
+                    await SyncAssignmentsAsync(course);
+                    course.IsSyncing = false;
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error during auto-sync for {course.Course.Name}");
+            }
         }
     }
 }
@@ -351,6 +482,12 @@ public partial class CourseWrapper : ObservableObject
         set => SetProperty(ref _isMouseOver, value);
     }
 
+    [ObservableProperty]
+    private bool _isSyncing;
+
+    [ObservableProperty]
+    private bool _isAutoSyncEnabled;
+
     public CourseWrapper(Course course, ClassroomDownloadViewModel viewModel)
     {
         Course = course;
@@ -372,6 +509,35 @@ public partial class CourseWrapper : ObservableObject
     private async Task DownloadAsync()
     {
         await _viewModel.DownloadAssignmentsAsync(this);
+    }
+
+    [RelayCommand]
+    private async Task SyncAsync()
+    {
+        // Toggle auto-sync for this course
+        IsAutoSyncEnabled = !IsAutoSyncEnabled;
+
+        if (IsAutoSyncEnabled)
+        {
+            // Perform initial sync
+            try
+            {
+                IsSyncing = true;
+                await _viewModel.SyncAssignmentsAsync(this);
+            }
+            finally
+            {
+                IsSyncing = false;
+            }
+
+            // Register for automatic periodic syncing
+            _viewModel.RegisterCourseForAutoSync(this);
+        }
+        else
+        {
+            // Unregister from automatic syncing
+            _viewModel.UnregisterCourseFromAutoSync(this);
+        }
     }
 
     [RelayCommand]

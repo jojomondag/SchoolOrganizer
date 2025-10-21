@@ -47,7 +47,13 @@ public class DownloadManager
         _courseDownloadTimes = LoadFile<Dictionary<string, DateTime>>(CourseDownloadFilePath) ?? new Dictionary<string, DateTime>();
     }
     public void UpdateDownloadFolder(string newFolderPath) => _selectedFolderPath = newFolderPath;
-    public async Task DownloadAssignmentsAsync(Course course)
+
+    /// <summary>
+    /// Downloads assignments for a course with support for incremental sync
+    /// </summary>
+    /// <param name="course">The course to download</param>
+    /// <param name="incrementalSync">If true, only downloads submissions updated since last download</param>
+    public async Task DownloadAssignmentsAsync(Course course, bool incrementalSync = false)
     {
         try
         {
@@ -73,12 +79,39 @@ public class DownloadManager
                 return;
             }
 
-            UpdateStatus($"Downloading assignments for {course.Name}...");
-            Log.Information($"Downloading assignments for {course.Name}...");
+            DateTime? lastDownloadTime = incrementalSync ? GetLastDownloadTime(course.Id) : null;
+            string operation = incrementalSync && lastDownloadTime.HasValue ? "Syncing" : "Downloading";
+
+            UpdateStatus($"{operation} assignments for {course.Name}...");
+            Log.Information($"{operation} assignments for {course.Name}... (Incremental: {incrementalSync}, Last Download: {lastDownloadTime})");
 
             Log.Information($"About to call GetCourseDataAsync for course ID: {course.Id}");
             var (students, submissions, courseWorks) = await GetCourseDataAsync(course.Id);
             Log.Information($"GetCourseDataAsync completed for course ID: {course.Id}");
+
+            // Filter submissions if doing incremental sync
+            if (incrementalSync && lastDownloadTime.HasValue)
+            {
+                var originalCount = submissions.Count;
+                submissions = submissions.Where(s =>
+                {
+                    if (s.UpdateTimeDateTimeOffset == null)
+                        return false;
+
+                    var updateTime = s.UpdateTimeDateTimeOffset.Value.DateTime;
+                    return updateTime > lastDownloadTime.Value;
+                }).ToList();
+
+                Log.Information($"Incremental sync: Filtered {originalCount} submissions to {submissions.Count} updated since {lastDownloadTime.Value}");
+
+                if (submissions.Count == 0)
+                {
+                    UpdateStatus($"No new submissions for {course.Name} since last sync.");
+                    Log.Information($"No updates found for course {course.Name}");
+                    return;
+                }
+            }
+
             if (students.Count == 0 || courseWorks.Count == 0)
             {
                 UpdateStatus($"No students or assignments found for {course.Name}.");
@@ -100,9 +133,9 @@ public class DownloadManager
             UpdateStatus("ZIP and RAR files extracted and removed.");
 
             UpdateLastDownloadTime(course.Id, DateTime.UtcNow);
-            
-            UpdateStatus($"Download and processing completed for course {course.Name}.");
-            Log.Information($"Successfully completed download for course {course.Name}");
+
+            UpdateStatus($"{operation} completed for course {course.Name}.");
+            Log.Information($"Successfully completed {operation.ToLower()} for course {course.Name}");
         }
         catch (Exception ex)
         {
@@ -247,7 +280,7 @@ public class DownloadManager
 
         await Task.WhenAll(tasks);
     }
-    private async Task ProcessSubmissionsAsync(List<StudentSubmission> submissions, Student student, 
+    private async Task ProcessSubmissionsAsync(List<StudentSubmission> submissions, Student student,
         Dictionary<string, CourseWork> courseWorkDict, string studentDirectory)
     {
         var tasks = new List<Task>();
@@ -263,7 +296,11 @@ public class DownloadManager
             string assignmentName = courseWork?.Title ?? "Unknown Assignment";
             string assignmentDirectory = DirectoryUtil.CreateAssignmentDirectory(studentDirectory, new CourseWork { Title = assignmentName });
 
-            foreach (var attachment in submission.AssignmentSubmission.Attachments)
+            var attachmentList = submission.AssignmentSubmission.Attachments.ToList();
+
+            // No subfolders - download directly to assignment directory
+            // Google Drive approach: use file ID to make each file unique
+            foreach (var attachment in attachmentList)
             {
                 string attachmentId = attachment.DriveFile?.Id ?? attachment.Link?.Url ?? "";
                 if (!string.IsNullOrEmpty(attachmentId) && !processedAttachments.Contains(attachmentId))
@@ -291,10 +328,7 @@ public class DownloadManager
             if (attachment.DriveFile != null)
             {
                 var file = await _driveService.Files.Get(attachment.DriveFile.Id).ExecuteAsync();
-                string filePath = Path.Combine(assignmentDirectory, DirectoryUtil.SanitizeFolderName(attachment.DriveFile.Title ?? "File"));
-
-                // Get unique file path to handle duplicates
-                filePath = DirectoryUtil.GetUniqueFilePath(filePath);
+                string fileName = DirectoryUtil.SanitizeFolderName(attachment.DriveFile.Title ?? "File");
 
                 string statusMessage = $"Downloading: {attachment.DriveFile.Title} for {studentName} - {assignmentName}";
                 UpdateStatus(statusMessage);
@@ -303,9 +337,9 @@ public class DownloadManager
                 if (NeedsUnpacking(file.MimeType))
                 {
                     // Create a link for files that need unpacking
-                    string linkPath = Path.Combine(assignmentDirectory, DirectoryUtil.SanitizeFolderName(attachment.DriveFile.Title ?? "File") + ".url");
+                    string linkPath = Path.Combine(assignmentDirectory, fileName + ".url");
                     await File.WriteAllTextAsync(linkPath, $"[InternetShortcut]\nURL=https://drive.google.com/file/d/{attachment.DriveFile.Id}/view");
-                    _downloadedFiles[submissionId] = new DownloadedFileInfo(attachment.DriveFile.Id, attachment.DriveFile.Title ?? "File", linkPath, DateTime.UtcNow, studentName, assignmentName, true);
+                    _downloadedFiles[submissionId + "_" + attachment.DriveFile.Id] = new DownloadedFileInfo(attachment.DriveFile.Id, attachment.DriveFile.Title ?? "File", linkPath, DateTime.UtcNow, studentName, assignmentName, true);
                 }
                 else
                 {
@@ -348,17 +382,21 @@ public class DownloadManager
                 Log.Information($"Created destination directory: {destinationFolder}");
             }
 
+            // Create a subfolder using file ID to allow duplicate filenames
+            // This preserves original filenames (important for Java class names)
+            string shortFileId = fileId.Length > 8 ? fileId.Substring(0, 8) : fileId;
+            string fileFolder = Path.Combine(destinationFolder, shortFileId);
+            Directory.CreateDirectory(fileFolder);
+
             if (mimeType.StartsWith("application/vnd.google-apps"))
             {
                 var exportMimeType = GetExportMimeType(mimeType);
                 fileExtension = GetFileExtension(exportMimeType);
-                filePath = Path.Combine(destinationFolder, $"{sanitizedFileName}{fileExtension}");
+                filePath = Path.Combine(fileFolder, $"{sanitizedFileName}{fileExtension}");
 
-                // Get unique file path to handle duplicates
-                filePath = DirectoryUtil.GetUniqueFilePath(filePath);
                 string metadataPath = filePath + ".gdocmeta.json";
 
-                // Download the file
+                // Download the file (overwrite if exists - same file ID means same file)
                 using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
                 await _driveService.Files.Export(fileId, exportMimeType).DownloadAsync(fileStream);
                 Log.Information($"Downloaded Google Doc: {filePath}");
@@ -372,17 +410,15 @@ public class DownloadManager
                 {
                     fileExtension = GetFileExtension(mimeType);
                 }
-                filePath = Path.Combine(destinationFolder, $"{sanitizedFileName}{fileExtension}");
+                filePath = Path.Combine(fileFolder, $"{sanitizedFileName}{fileExtension}");
 
-                // Get unique file path to handle duplicates
-                filePath = DirectoryUtil.GetUniqueFilePath(filePath);
-
+                // Download the file (overwrite if exists - same file ID means same file)
                 using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
                 await _driveService.Files.Get(fileId).DownloadAsync(fileStream);
             }
 
-            // Add the IsLink parameter (false in this case, as we're downloading the file)
-            _downloadedFiles[submissionId] = new DownloadedFileInfo(fileId, Path.GetFileName(filePath), filePath, DateTime.UtcNow, studentName, assignmentName, false);
+            // Use unique key combining submission and file ID
+            _downloadedFiles[submissionId + "_" + fileId] = new DownloadedFileInfo(fileId, Path.GetFileName(filePath), filePath, DateTime.UtcNow, studentName, assignmentName, false);
             string successMessage = $"Downloaded: {Path.GetFileName(filePath)} for {studentName} - {assignmentName}";
             UpdateStatus(successMessage);
         }

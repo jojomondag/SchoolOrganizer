@@ -1,0 +1,181 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SchoolOrganizer.Src.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="SchoolOrganizer.Src.Views.Settings.SyncSettingsView"
+             x:DataType="vm:SyncSettingsViewModel">
+
+    <Border Background="{DynamicResource BackgroundPrimaryBrush}"
+            CornerRadius="12"
+            Padding="32"
+            Margin="20">
+        <StackPanel Spacing="24">
+            <!-- Header -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Background Sync Settings"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryColor}"/>
+                <TextBlock Text="Automatically sync assignments in the background while the app is running"
+                           FontSize="14"
+                           Foreground="{DynamicResource TextSecondaryColor}"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <!-- Enable Auto-Sync -->
+            <Border Background="{DynamicResource BackgroundSecondaryBrush}"
+                    CornerRadius="8"
+                    Padding="20">
+                <StackPanel Spacing="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Enable Background Sync"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryColor}"/>
+                            <TextBlock Text="Automatically check for new submissions at regular intervals"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextSecondaryColor}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <ToggleSwitch Grid.Column="1"
+                                      IsChecked="{Binding AutoSyncEnabled}"
+                                      OnContent=""
+                                      OffContent=""
+                                      VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Sync Interval -->
+            <Border Background="{DynamicResource BackgroundSecondaryBrush}"
+                    CornerRadius="8"
+                    Padding="20"
+                    IsEnabled="{Binding AutoSyncEnabled}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Sync Interval"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryColor}"/>
+                    <TextBlock Text="How often should the app check for updates?"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryColor}"/>
+
+                    <ComboBox ItemsSource="{Binding IntervalOptions}"
+                              SelectedIndex="{Binding SelectedIntervalIndex}"
+                              HorizontalAlignment="Stretch"
+                              MinWidth="250">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayText}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Sync Status -->
+            <Border Background="{DynamicResource BackgroundSecondaryBrush}"
+                    CornerRadius="8"
+                    Padding="20">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Sync Status"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryColor}"/>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0"
+                                   Text="Status:"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource TextSecondaryColor}"
+                                   Margin="0,0,16,8"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1"
+                                   Text="{Binding SyncStatusMessage}"
+                                   FontSize="14"
+                                   FontWeight="Medium"
+                                   Foreground="{DynamicResource TextPrimaryColor}"
+                                   Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0"
+                                   Text="Last Sync:"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource TextSecondaryColor}"
+                                   Margin="0,0,16,8"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1"
+                                   Text="{Binding LastSyncTime}"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource TextPrimaryColor}"
+                                   Margin="0,0,0,8"/>
+                    </Grid>
+
+                    <!-- Sync Now Button -->
+                    <Button Command="{Binding SyncNowCommand}"
+                            IsEnabled="{Binding !IsSyncing}"
+                            HorizontalAlignment="Left"
+                            Padding="16,8"
+                            Background="{DynamicResource AccentButtonBackground}"
+                            Foreground="White"
+                            BorderThickness="0"
+                            CornerRadius="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="Sync"
+                                                       Width="18"
+                                                       Height="18"
+                                                       Foreground="White"/>
+                            <TextBlock Text="Sync Now"
+                                       FontSize="14"
+                                       Foreground="White"/>
+                        </StackPanel>
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource AccentButtonBackgroundHover}"/>
+                            </Style>
+                        </Button.Styles>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- Info Box -->
+            <Border Background="{DynamicResource BackgroundTertiaryBrush}"
+                    BorderBrush="{DynamicResource AccentButtonBackground}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <materialIcons:MaterialIcon Kind="InformationOutline"
+                                               Width="20"
+                                               Height="20"
+                                               Foreground="{DynamicResource AccentButtonBackground}"
+                                               VerticalAlignment="Top"
+                                               Margin="0,2,0,0"/>
+                    <TextBlock TextWrapping="Wrap"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryColor}">
+                        <Run Text="Background sync only downloads new or updated submissions since the last sync. "/>
+                        <Run Text="This is much faster than a full download and helps keep your assignments up to date automatically."/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Border>
+</UserControl>

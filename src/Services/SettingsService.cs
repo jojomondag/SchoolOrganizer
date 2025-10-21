@@ -118,6 +118,76 @@ namespace SchoolOrganizer.Src.Services
             return null;
         }
 
+        /// <summary>
+        /// Saves the auto-sync enabled setting
+        /// </summary>
+        public void SaveAutoSyncEnabled(bool enabled)
+        {
+            try
+            {
+                var settings = LoadSettings();
+                settings.AutoSyncEnabled = enabled;
+                SaveSettings(settings);
+                Log.Information($"Saved auto-sync enabled: {enabled}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error saving auto-sync enabled setting");
+            }
+        }
+
+        /// <summary>
+        /// Loads the auto-sync enabled setting
+        /// </summary>
+        public bool? GetAutoSyncEnabled()
+        {
+            try
+            {
+                var settings = LoadSettings();
+                return settings.AutoSyncEnabled;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error loading auto-sync enabled setting");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Saves the sync interval in minutes
+        /// </summary>
+        public void SaveSyncIntervalMinutes(int minutes)
+        {
+            try
+            {
+                var settings = LoadSettings();
+                settings.SyncIntervalMinutes = minutes;
+                SaveSettings(settings);
+                Log.Information($"Saved sync interval: {minutes} minutes");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error saving sync interval");
+            }
+        }
+
+        /// <summary>
+        /// Loads the sync interval in minutes
+        /// </summary>
+        public int? GetSyncIntervalMinutes()
+        {
+            try
+            {
+                var settings = LoadSettings();
+                return settings.SyncIntervalMinutes;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error loading sync interval");
+                return null;
+            }
+        }
+
         private AppSettings LoadSettings()
         {
             try
@@ -159,5 +229,7 @@ namespace SchoolOrganizer.Src.Services
     {
         public string DownloadFolderPath { get; set; } = string.Empty;
         public Dictionary<string, string> FileTypeAssociations { get; set; } = new Dictionary<string, string>();
+        public bool AutoSyncEnabled { get; set; } = false;
+        public int SyncIntervalMinutes { get; set; } = 30;
     }
 }

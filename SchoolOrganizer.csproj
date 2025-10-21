@@ -45,12 +45,6 @@
       <AvaloniaResource Include="src/Views/Styles/DarkTheme.axaml" />
   </ItemGroup>
 
-  <!-- Application icons -->
-  <ItemGroup>
-    <AvaloniaResource Include="Assets\icon.icns" />
-    <AvaloniaResource Include="Assets\Logo.png" />
-  </ItemGroup>
-
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.6" />
