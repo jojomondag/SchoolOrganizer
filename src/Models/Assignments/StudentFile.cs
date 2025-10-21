@@ -1,7 +1,9 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
+using Serilog;
 
 namespace SchoolOrganizer.Src.Models.Assignments;
 
@@ -180,5 +182,107 @@ public class StudentFile : INotifyPropertyChanged
             len = len / 1024;
         }
         return $"{len:0.##} {sizes[order]}";
+    }
+
+    public async Task LoadContentAsync()
+    {
+        try
+        {
+            var extension = Path.GetExtension(FilePath).ToLowerInvariant();
+
+            if (IsImageFile(extension))
+            {
+                await LoadImageContent();
+            }
+            else if (IsCodeFile(extension))
+            {
+                await LoadCodeContent();
+            }
+            else if (IsTextFile(extension))
+            {
+                await LoadTextContent();
+            }
+            else if (IsDocumentFile(extension))
+            {
+                // Document files (docx, xlsx, pptx, pdf) - show as "none" rather than binary
+                // This allows them to be handled specially in the UI
+                IsNone = true;
+            }
+            else
+            {
+                IsBinary = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Error loading content for file: {FilePath}", FilePath);
+            IsNone = true;
+        }
+    }
+
+    private bool IsImageFile(string extension)
+    {
+        var imageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg" };
+        return Array.Exists(imageExtensions, ext => string.Equals(ext, extension, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool IsCodeFile(string extension)
+    {
+        var codeExtensions = new[] { ".java", ".cs", ".cpp", ".c", ".h", ".py", ".js", ".html", ".css", ".xml" };
+        return Array.Exists(codeExtensions, ext => string.Equals(ext, extension, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool IsTextFile(string extension)
+    {
+        var textExtensions = new[] { ".txt", ".md", ".rtf" };
+        return Array.Exists(textExtensions, ext => string.Equals(ext, extension, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool IsDocumentFile(string extension)
+    {
+        var documentExtensions = new[] { ".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt", ".pdf" };
+        return Array.Exists(documentExtensions, ext => string.Equals(ext, extension, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private Task LoadImageContent()
+    {
+        try
+        {
+            using var stream = File.OpenRead(FilePath);
+            ImageSource = new Bitmap(stream);
+            IsImage = true;
+        }
+        catch
+        {
+            IsNone = true;
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task LoadCodeContent()
+    {
+        try
+        {
+            CodeContent = await File.ReadAllTextAsync(FilePath);
+            IsCode = true;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load code content for {FileName}", FileName);
+            IsNone = true;
+        }
+    }
+
+    private async Task LoadTextContent()
+    {
+        try
+        {
+            TextContent = await File.ReadAllTextAsync(FilePath);
+            IsText = true;
+        }
+        catch
+        {
+            IsNone = true;
+        }
     }
 }

@@ -4,10 +4,10 @@
 Write-Host "Starting cleanup process..." -ForegroundColor Green
 
 # Define the paths to clean
-$buildDataPath = "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data"
-$projectDataPath = "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/Data"
-$tlhDownloadPath = "/Users/josef.nobach/Desktop/TLH Download"
-$logsPath = "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/logs"
+$buildDataPath = "C:\Users\Josef\Documents\Github\SchoolOrganizer\bin\Debug\net9.0\Data"
+$projectDataPath = "C:\Users\Josef\Documents\Github\SchoolOrganizer\Data"
+$tlhDownloadPath = "C:\Users\Josef\Desktop\TLH Download"
+$logsPath = "C:\Users\Josef\Documents\Github\SchoolOrganizer\logs"
 
 # Function to safely remove directory and its contents
 function Remove-DirectorySafely {
@@ -66,15 +66,10 @@ $logsSuccess = Remove-DirectorySafely -Path $logsPath -Description "Logs folder"
 # Empty the trash bin
 Write-Host "Emptying trash bin..." -ForegroundColor Yellow
 try {
-    # On macOS, use the rm command to empty trash
+    # On Windows, use PowerShell to empty recycle bin
     $trashSuccess = $true
-    $trashResult = & osascript -e 'tell application "Finder" to empty trash' 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ Trash bin has been emptied successfully" -ForegroundColor Green
-    } else {
-        Write-Host "⚠ Could not empty trash bin: $trashResult" -ForegroundColor Yellow
-        $trashSuccess = $false
-    }
+    $trashResult = Clear-RecycleBin -Force -ErrorAction Stop
+    Write-Host "✓ Trash bin has been emptied successfully" -ForegroundColor Green
 }
 catch {
     Write-Host "⚠ Error emptying trash bin: $($_.Exception.Message)" -ForegroundColor Red

@@ -9,9 +9,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using SchoolOrganizer.Src.ViewModels;
-using SchoolOrganizer.Src.Services;
 using SchoolOrganizer.Src.Models.Assignments;
-using SchoolOrganizer.Src.Models.UI;
 using SchoolOrganizer.Src.Views.Components;
 using Serilog;
 
@@ -22,21 +20,17 @@ namespace SchoolOrganizer.Src.Views.AssignmentManagement;
 /// </summary>
 public partial class AssignmentViewer : Window
 {
-    private FileViewerScrollService? _scrollService;
-    private DateTime _lastScrollTime = DateTime.MinValue;
     private Dictionary<string, DispatcherTimer> _notesAutoSaveTimers = new();
     private Dictionary<string, DispatcherTimer> _widthAutoSaveTimers = new();
 
     public AssignmentViewer()
     {
         InitializeComponent();
-        InitializeScrollService();
     }
 
     public AssignmentViewer(StudentDetailViewModel viewModel) : this()
     {
         DataContext = viewModel;
-        ConnectScrollServiceToViewModel();
         SubscribeToFilePreviewEvents();
     }
 
@@ -235,72 +229,43 @@ public partial class AssignmentViewer : Window
     }
 
     /// <summary>
-    /// Initializes the scroll service after the UI components are loaded
-    /// </summary>
-    private void InitializeScrollService()
-    {
-        try
-        {
-            var scrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
-            var itemsControl = scrollViewer?.FindDescendantOfType<ItemsControl>() ?? 
-                              scrollViewer?.GetVisualDescendants().OfType<ItemsControl>().FirstOrDefault();
-
-            if (scrollViewer != null && itemsControl != null)
-            {
-                _scrollService = new FileViewerScrollService(scrollViewer, itemsControl);
-                ConnectScrollServiceToViewModel();
-            }
-            else
-            {
-                // Schedule a retry after a short delay to allow UI to fully load
-                _ = Task.Delay(500).ContinueWith(_ => 
-                {
-                    Dispatcher.UIThread.InvokeAsync(InitializeScrollService);
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error initializing FileViewerScrollService");
-        }
-    }
-
-    /// <summary>
-    /// Connects the scroll service to the ViewModel if available
-    /// </summary>
-    private void ConnectScrollServiceToViewModel()
-    {
-        if (_scrollService != null && DataContext is StudentDetailViewModel viewModel)
-        {
-            viewModel.SetScrollService(_scrollService);
-        }
-    }
-
-    // Removed unused event handlers - no DataGrid in current UI
-
-
-
-
-    /// <summary>
     /// Handles assignment navigation button clicks
     /// </summary>
-    private async void OnAssignmentClick(object sender, RoutedEventArgs e)
+    private void OnAssignmentClick(object sender, RoutedEventArgs e)
     {
         try
         {
-            Log.Information("OnAssignmentClick called - Sender: {SenderType}, Tag: {Tag}", 
+            Log.Information("OnAssignmentClick called - Sender: {SenderType}, Tag: {Tag}",
                 sender?.GetType().Name, (sender as Button)?.Tag);
-            
-            if (sender is Button button && button.Tag is string assignmentName && 
-                DataContext is StudentDetailViewModel viewModel)
+
+            if (sender is Button button && button.Tag is string assignmentName)
             {
-                Log.Information("Executing assignment navigation for: {AssignmentName}", assignmentName);
-                await viewModel.ScrollToAssignmentAsync(assignmentName);
-                Log.Information("Assignment navigation completed for: {AssignmentName}", assignmentName);
+                Log.Information("Scrolling to assignment: {AssignmentName}", assignmentName);
+
+                // Find the assignment header with this name and scroll to it
+                var mainScrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
+                if (mainScrollViewer != null)
+                {
+                    // Find all assignment headers
+                    var headers = mainScrollViewer.GetVisualDescendants()
+                        .OfType<Border>()
+                        .Where(b => b.Name == "AssignmentHeaderBorder")
+                        .ToList();
+
+                    // Find the one with matching assignment name in its DataContext
+                    var targetHeader = headers.FirstOrDefault(h =>
+                        h.DataContext is AssignmentGroup ag && ag.AssignmentName == assignmentName);
+
+                    if (targetHeader != null)
+                    {
+                        targetHeader.BringIntoView(new Rect(0, 0, 100, 100));
+                        Log.Information("Scrolled to assignment: {AssignmentName}", assignmentName);
+                    }
+                }
             }
             else
             {
-                Log.Warning("OnAssignmentClick - Invalid sender or DataContext. Sender: {SenderType}, DataContext: {DataContextType}", 
+                Log.Warning("OnAssignmentClick - Invalid sender or DataContext. Sender: {SenderType}, DataContext: {DataContextType}",
                     sender?.GetType().Name, DataContext?.GetType().Name);
             }
         }
@@ -310,34 +275,6 @@ public partial class AssignmentViewer : Window
         }
     }
 
-    /// <summary>
-    /// Handles view mode button clicks
-    /// </summary>
-    private void OnViewModeClick(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            Log.Information("OnViewModeClick called - Sender: {SenderType}, Tag: {Tag}", 
-                sender?.GetType().Name, (sender as Button)?.Tag);
-            
-            if (sender is Button button && button.Tag is string viewMode && 
-                DataContext is StudentDetailViewModel viewModel)
-            {
-                Log.Information("Changing view mode to: {ViewMode}", viewMode);
-                viewModel.SelectedViewMode = viewMode;
-                Log.Information("View mode changed to: {ViewMode}", viewMode);
-            }
-            else
-            {
-                Log.Warning("OnViewModeClick - Invalid sender or DataContext. Sender: {SenderType}, DataContext: {DataContextType}", 
-                    sender?.GetType().Name, DataContext?.GetType().Name);
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error handling view mode click - Sender: {SenderType}", sender?.GetType().Name);
-        }
-    }
 
     /// <summary>
     /// Handles toggle navigation button clicks
@@ -860,92 +797,5 @@ public partial class AssignmentViewer : Window
         }
     }
 
-    /// <summary>
-    /// Gets the assignment name from a FileTreeNode
-    /// </summary>
-    private string GetAssignmentNameFromNode(FileTreeNode node)
-    {
-        // If the node has an assignment name, use it
-        if (!string.IsNullOrEmpty(node.AssignmentName))
-        {
-            return node.AssignmentName;
-        }
-
-        // If it's a top-level directory, use the folder name as assignment name
-        if (node.IsDirectory)
-        {
-            // Check if this is a top-level assignment folder
-            var pathParts = node.RelativePath.Split('/', '\\');
-            if (pathParts.Length == 1)
-            {
-                return node.Name;
-            }
-            else if (pathParts.Length > 1)
-            {
-                return pathParts[0]; // Use the root assignment folder name
-            }
-        }
-
-        // Fallback: try to extract from relative path
-        if (!string.IsNullOrEmpty(node.RelativePath))
-        {
-            var pathParts = node.RelativePath.Split('/', '\\');
-            if (pathParts.Length > 0 && !string.IsNullOrEmpty(pathParts[0]))
-            {
-                return pathParts[0];
-            }
-        }
-
-        return node.Name;
-    }
-
-    /// <summary>
-    /// Finds a FilePreviewControl for the given assignment name by searching the visual tree
-    /// </summary>
-    private FilePreviewControl? FindFilePreviewControlForAssignment(string assignmentName)
-    {
-        Log.Information("FindFilePreviewControlForAssignment called for assignment: {AssignmentName}", assignmentName);
-        
-        try
-        {
-            var mainContentPanel = this.FindControl<Border>("MainContentPanel");
-            if (mainContentPanel == null)
-            {
-                Log.Warning("MainContentPanel not found");
-                return null;
-            }
-
-            // Get all FilePreviewControl instances in the main content panel
-            var filePreviewControls = mainContentPanel.GetVisualDescendants()
-                .OfType<FilePreviewControl>()
-                .ToList();
-
-            Log.Information("Found {ControlCount} FilePreviewControl instances", filePreviewControls.Count);
-
-            // Find the first FilePreviewControl whose DataContext is a StudentFile with matching assignment name
-            foreach (var control in filePreviewControls)
-            {
-                if (control.DataContext is StudentFile studentFile)
-                {
-                    Log.Information("Found FilePreviewControl with StudentFile: {FileName}, Assignment: {AssignmentName}", 
-                        studentFile.FileName, studentFile.AssignmentName);
-                    
-                    if (string.Equals(studentFile.AssignmentName, assignmentName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        Log.Information("Found matching FilePreviewControl for assignment: {AssignmentName}", assignmentName);
-                        return control;
-                    }
-                }
-            }
-
-            Log.Warning("No FilePreviewControl found for assignment: {AssignmentName}", assignmentName);
-            return null;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error finding FilePreviewControl for assignment: {AssignmentName}", assignmentName);
-            return null;
-        }
-    }
 }
 

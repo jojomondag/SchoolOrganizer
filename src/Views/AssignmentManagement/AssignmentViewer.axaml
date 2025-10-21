@@ -55,50 +55,6 @@
           <!-- Navigation Items -->
           <ScrollViewer Grid.Row="1" Margin="8,16,8,8">
             <StackPanel Spacing="4">
-              <!-- View Modes Section -->
-              <TextBlock Text="Views" 
-                        FontWeight="Bold" 
-                        FontSize="12" 
-                        Foreground="{DynamicResource TextSecondaryBrush}"
-                        Margin="0,0,0,8"
-                        IsVisible="{Binding IsNavigationOpen}"/>
-              
-              <!-- All Files View -->
-              <Button HorizontalAlignment="Stretch" 
-                      HorizontalContentAlignment="Left"
-                      Padding="12,8"
-                      Background="Transparent"
-                      BorderThickness="0"
-                      CornerRadius="4"
-                      Click="OnViewModeClick"
-                      Tag="AllFiles">
-                <Button.Content>
-                  <StackPanel Orientation="Horizontal" Spacing="12">
-                    <materialIcons:MaterialIcon Kind="ViewGrid" Width="20" Height="20"/>
-                    <TextBlock Text="All Files" VerticalAlignment="Center" 
-                              IsVisible="{Binding IsNavigationOpen}"/>
-                  </StackPanel>
-                </Button.Content>
-              </Button>
-
-              <!-- File Explorer View -->
-              <Button HorizontalAlignment="Stretch" 
-                      HorizontalContentAlignment="Left"
-                      Padding="12,8"
-                      Background="Transparent"
-                      BorderThickness="0"
-                      CornerRadius="4"
-                      Click="OnViewModeClick"
-                      Tag="FileExplorer">
-                <Button.Content>
-                  <StackPanel Orientation="Horizontal" Spacing="12">
-                    <materialIcons:MaterialIcon Kind="FileTree" Width="20" Height="20"/>
-                    <TextBlock Text="File Explorer" VerticalAlignment="Center" 
-                              IsVisible="{Binding IsNavigationOpen}"/>
-                  </StackPanel>
-                </Button.Content>
-              </Button>
-
               <!-- Assignments Section -->
               <TextBlock Text="Assignments" 
                         FontWeight="Bold" 

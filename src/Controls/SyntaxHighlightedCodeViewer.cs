@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Media;
 using Avalonia.Controls.Documents;
 using Serilog;
@@ -78,11 +79,29 @@ public class SyntaxHighlightedCodeViewer : UserControl
 
         Content = _textBlock;
 
-        // Subscribe to property changes
-        CodeContentProperty.Changed.Subscribe(OnCodeContentChanged);
-        FileExtensionProperty.Changed.Subscribe(OnFileExtensionChanged);
-        
         Log.Information("SyntaxHighlightedCodeViewer: InitializeComponent completed");
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == CodeContentProperty)
+        {
+            OnCodeContentChanged(change as AvaloniaPropertyChangedEventArgs<string?>  ?? new AvaloniaPropertyChangedEventArgs<string?>(
+                this, CodeContentProperty,
+                change.OldValue as string,
+                change.NewValue as string,
+                BindingPriority.LocalValue));
+        }
+        else if (change.Property == FileExtensionProperty)
+        {
+            OnFileExtensionChanged(change as AvaloniaPropertyChangedEventArgs<string> ?? new AvaloniaPropertyChangedEventArgs<string>(
+                this, FileExtensionProperty,
+                (change.OldValue as string) ?? string.Empty,
+                (change.NewValue as string) ?? string.Empty,
+                BindingPriority.LocalValue));
+        }
     }
 
     private void OnCodeContentChanged(AvaloniaPropertyChangedEventArgs<string?> e)
