@@ -76,6 +76,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void OnCoordinatorAddStudentRequested(object? sender, EventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine("MainWindowViewModel: OnCoordinatorAddStudentRequested called");
+        _studentGalleryViewModel.AddStudentCommand.Execute(null);
         OnPropertyChanged(nameof(IsAddStudentMode));
     }
 
@@ -155,6 +157,14 @@ public partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private async Task Login() => await AuthenticateAsync("Authenticating with Google...", false);
+
+    [RelayCommand]
+    public void AddStudent()
+    {
+        System.Diagnostics.Debug.WriteLine("MainWindowViewModel: AddStudent command called");
+        _studentGalleryViewModel.AddStudentCommand.Execute(null);
+        OnPropertyChanged(nameof(IsAddStudentMode));
+    }
 
     [RelayCommand]
     private void ToggleMenu() => IsMenuOpen = !IsMenuOpen;

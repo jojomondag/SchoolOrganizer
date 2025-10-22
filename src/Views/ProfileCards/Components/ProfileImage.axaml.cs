@@ -184,6 +184,7 @@ public partial class ProfileImage : UserControl
         // This prevents the card selection when clicking the profile image
         e.Handled = true;
 
+        System.Diagnostics.Debug.WriteLine($"ProfileImage.OnImageClick called - IsClickable: {IsClickable}, Name: {this.Name ?? "unnamed"}");
         Log.Information("ProfileImage.OnImageClick called - IsClickable: {IsClickable}, Name: {Name}",
             IsClickable, this.Name ?? "unnamed");
 
@@ -191,6 +192,7 @@ public partial class ProfileImage : UserControl
         var currentTime = DateTime.Now;
         if (currentTime - _lastImageClickTime < TimeSpan.FromMilliseconds(MinClickIntervalMs))
         {
+            System.Diagnostics.Debug.WriteLine("ProfileImage.OnImageClick - Click too soon after previous click, ignoring");
             Log.Warning("ProfileImage.OnImageClick - Click too soon after previous click, ignoring");
             return;
         }
@@ -198,10 +200,12 @@ public partial class ProfileImage : UserControl
 
         if (!IsClickable)
         {
+            System.Diagnostics.Debug.WriteLine("ProfileImage.OnImageClick - Not clickable, ignoring");
             Log.Warning("ProfileImage.OnImageClick - Not clickable, ignoring");
             return;
         }
 
+        System.Diagnostics.Debug.WriteLine("ProfileImage.OnImageClick - Firing ImageClicked event");
         Log.Information("ProfileImage.OnImageClick - Firing ImageClicked event");
 
         // Fire the ImageClicked event for the parent (BaseProfileCard) to handle

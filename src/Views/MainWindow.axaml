@@ -89,6 +89,23 @@
                                 </Button.Content>
                             </Button>
 
+                            <!-- Add Student -->
+                            <Button Command="{Binding AddStudentCommand}"
+                                    HorizontalAlignment="Stretch" 
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,8"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    CornerRadius="4">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <materialIcons:MaterialIcon Kind="AccountPlus" Width="20" Height="20"/>
+                                        <TextBlock Text="Add Student" VerticalAlignment="Center" 
+                                                  IsVisible="{Binding IsMenuOpen}"/>
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+
                             <!-- Classroom Downloads -->
                             <Button Command="{Binding NavigateToClassroomDownloadCommand}"
                                     HorizontalAlignment="Stretch" 

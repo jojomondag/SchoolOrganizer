@@ -83,6 +83,7 @@ public partial class StudentGalleryViewModel : ObservableObject
     
     partial void OnIsAddingStudentChanged(bool value)
     {
+        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel: OnIsAddingStudentChanged called - IsAddingStudent = {value}");
         
         // Refresh the Students collection to show/hide the Add Student Card
         _ = ApplySearchImmediate();
@@ -491,7 +492,9 @@ public partial class StudentGalleryViewModel : ObservableObject
     [RelayCommand]
     private void AddStudent() 
     {
+        System.Diagnostics.Debug.WriteLine("StudentGalleryViewModel: AddStudent command called");
         IsAddingStudent = true;
+        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel: IsAddingStudent set to {IsAddingStudent}");
     }
 
     [RelayCommand]
@@ -564,7 +567,7 @@ public partial class StudentGalleryViewModel : ObservableObject
         }
     }
 
-    public async Task AddMultipleStudentsAsync(List<AddStudentWindow.AddedStudentResult> students)
+    public async Task AddMultipleStudentsAsync(List<AddStudentViewModel.AddedStudentResult> students)
     {
         try
         {
@@ -587,7 +590,7 @@ public partial class StudentGalleryViewModel : ObservableObject
                     Name = studentData.Name,
                     ClassName = studentData.ClassName,
                     Email = studentData.Email,
-                    EnrollmentDate = studentData.EnrollmentDate,
+                    EnrollmentDate = studentData.EnrollmentDate.DateTime,
                     PictureUrl = studentData.PicturePath ?? string.Empty
                 };
 

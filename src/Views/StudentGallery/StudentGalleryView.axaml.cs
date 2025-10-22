@@ -39,6 +39,7 @@ public partial class StudentGalleryView : UserControl
     
     public StudentGalleryView()
     {
+        System.Diagnostics.Debug.WriteLine("StudentGalleryView: Constructor called");
         InitializeComponent();
         
         DataContextChanged += OnDataContextChanged;
@@ -55,6 +56,7 @@ public partial class StudentGalleryView : UserControl
         {
             Log.Warning("StudentsContainer not found during constructor");
         }
+        System.Diagnostics.Debug.WriteLine("StudentGalleryView: Constructor completed");
     }
 
     private DispatcherTimer? _scrollAnimationTimer;
@@ -568,6 +570,9 @@ public partial class StudentGalleryView : UserControl
     // Event handler for clicking on add student cards
     private void OnAddStudentCardClicked(object? sender, IPerson person)
     {
+        System.Diagnostics.Debug.WriteLine("StudentGalleryView: OnAddStudentCardClicked called");
+        System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Sender type: {sender?.GetType().Name}");
+        System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Person type: {person?.GetType().Name}");
         Services.StudentCoordinatorService.Instance.PublishAddStudentRequested();
     }
 

@@ -19,11 +19,12 @@ public partial class MainWindow : Window
 
     private void OnWindowClosing(object? sender, CancelEventArgs e)
     {
-        // Cancel the close operation
+#if !DEBUG
+        // In Release mode: cancel close and hide window (minimize to tray)
         e.Cancel = true;
-
-        // Hide the window instead
         Hide();
+#endif
+        // In Debug mode: allow normal close (e.Cancel remains false)
     }
 
     private void SetWindowIcon()

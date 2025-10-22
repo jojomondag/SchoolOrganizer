@@ -1,9 +1,12 @@
 using System;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Input;
 using Avalonia.VisualTree;
+using Avalonia.Threading;
 using SchoolOrganizer.Src.ViewModels;
+using SchoolOrganizer.Src.Views.ProfileCards.Components;
 
 namespace SchoolOrganizer.Src.Views.StudentGallery;
 
@@ -18,6 +21,12 @@ public partial class AddStudentView : UserControl
         
         // Add Escape key handling to close the view
         this.KeyDown += OnKeyDown;
+        
+        // Subscribe to ProfileImage events when view is loaded
+        this.Loaded += OnViewLoaded;
+        
+        // Also try subscribing immediately after InitializeComponent
+        SubscribeToProfileImage();
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -28,6 +37,38 @@ public partial class AddStudentView : UserControl
             ViewModel.StudentAdded += OnStudentAdded;
             ViewModel.MultipleStudentsAdded += OnMultipleStudentsAdded;
             ViewModel.Cancelled += OnCancelled;
+        }
+    }
+
+    private void SubscribeToProfileImage()
+    {
+        // Try to find and subscribe to ProfileImage immediately
+        var profileImage = this.FindControl<ProfileImage>("ProfileImage");
+        if (profileImage != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"AddStudentView: Found ProfileImage in constructor, IsClickable: {profileImage.IsClickable}, subscribing to ImageClicked event");
+            profileImage.ImageClicked -= OnProfileImageClicked; // Remove any existing subscription first
+            profileImage.ImageClicked += OnProfileImageClicked;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("AddStudentView: ProfileImage not found in constructor, will try again in OnViewLoaded");
+        }
+    }
+
+    private void OnViewLoaded(object? sender, RoutedEventArgs e)
+    {
+        // Subscribe to ProfileImage click events when view is loaded
+        var profileImage = this.FindControl<ProfileImage>("ProfileImage");
+        if (profileImage != null)
+        {
+            System.Diagnostics.Debug.WriteLine($"AddStudentView: Found ProfileImage in OnViewLoaded, IsClickable: {profileImage.IsClickable}, subscribing to ImageClicked event");
+            profileImage.ImageClicked -= OnProfileImageClicked; // Remove any existing subscription first
+            profileImage.ImageClicked += OnProfileImageClicked;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("AddStudentView: ProfileImage not found in OnViewLoaded!");
         }
     }
 
@@ -122,6 +163,50 @@ public partial class AddStudentView : UserControl
         {
             ViewModel?.CancelCommand.Execute(null);
             e.Handled = true;
+        }
+    }
+
+
+
+
+
+    private async void OnProfileImageClicked(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("AddStudentView: OnProfileImageClicked called!");
+        
+        if (ViewModel == null) 
+        {
+            System.Diagnostics.Debug.WriteLine("AddStudentView: ViewModel is null, returning");
+            return;
+        }
+
+        try
+        {
+            // Open the image crop window
+            var parentWindow = this.GetVisualParent<Window>();
+            if (parentWindow != null)
+            {
+                System.Diagnostics.Debug.WriteLine("AddStudentView: Opening ImageCropWindow");
+                var imagePath = await SchoolOrganizer.Src.Views.Windows.ImageCrop.ImageCropWindow.ShowAsync(parentWindow);
+                if (!string.IsNullOrWhiteSpace(imagePath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"AddStudentView: Image selected: {imagePath}");
+                    ViewModel.SelectedImagePath = imagePath;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("AddStudentView: No image selected or user cancelled");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("AddStudentView: Parent window not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors that might occur during image selection
+            System.Diagnostics.Debug.WriteLine($"AddStudentView: Error opening image crop window: {ex.Message}");
         }
     }
 

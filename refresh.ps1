@@ -1,13 +1,27 @@
 # PowerShell script to clean up Data folders and their contents
 # This script removes the Data folder from both the build output and project root
+# Cross-platform compatible for Windows and macOS
 
 Write-Host "Starting cleanup process..." -ForegroundColor Green
 
-# Define the paths to clean
-$buildDataPath = "C:\Users\Josef\Documents\Github\SchoolOrganizer\bin\Debug\net9.0\Data"
-$projectDataPath = "C:\Users\Josef\Documents\Github\SchoolOrganizer\Data"
-$tlhDownloadPath = "C:\Users\Josef\Desktop\TLH Download"
-$logsPath = "C:\Users\Josef\Documents\Github\SchoolOrganizer\logs"
+# Get the current script directory and project root
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = $scriptDir
+
+# Define the paths to clean (cross-platform)
+$buildDataPath = Join-Path $projectRoot "bin\Debug\net9.0\Data"
+$projectDataPath = Join-Path $projectRoot "Data"
+$logsPath = Join-Path $projectRoot "logs"
+
+# Set TLH Download path based on platform
+if ($IsMacOS -or $env:OS -eq $null) {
+    # macOS/Linux
+    $tlhDownloadPath = Join-Path $env:HOME "Desktop/TLH Download"
+} else {
+    # Windows
+    $userProfile = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }
+    $tlhDownloadPath = Join-Path $userProfile "Desktop\TLH Download"
+}
 
 # Function to safely remove directory and its contents
 function Remove-DirectorySafely {
@@ -63,13 +77,30 @@ if (Test-Path $tlhDownloadPath) {
 # Remove logs folder and its contents
 $logsSuccess = Remove-DirectorySafely -Path $logsPath -Description "Logs folder"
 
-# Empty the trash bin
+# Empty the trash bin (cross-platform)
 Write-Host "Emptying trash bin..." -ForegroundColor Yellow
 try {
-    # On Windows, use PowerShell to empty recycle bin
     $trashSuccess = $true
-    $trashResult = Clear-RecycleBin -Force -ErrorAction Stop
-    Write-Host "✓ Trash bin has been emptied successfully" -ForegroundColor Green
+    
+    # Check if we're on Windows
+    if ($IsWindows -or $env:OS -eq "Windows_NT") {
+        # On Windows, use PowerShell to empty recycle bin
+        if (Get-Command Clear-RecycleBin -ErrorAction SilentlyContinue) {
+            $trashResult = Clear-RecycleBin -Force -ErrorAction Stop
+            Write-Host "✓ Trash bin has been emptied successfully" -ForegroundColor Green
+        } else {
+            Write-Host "⚠ Clear-RecycleBin cmdlet not available on this system" -ForegroundColor Yellow
+        }
+    } else {
+        # On macOS/Linux, use rm command to empty trash
+        $trashPath = if ($IsMacOS) { "$env:HOME/.Trash" } else { "$env:HOME/.local/share/Trash" }
+        if (Test-Path $trashPath) {
+            Remove-Item -Path "$trashPath/*" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "✓ Trash bin has been emptied successfully" -ForegroundColor Green
+        } else {
+            Write-Host "⚠ Trash directory not found at: $trashPath" -ForegroundColor Yellow
+        }
+    }
 }
 catch {
     Write-Host "⚠ Error emptying trash bin: $($_.Exception.Message)" -ForegroundColor Red

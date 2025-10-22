@@ -71,6 +71,7 @@ namespace SchoolOrganizer.Src.Services
         /// </summary>
         public void PublishAddStudentRequested()
         {
+            System.Diagnostics.Debug.WriteLine("StudentCoordinatorService: PublishAddStudentRequested called");
             AddStudentRequested?.Invoke(this, EventArgs.Empty);
         }
 

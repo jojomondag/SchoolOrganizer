@@ -99,11 +99,11 @@
     </Style>
   </UserControl.Styles>
 
-  <Border Background="{DynamicResource BackgroundTertiaryBrush}" Padding="24">
+  <Border Background="{DynamicResource BackgroundPrimaryBrush}" Padding="24">
     <Grid RowDefinitions="Auto,*,Auto">
       <!-- Header -->
       <StackPanel Grid.Row="0" Margin="0,0,0,16">
-        <TextBlock Text="Import from Google Classroom" FontSize="24" FontWeight="Light" Foreground="{DynamicResource TextPrimaryBrush}"/>
+        <TextBlock Text="Add Student" FontSize="24" FontWeight="Light" Foreground="{DynamicResource TextPrimaryBrush}"/>
         <Rectangle Height="1" Fill="{DynamicResource BlackBrush}" Margin="0,8,0,0"/>
       </StackPanel>
 
@@ -117,10 +117,12 @@
             <Grid ColumnDefinitions="140,20,*">
               <!-- Profile Image -->
               <StackPanel Grid.Column="0" Spacing="8">
-                <components:ProfileImage Width="100" 
+                <components:ProfileImage x:Name="ProfileImage"
+                                               Width="100" 
                                                Height="100" 
-                                               ImagePath="{Binding SelectedImagePath, Mode=TwoWay}"/>
-                <TextBlock Text="Add Photo" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                               ImagePath="{Binding SelectedImagePath, Mode=TwoWay}"
+                                               IsClickable="True"/>
+                <TextBlock Text="Click to add photo" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
               </StackPanel>
 
               <!-- All Form Fields -->
