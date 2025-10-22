@@ -204,7 +204,7 @@ public partial class SimplifiedAddStudentWindow : BaseDialogWindow
 
     private async void OnChooseImageClick(object? sender, RoutedEventArgs e)
     {
-        var path = await ImageCropWindow.ShowAsync(this);
+        var path = await ConsolidatedImageCropWindow.ShowAsync(this);
         if (!string.IsNullOrWhiteSpace(path))
         {
             _state.SelectedImagePath = path;
