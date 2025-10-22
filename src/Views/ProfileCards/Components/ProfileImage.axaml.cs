@@ -193,15 +193,28 @@ public partial class ProfileImage : UserControl
         // Add hover event handlers to the ProfileImage component
         this.PointerEntered += OnProfileImagePointerEntered;
         this.PointerExited += OnProfileImagePointerExited;
+
+        // Set initial placeholder visibility when control is attached to visual tree
+        this.AttachedToVisualTree += (s, e) =>
+        {
+            // Update IsImageMissing based on initial ImagePath
+            IsImageMissing = string.IsNullOrWhiteSpace(ImagePath);
+            // Update placeholder visibility
+            UpdatePlaceholderVisibility();
+        };
     }
 
     private void UpdatePlaceholderVisibility()
     {
+        Log.Debug("ProfileImage.UpdatePlaceholderVisibility - IsImageMissing: {IsImageMissing}, IconKind: {IconKind}",
+            IsImageMissing, PlaceholderIconKind);
+
         // Only show placeholder when image is missing
         if (!IsImageMissing)
         {
             ShowPlaceholderIcon = false;
             ShowPlaceholderText = false;
+            Log.Debug("Image exists, hiding placeholders");
             return;
         }
 
@@ -210,11 +223,13 @@ public partial class ProfileImage : UserControl
         {
             ShowPlaceholderIcon = true;
             ShowPlaceholderText = false;
+            Log.Debug("Showing placeholder icon: {IconKind}", PlaceholderIconKind);
         }
         else
         {
             ShowPlaceholderIcon = false;
             ShowPlaceholderText = true;
+            Log.Debug("Showing placeholder text: {Text}", PlaceholderTextValue);
         }
     }
 
