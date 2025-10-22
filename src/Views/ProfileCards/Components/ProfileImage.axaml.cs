@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Serilog;
 using SchoolOrganizer.Src.Converters;
+using Material.Icons;
 
 namespace SchoolOrganizer.Src.Views.ProfileCards.Components;
 
@@ -34,6 +35,17 @@ public partial class ProfileImage : UserControl
     public static readonly StyledProperty<double> PlaceholderFontSizeProperty =
         AvaloniaProperty.Register<ProfileImage, double>(nameof(PlaceholderFontSize), 28);
 
+    public static readonly StyledProperty<MaterialIconKind> PlaceholderIconKindProperty =
+        AvaloniaProperty.Register<ProfileImage, MaterialIconKind>(nameof(PlaceholderIconKind), MaterialIconKind.None);
+
+    public static readonly StyledProperty<double> PlaceholderIconSizeProperty =
+        AvaloniaProperty.Register<ProfileImage, double>(nameof(PlaceholderIconSize), 48);
+
+    public static readonly StyledProperty<bool> ShowPlaceholderIconProperty =
+        AvaloniaProperty.Register<ProfileImage, bool>(nameof(ShowPlaceholderIcon), false);
+
+    public static readonly StyledProperty<bool> ShowPlaceholderTextProperty =
+        AvaloniaProperty.Register<ProfileImage, bool>(nameof(ShowPlaceholderText), false);
 
     public static readonly StyledProperty<bool> IsClickableProperty =
         AvaloniaProperty.Register<ProfileImage, bool>(nameof(IsClickable), true);
@@ -90,6 +102,29 @@ public partial class ProfileImage : UserControl
         set => SetValue(PlaceholderFontSizeProperty, value);
     }
 
+    public MaterialIconKind PlaceholderIconKind
+    {
+        get => GetValue(PlaceholderIconKindProperty);
+        set => SetValue(PlaceholderIconKindProperty, value);
+    }
+
+    public double PlaceholderIconSize
+    {
+        get => GetValue(PlaceholderIconSizeProperty);
+        set => SetValue(PlaceholderIconSizeProperty, value);
+    }
+
+    public bool ShowPlaceholderIcon
+    {
+        get => GetValue(ShowPlaceholderIconProperty);
+        set => SetValue(ShowPlaceholderIconProperty, value);
+    }
+
+    public bool ShowPlaceholderText
+    {
+        get => GetValue(ShowPlaceholderTextProperty);
+        set => SetValue(ShowPlaceholderTextProperty, value);
+    }
 
     public bool IsClickable
     {
@@ -121,17 +156,17 @@ public partial class ProfileImage : UserControl
     public ProfileImage()
     {
         InitializeComponent();
-        
+
         // Log when ProfileImage is created
         Log.Information("ProfileImage created - Name: {Name}, IsClickable: {IsClickable}", this.Name ?? "unnamed", IsClickable);
-        
+
         // Log when IsClickable property changes
         IsClickableProperty.Changed.AddClassHandler<ProfileImage>((control, e) =>
         {
             Log.Information("ProfileImage IsClickable changed to: {IsClickable}", control.IsClickable);
         });
-        
-        
+
+
         // Update IsImageMissing when ImagePath changes - use more efficient approach
         ImagePathProperty.Changed.AddClassHandler<ProfileImage>((control, e) =>
         {
@@ -140,11 +175,62 @@ public partial class ProfileImage : UserControl
             {
                 control.IsImageMissing = newValue;
             }
+            control.UpdatePlaceholderVisibility();
+        });
+
+        // Update placeholder visibility when icon kind changes
+        PlaceholderIconKindProperty.Changed.AddClassHandler<ProfileImage>((control, e) =>
+        {
+            control.UpdatePlaceholderVisibility();
+        });
+
+        // Update placeholder visibility when IsImageMissing changes
+        IsImageMissingProperty.Changed.AddClassHandler<ProfileImage>((control, e) =>
+        {
+            control.UpdatePlaceholderVisibility();
         });
 
         // Add hover event handlers to the ProfileImage component
         this.PointerEntered += OnProfileImagePointerEntered;
         this.PointerExited += OnProfileImagePointerExited;
+
+        // Set initial placeholder visibility when control is attached to visual tree
+        this.AttachedToVisualTree += (s, e) =>
+        {
+            // Update IsImageMissing based on initial ImagePath
+            IsImageMissing = string.IsNullOrWhiteSpace(ImagePath);
+            // Update placeholder visibility
+            UpdatePlaceholderVisibility();
+        };
+    }
+
+    private void UpdatePlaceholderVisibility()
+    {
+        Log.Debug("ProfileImage.UpdatePlaceholderVisibility - IsImageMissing: {IsImageMissing}, IconKind: {IconKind}",
+            IsImageMissing, PlaceholderIconKind);
+
+        // Only show placeholder when image is missing
+        if (!IsImageMissing)
+        {
+            ShowPlaceholderIcon = false;
+            ShowPlaceholderText = false;
+            Log.Debug("Image exists, hiding placeholders");
+            return;
+        }
+
+        // If an icon kind is set (not None), show icon; otherwise show text
+        if (PlaceholderIconKind != MaterialIconKind.None)
+        {
+            ShowPlaceholderIcon = true;
+            ShowPlaceholderText = false;
+            Log.Debug("Showing placeholder icon: {IconKind}", PlaceholderIconKind);
+        }
+        else
+        {
+            ShowPlaceholderIcon = false;
+            ShowPlaceholderText = true;
+            Log.Debug("Showing placeholder text: {Text}", PlaceholderTextValue);
+        }
     }
 
     private void OnProfileImagePointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)

@@ -23,6 +23,9 @@
         <components:ProfileImage x:Name="AddIconBorder"
                                         BorderThickness="2"
                                         Margin="0,0,0,12"
+                                        ImagePath=""
+                                        PlaceholderIconKind="Plus"
+                                        PlaceholderIconSize="60"
                                         ImageClicked="OnAddStudentClicked"/>
 
         <!-- Add Student Text -->
