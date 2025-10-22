@@ -182,14 +182,13 @@ public partial class AddStudentView : UserControl
 
         try
         {
-            // Open the ConsolidatedImageCropWindow
-            var cropWindow = new SchoolOrganizer.Src.Views.Windows.ImageCrop.ConsolidatedImageCropWindow();
-            var result = await cropWindow.ShowDialog<string?>(parentWindow);
+            // Open the ImageCropWindow
+            var path = await SchoolOrganizer.Src.Views.Windows.ImageCrop.ImageCropWindow.ShowAsync(parentWindow);
 
             // If the user saved an image, update the ViewModel
-            if (!string.IsNullOrEmpty(cropWindow.SavedImagePath))
+            if (!string.IsNullOrEmpty(path))
             {
-                ViewModel.SelectedImagePath = cropWindow.SavedImagePath;
+                ViewModel.SelectedImagePath = path;
             }
         }
         catch (Exception ex)
