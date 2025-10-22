@@ -200,14 +200,14 @@
               </StackPanel>
               
               <!-- Classroom Cards Grid -->
-              <ScrollViewer IsVisible="{Binding !IsLoadingClassrooms}" 
-                           VerticalScrollBarVisibility="Auto" 
+              <ScrollViewer IsVisible="{Binding !IsLoadingClassrooms}"
+                           VerticalScrollBarVisibility="Auto"
                            MaxHeight="200"
                            HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl ItemsSource="{Binding AvailableClassrooms}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                      <UniformGrid Columns="2" Margin="0,0,0,8"/>
+                      <UniformGrid Columns="2" Margin="0,0,12,8"/>
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
