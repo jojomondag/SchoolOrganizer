@@ -118,10 +118,11 @@
               <!-- Profile Image -->
               <StackPanel Grid.Column="0" Spacing="8">
                 <components:ProfileImage x:Name="ProfileImage"
-                                               Width="100" 
-                                               Height="100" 
+                                               Width="100"
+                                               Height="100"
                                                ImagePath="{Binding SelectedImagePath, Mode=TwoWay}"
-                                               IsClickable="True"/>
+                                               IsClickable="True"
+                                               ImageClicked="OnProfileImageClicked"/>
                 <TextBlock Text="Click to add photo" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
               </StackPanel>
 
