@@ -474,8 +474,8 @@ public partial class StudentGalleryView : UserControl
                 return;
             }
 
-            // Open the ConsolidatedImageCrop window with student context, passing existing ORIGINAL image and crop settings
-            var result = await ConsolidatedImageCropWindow.ShowForStudentAsync(
+            // Open the ImageCrop window with student context, passing existing ORIGINAL image and crop settings
+            var result = await ImageCropWindow.ShowForStudentAsync(
                 parentWindow,
                 student.Id,
                 student.OriginalImagePath,  // Load the original, not the cropped result

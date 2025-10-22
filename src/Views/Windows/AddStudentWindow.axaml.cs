@@ -228,7 +228,7 @@ public partial class AddStudentWindow : Window
     private async void OnChooseImageClick(object? sender, RoutedEventArgs e)
     {
         var parentWindow = this;
-        string? path = await ConsolidatedImageCropWindow.ShowAsync(parentWindow);
+        string? path = await ImageCropWindow.ShowAsync(parentWindow);
         if (!string.IsNullOrWhiteSpace(path))
         {
             state.SelectedImagePath = path;
