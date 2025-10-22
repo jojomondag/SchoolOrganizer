@@ -35,8 +35,8 @@ public partial class ProfileImage : UserControl
     public static readonly StyledProperty<double> PlaceholderFontSizeProperty =
         AvaloniaProperty.Register<ProfileImage, double>(nameof(PlaceholderFontSize), 28);
 
-    public static readonly StyledProperty<MaterialIconKind> PlaceholderIconKindProperty =
-        AvaloniaProperty.Register<ProfileImage, MaterialIconKind>(nameof(PlaceholderIconKind), MaterialIconKind.None);
+    public static readonly StyledProperty<MaterialIconKind?> PlaceholderIconKindProperty =
+        AvaloniaProperty.Register<ProfileImage, MaterialIconKind?>(nameof(PlaceholderIconKind));
 
     public static readonly StyledProperty<double> PlaceholderIconSizeProperty =
         AvaloniaProperty.Register<ProfileImage, double>(nameof(PlaceholderIconSize), 48);
@@ -102,7 +102,7 @@ public partial class ProfileImage : UserControl
         set => SetValue(PlaceholderFontSizeProperty, value);
     }
 
-    public MaterialIconKind PlaceholderIconKind
+    public MaterialIconKind? PlaceholderIconKind
     {
         get => GetValue(PlaceholderIconKindProperty);
         set => SetValue(PlaceholderIconKindProperty, value);
@@ -218,8 +218,8 @@ public partial class ProfileImage : UserControl
             return;
         }
 
-        // If an icon kind is set (not None), show icon; otherwise show text
-        if (PlaceholderIconKind != MaterialIconKind.None)
+        // If an icon kind is set (not null), show icon; otherwise show text
+        if (PlaceholderIconKind.HasValue)
         {
             ShowPlaceholderIcon = true;
             ShowPlaceholderText = false;

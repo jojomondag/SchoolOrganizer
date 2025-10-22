@@ -17,5 +17,24 @@
     "AssignmentNotes": {},
     "AssignmentNotesTimestamps": {},
     "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": null,
+    "RoleInfo": "",
+    "SecondaryInfo": null,
+    "PersonType": 0,
+    "Id": 2,
+    "Name": "wwdw",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data/ProfileImages\\profile_1761141334366.png",
+    "OriginalImagePath": null,
+    "ClassName": "",
+    "Teachers": [],
+    "Email": "wdwdw",
+    "EnrollmentDate": "2025-10-22T15:55:28.4885465",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
   }
 ]

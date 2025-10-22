@@ -10,7 +10,9 @@
       "Bash(del \"C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\src\\Models\\UI\\FileTreeNode.cs\")",
       "Bash(powershell -Command \"Remove-Item ''C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\src\\Models\\UI\\FileTreeNode.cs'' -Force\")",
       "Bash(powershell -Command \"Remove-Item ''C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\src\\Services\\FileViewerScrollService.cs'' -Force\")",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []

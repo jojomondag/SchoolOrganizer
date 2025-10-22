@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Input;
@@ -182,8 +183,8 @@ public partial class AddStudentView : UserControl
 
         try
         {
-            // Open the image crop window
-            var parentWindow = this.GetVisualParent<Window>();
+            // Open the image crop window - use TopLevel.GetTopLevel instead of GetVisualParent
+            var parentWindow = TopLevel.GetTopLevel(this) as Window;
             if (parentWindow != null)
             {
                 System.Diagnostics.Debug.WriteLine("AddStudentView: Opening ImageCropWindow");
