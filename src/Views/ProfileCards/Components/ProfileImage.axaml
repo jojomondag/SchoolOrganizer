@@ -28,15 +28,7 @@
             Tapped="OnImageClick"
             IsHitTestVisible="True"
             ZIndex="100">
-      
-      <Border.Styles>
-        <Style Selector="Border#ProfileImageBorder:pointerover">
-          <Setter Property="BoxShadow" Value="0 4 12 0 #CC000000"/>
-          <Setter Property="BorderBrush" Value="#000000"/>
-          <Setter Property="BorderThickness" Value="3"/>
-        </Style>
-      </Border.Styles>
-      
+
       <Grid IsHitTestVisible="False">
         <!-- Profile image or placeholder -->
         <Grid IsHitTestVisible="False">
@@ -49,23 +41,23 @@
                    IsHitTestVisible="False"
                    IsVisible="{Binding !IsImageMissing, ElementName=Root}">
             <Ellipse.Fill>
-              <ImageBrush Source="{Binding ImagePath, ElementName=Root, Converter={StaticResource UniversalImageConverter}}" 
+              <ImageBrush Source="{Binding ImagePath, ElementName=Root, Converter={StaticResource UniversalImageConverter}}"
                           Stretch="UniformToFill"/>
             </Ellipse.Fill>
           </Ellipse>
-          
+
           <!-- Placeholder text -->
           <TextBlock x:Name="PlaceholderText"
-                     Text="{Binding PlaceholderTextValue, ElementName=Root}" 
+                     Text="{Binding PlaceholderTextValue, ElementName=Root}"
                      FontSize="{Binding PlaceholderFontSize, ElementName=Root}"
-                     FontWeight="Light" 
+                     FontWeight="Light"
                      Foreground="{DynamicResource TextPrimaryBrush}"
                      HorizontalAlignment="Center"
                      VerticalAlignment="Center"
                      IsHitTestVisible="False"
                      IsVisible="{Binding IsImageMissing, ElementName=Root}"/>
         </Grid>
-        
+
       </Grid>
     </Border>
   </Grid>

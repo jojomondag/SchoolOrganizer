@@ -114,9 +114,10 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
                 border.Width = Width;
                 border.Height = Height;
             });
-            UpdateControl<ProfileImage>("AddIconBorder", icon => {
-                icon.Width = IconSize;
-                icon.Height = IconSize;
+            // Icon size is handled by XAML binding, no need to set it in code-behind
+            UpdateControl<Grid>("AddIconContainer", grid => {
+                grid.Width = IconSize;
+                grid.Height = IconSize;
             });
             UpdateControl<TextBlock>("AddStudentText", text => text.FontSize = TitleFontSize);
             UpdateControl<TextBlock>("SubtitleText", text => {
@@ -136,6 +137,18 @@ namespace SchoolOrganizer.Src.Views.ProfileCards
             // Create a dummy student for the "Add Student" action
             var dummyStudent = new Models.Students.Student { Name = "Add Student" };
             OnCardClicked(dummyStudent);
+        }
+
+        private void OnAddIconPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        {
+            // Handle pointer pressed event
+            OnAddStudentClicked(sender, e);
+        }
+
+        private void OnAddIconTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+        {
+            // Handle tapped event
+            OnAddStudentClicked(sender, e);
         }
     }
 }

@@ -3,9 +3,15 @@
              xmlns:local="clr-namespace:SchoolOrganizer.Src.Views.ProfileCards"
              xmlns:materialIcons="using:Material.Icons.Avalonia"
              xmlns:components="using:SchoolOrganizer.Src.Views.ProfileCards.Components"
+             xmlns:views="using:SchoolOrganizer.Src.Converters"
              x:Class="SchoolOrganizer.Src.Views.ProfileCards.AddStudentProfileCard"
              x:DataType="local:AddStudentProfileCard"
              x:Name="Root">
+
+  <UserControl.Resources>
+    <views:SimpleMathConverter x:Key="SimpleMathConverter" x:Shared="True"/>
+    <views:DoubleToCornerRadiusConverter x:Key="DoubleToCornerRadiusConverter" x:Shared="True"/>
+  </UserControl.Resources>
 
   <Grid x:Name="MainGrid" ClipToBounds="False">
     <Border x:Name="CardBorder"
@@ -20,13 +26,40 @@
 
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
         <!-- Plus Icon Circle -->
-        <components:ProfileImage x:Name="AddIconBorder"
-                                        BorderThickness="2"
-                                        Margin="0,0,0,12"
-                                        ImagePath="ADD_CARD"
-                                        PlaceholderTextValue="+"
-                                        PlaceholderFontSize="48"
-                                        ImageClicked="OnAddStudentClicked"/>
+        <Grid x:Name="AddIconContainer"
+              Width="90"
+              Height="90"
+              Margin="0,0,0,12"
+              Cursor="Hand"
+              PointerPressed="OnAddIconPointerPressed"
+              Tapped="OnAddIconTapped">
+          
+          <!-- Circular Border -->
+          <Ellipse x:Name="AddIconEllipse"
+                   Width="90"
+                   Height="90"
+                   Stroke="#000000"
+                   StrokeThickness="3"
+                   Fill="#F0F0F0"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center">
+            <Ellipse.Styles>
+              <Style Selector="Ellipse#AddIconEllipse:pointerover">
+                <Setter Property="Stroke" Value="#000000"/>
+                <Setter Property="StrokeThickness" Value="4"/>
+                <Setter Property="Fill" Value="#E0E0E0"/>
+              </Style>
+            </Ellipse.Styles>
+          </Ellipse>
+          
+          <!-- Plus Icon -->
+          <materialIcons:MaterialIcon Kind="Plus" 
+                                      Width="40"
+                                      Height="40"
+                                      Foreground="#000000"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+        </Grid>
 
         <!-- Add Student Text -->
         <TextBlock x:Name="AddStudentText"

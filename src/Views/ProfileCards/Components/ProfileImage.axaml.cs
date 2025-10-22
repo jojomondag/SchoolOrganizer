@@ -121,17 +121,17 @@ public partial class ProfileImage : UserControl
     public ProfileImage()
     {
         InitializeComponent();
-        
+
         // Log when ProfileImage is created
         Log.Information("ProfileImage created - Name: {Name}, IsClickable: {IsClickable}", this.Name ?? "unnamed", IsClickable);
-        
+
         // Log when IsClickable property changes
         IsClickableProperty.Changed.AddClassHandler<ProfileImage>((control, e) =>
         {
             Log.Information("ProfileImage IsClickable changed to: {IsClickable}", control.IsClickable);
         });
-        
-        
+
+
         // Update IsImageMissing when ImagePath changes - use more efficient approach
         ImagePathProperty.Changed.AddClassHandler<ProfileImage>((control, e) =>
         {

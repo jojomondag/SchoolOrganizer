@@ -22,7 +22,8 @@
             Cursor="Hand"
             BoxShadow="{DynamicResource ShadowLight}"
             RenderTransformOrigin="0.5,0.5"
-            IsHitTestVisible="True">
+            IsHitTestVisible="True"
+            ClipToBounds="False">
 
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
         <components:ProfileImage x:Name="ProfileImageBorder"

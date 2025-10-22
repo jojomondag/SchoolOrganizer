@@ -180,22 +180,22 @@
             <Grid ColumnDefinitions="140,20,*">
               <!-- Profile Image -->
               <StackPanel Grid.Column="0" Spacing="8">
-                <Grid Width="100" Height="100">
-                  <Border x:Name="ProfileImageBorder" Width="100" Height="100" CornerRadius="50" ClipToBounds="True" Background="{DynamicResource BackgroundTertiaryBrush}" BorderBrush="{DynamicResource BlackBrush}" BorderThickness="2" BoxShadow="{DynamicResource ShadowLight}">
-                    <Grid>
-                      <Image Source="{Binding SelectedImagePath, Converter={StaticResource UniversalImageConverter}}" Stretch="UniformToFill"/>
-                      <TextBlock Text="+" FontSize="28" FontWeight="Light" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsImageMissing}"/>
-                    </Grid>
-                  </Border>
-                  <!-- Transparent clickable overlay -->
-                  <Button Background="{DynamicResource TransparentColor}"
-                          BorderThickness="0"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          Cursor="Hand"
-                          Click="OnChooseImageClick"
-                          ToolTip.Tip="Add photo"/>
-                </Grid>
+                <Border x:Name="ProfileImageBorder"
+                        Width="100"
+                        Height="100"
+                        CornerRadius="50"
+                        ClipToBounds="True"
+                        Background="{DynamicResource BackgroundTertiaryBrush}"
+                        BorderBrush="{DynamicResource BlackBrush}"
+                        BorderThickness="2"
+                        BoxShadow="{DynamicResource ShadowLight}"
+                        Cursor="Hand"
+                        PointerPressed="OnProfileImagePointerPressed">
+                  <Grid>
+                    <Image Source="{Binding SelectedImagePath, Converter={StaticResource UniversalImageConverter}}" Stretch="UniformToFill" IsHitTestVisible="False"/>
+                    <TextBlock Text="+" FontSize="28" FontWeight="Light" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding IsImageMissing}" IsHitTestVisible="False"/>
+                  </Grid>
+                </Border>
                 <TextBlock Text="Add Photo" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
               </StackPanel>
 

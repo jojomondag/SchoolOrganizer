@@ -225,10 +225,28 @@ public partial class AddStudentWindow : Window
         }
     }
 
+    private async void OnProfileImagePointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        Serilog.Log.Information("AddStudentWindow.OnProfileImagePointerPressed called - sender: {Sender}", sender?.GetType().Name);
+        await OpenImageCropWindow();
+        e.Handled = true;
+    }
+
     private async void OnChooseImageClick(object? sender, RoutedEventArgs e)
     {
+        Serilog.Log.Information("AddStudentWindow.OnChooseImageClick called - sender: {Sender}", sender?.GetType().Name);
+        await OpenImageCropWindow();
+    }
+
+    private async Task OpenImageCropWindow()
+    {
+        Serilog.Log.Information("AddStudentWindow.OpenImageCropWindow called");
+
         var parentWindow = this;
         string? path = await ImageCropWindow.ShowAsync(parentWindow);
+
+        Serilog.Log.Information("AddStudentWindow.OpenImageCropWindow - ImageCropWindow returned path: {Path}", path ?? "null");
+
         if (!string.IsNullOrWhiteSpace(path))
         {
             state.SelectedImagePath = path;
