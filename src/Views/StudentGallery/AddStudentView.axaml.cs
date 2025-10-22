@@ -171,6 +171,32 @@ public partial class AddStudentView : UserControl
         }
     }
 
+    private async void OnProfileImageClicked(object? sender, EventArgs e)
+    {
+        // Get the parent window
+        var parentWindow = TopLevel.GetTopLevel(this) as Window;
+        if (parentWindow == null || ViewModel == null)
+        {
+            return;
+        }
+
+        try
+        {
+            // Open the ConsolidatedImageCropWindow
+            var cropWindow = new SchoolOrganizer.Src.Views.Windows.ImageCrop.ConsolidatedImageCropWindow();
+            var result = await cropWindow.ShowDialog<string?>(parentWindow);
+
+            // If the user saved an image, update the ViewModel
+            if (!string.IsNullOrEmpty(cropWindow.SavedImagePath))
+            {
+                ViewModel.SelectedImagePath = cropWindow.SavedImagePath;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error opening image crop window: {ex.Message}");
+        }
+    }
 
 
     private StudentGalleryViewModel? GetParentStudentGalleryViewModel()

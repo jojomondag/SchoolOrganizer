@@ -117,10 +117,13 @@
             <Grid ColumnDefinitions="140,20,*">
               <!-- Profile Image -->
               <StackPanel Grid.Column="0" Spacing="8">
-                <components:ProfileImage Width="100" 
-                                               Height="100" 
-                                               ImagePath="{Binding SelectedImagePath, Mode=TwoWay}"/>
-                <TextBlock Text="Add Photo" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                <components:ProfileImage x:Name="ProfileImage"
+                                               Width="100"
+                                               Height="100"
+                                               ImagePath="{Binding SelectedImagePath, Mode=TwoWay}"
+                                               IsClickable="True"
+                                               ImageClicked="OnProfileImageClicked"/>
+                <TextBlock Text="Click to add photo" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
               </StackPanel>
 
               <!-- All Form Fields -->
