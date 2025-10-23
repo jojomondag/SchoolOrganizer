@@ -96,7 +96,8 @@
                                     Padding="12,8"
                                     Background="Transparent"
                                     BorderThickness="0"
-                                    CornerRadius="4">
+                                    CornerRadius="4"
+                                    IsVisible="{Binding IsStudentGalleryActive}">
                                 <Button.Content>
                                     <StackPanel Orientation="Horizontal" Spacing="12">
                                         <materialIcons:MaterialIcon Kind="AccountPlus" Width="20" Height="20"/>
