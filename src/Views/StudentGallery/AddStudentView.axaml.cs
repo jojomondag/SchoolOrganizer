@@ -8,6 +8,7 @@ using Avalonia.VisualTree;
 using Avalonia.Threading;
 using SchoolOrganizer.Src.ViewModels;
 using SchoolOrganizer.Src.Views.ProfileCards.Components;
+using SchoolOrganizer.Src.Models.Students;
 
 namespace SchoolOrganizer.Src.Views.StudentGallery;
 
@@ -26,8 +27,8 @@ public partial class AddStudentView : UserControl
         // Subscribe to ProfileImage events when view is loaded
         this.Loaded += OnViewLoaded;
         
-        // Also try subscribing immediately after InitializeComponent
-        SubscribeToProfileImage();
+        // Subscribe to coordinator events for image changes
+        SubscribeToCoordinatorEvents();
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -38,38 +39,87 @@ public partial class AddStudentView : UserControl
             ViewModel.StudentAdded += OnStudentAdded;
             ViewModel.MultipleStudentsAdded += OnMultipleStudentsAdded;
             ViewModel.Cancelled += OnCancelled;
+            
+            // Subscribe to property changes to update the temporary student
+            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
         }
     }
 
-    private void SubscribeToProfileImage()
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        // Try to find and subscribe to ProfileImage immediately
-        var profileImage = this.FindControl<ProfileImage>("ProfileImage");
-        if (profileImage != null)
+        // Update the temporary student when relevant properties change
+        if (e.PropertyName == nameof(AddStudentViewModel.SelectedImagePath) ||
+            e.PropertyName == nameof(AddStudentViewModel.CropSettings) ||
+            e.PropertyName == nameof(AddStudentViewModel.OriginalImagePath) ||
+            e.PropertyName == nameof(AddStudentViewModel.StudentName))
         {
-            System.Diagnostics.Debug.WriteLine($"AddStudentView: Found ProfileImage in constructor, IsClickable: {profileImage.IsClickable}, subscribing to ImageClicked event");
-            profileImage.ImageClicked -= OnProfileImageClicked; // Remove any existing subscription first
-            profileImage.ImageClicked += OnProfileImageClicked;
+            SetupTemporaryStudentForProfileImage();
         }
-        else
+    }
+
+    private void SubscribeToCoordinatorEvents()
+    {
+        var coordinator = Services.StudentCoordinatorService.Instance;
+        coordinator.StudentImageUpdated += OnCoordinatorStudentImageUpdated;
+    }
+
+    private void OnCoordinatorStudentImageUpdated(object? sender, (SchoolOrganizer.Src.Models.Students.Student student, string imagePath, string? cropSettings, string? originalImagePath) args)
+    {
+        // Check if this is our temporary student (ID = -1)
+        if (args.student.Id == -1 && ViewModel != null)
         {
-            System.Diagnostics.Debug.WriteLine("AddStudentView: ProfileImage not found in constructor, will try again in OnViewLoaded");
+            // Update the ViewModel with the new image data
+            ViewModel.SelectedImagePath = args.imagePath;
+            ViewModel.CropSettings = args.cropSettings;
+            ViewModel.OriginalImagePath = args.originalImagePath;
+            
+            // Update the temporary student for the ProfileImage
+            SetupTemporaryStudentForProfileImage();
         }
     }
 
     private void OnViewLoaded(object? sender, RoutedEventArgs e)
     {
-        // Subscribe to ProfileImage click events when view is loaded
+        // Create a temporary student object for the ProfileImage to use with the coordinator service
+        SetupTemporaryStudentForProfileImage();
+        
+        // Subscribe to ProfileImage ImageClicked event
         var profileImage = this.FindControl<ProfileImage>("ProfileImage");
         if (profileImage != null)
         {
-            System.Diagnostics.Debug.WriteLine($"AddStudentView: Found ProfileImage in OnViewLoaded, IsClickable: {profileImage.IsClickable}, subscribing to ImageClicked event");
-            profileImage.ImageClicked -= OnProfileImageClicked; // Remove any existing subscription first
             profileImage.ImageClicked += OnProfileImageClicked;
         }
-        else
+    }
+
+    private void OnProfileImageClicked(object? sender, EventArgs e)
+    {
+        // This is the same logic as BaseProfileCard.OnProfileImageClicked
+        var profileImage = this.FindControl<ProfileImage>("ProfileImage");
+        if (profileImage?.DataContext is Student student)
         {
-            System.Diagnostics.Debug.WriteLine("AddStudentView: ProfileImage not found in OnViewLoaded!");
+            // Use StudentCoordinatorService directly to avoid double event handling
+            Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
+        }
+    }
+
+    private void SetupTemporaryStudentForProfileImage()
+    {
+        var profileImage = this.FindControl<ProfileImage>("ProfileImage");
+        if (profileImage != null && ViewModel != null)
+        {
+            // Create a temporary student object that the ProfileImage can use
+            // This allows the ProfileImage to work with the coordinator service
+            var tempStudent = new SchoolOrganizer.Src.Models.Students.Student
+            {
+                Id = -1, // Use -1 to indicate this is a temporary student
+                Name = ViewModel.StudentName,
+                PictureUrl = ViewModel.SelectedImagePath,
+                CropSettings = ViewModel.CropSettings,
+                OriginalImagePath = ViewModel.OriginalImagePath
+            };
+            
+            // Set the temporary student as DataContext for the ProfileImage
+            profileImage.DataContext = tempStudent;
         }
     }
 
@@ -90,6 +140,13 @@ public partial class AddStudentView : UserControl
             originalStudent.Email = result.Email;
             originalStudent.EnrollmentDate = result.EnrollmentDate.DateTime;
             originalStudent.PictureUrl = result.PicturePath ?? string.Empty;
+            
+            // Update crop settings and original image path if they were modified
+            if (ViewModel != null)
+            {
+                originalStudent.CropSettings = ViewModel.CropSettings;
+                originalStudent.OriginalImagePath = ViewModel.OriginalImagePath;
+            }
             
             // Update teachers
             originalStudent.ClearTeachers();
@@ -171,45 +228,6 @@ public partial class AddStudentView : UserControl
 
 
 
-    private async void OnProfileImageClicked(object? sender, EventArgs e)
-    {
-        System.Diagnostics.Debug.WriteLine("AddStudentView: OnProfileImageClicked called!");
-        
-        if (ViewModel == null) 
-        {
-            System.Diagnostics.Debug.WriteLine("AddStudentView: ViewModel is null, returning");
-            return;
-        }
-
-        try
-        {
-            // Open the image crop window - use TopLevel.GetTopLevel instead of GetVisualParent
-            var parentWindow = TopLevel.GetTopLevel(this) as Window;
-            if (parentWindow != null)
-            {
-                System.Diagnostics.Debug.WriteLine("AddStudentView: Opening ImageCropWindow");
-                var imagePath = await SchoolOrganizer.Src.Views.Windows.ImageCrop.ImageCropWindow.ShowAsync(parentWindow);
-                if (!string.IsNullOrWhiteSpace(imagePath))
-                {
-                    System.Diagnostics.Debug.WriteLine($"AddStudentView: Image selected: {imagePath}");
-                    ViewModel.SelectedImagePath = imagePath;
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("AddStudentView: No image selected or user cancelled");
-                }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("AddStudentView: Parent window not found");
-            }
-        }
-        catch (Exception ex)
-        {
-            // Handle any errors that might occur during image selection
-            System.Diagnostics.Debug.WriteLine($"AddStudentView: Error opening image crop window: {ex.Message}");
-        }
-    }
 
 
     private void OnAddTeacherClick(object? sender, RoutedEventArgs e)

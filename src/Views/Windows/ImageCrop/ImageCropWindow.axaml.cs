@@ -52,7 +52,6 @@ public partial class ImageCropWindow : Window
     private double _rotationInitialAngle;
     private object? _pendingCropSettings;
     private bool _shouldRestoreSettings;
-    private bool _isPreviewUpdatePending;
     private MainImageDisplay? _mainImageDisplay;
     private CropPreview? _cropPreview;
     private ImageHistory? _imageHistory;
@@ -779,7 +778,7 @@ public partial class ImageCropWindow : Window
 
         PerformResize(e.GetPosition(CropOverlay!));
         ApplyCropTransform();
-        UpdatePreview();
+        UpdatePreviewLive();
         e.Handled = true;
     }
 
@@ -839,6 +838,7 @@ public partial class ImageCropWindow : Window
         }
 
         PerformDrag(e.GetPosition(CropOverlay!));
+        UpdatePreviewLive();
         e.Handled = true;
     }
 
@@ -898,6 +898,7 @@ public partial class ImageCropWindow : Window
                 return;
             }
             PerformRotation(e.GetPosition(CropOverlay));
+            UpdatePreviewLive();
             e.Handled = true;
         }
         else if (_isResizing)
@@ -910,8 +911,7 @@ public partial class ImageCropWindow : Window
             PerformResize(e.GetPosition(CropOverlay));
             ApplyCropTransform();
             UpdateCutout();
-            // Mark preview for update when resize ends for better performance
-            _isPreviewUpdatePending = true;
+            UpdatePreviewLive();
             e.Handled = true;
         }
         else if (!_isDragging && string.IsNullOrEmpty(_activeHandle))
@@ -932,7 +932,15 @@ public partial class ImageCropWindow : Window
     {
         // Allow real-time updates during dragging and resizing for better user experience
         _cropPreview?.UpdatePreview(IsCropStateValid() ? CreateCroppedImage() : null);
-        _isPreviewUpdatePending = false;
+    }
+
+    private void UpdatePreviewLive()
+    {
+        // Live preview updates during drag/resize operations
+        if (IsCropStateValid())
+        {
+            _cropPreview?.UpdatePreview(CreateCroppedImage());
+        }
     }
     private Bitmap? CreateCroppedImage()
     {
@@ -1417,12 +1425,6 @@ public partial class ImageCropWindow : Window
     private void EndResize()
     {
         _isResizing = false;
-        
-        if (_isPreviewUpdatePending)
-        {
-            _cropPreview?.UpdatePreview(IsCropStateValid() ? CreateCroppedImage() : null);
-            _isPreviewUpdatePending = false;
-        }
     }
 
     private void EndDrag(Control? control)
@@ -1437,12 +1439,6 @@ public partial class ImageCropWindow : Window
         _isDragging = false;
         _isResizing = false;
         _activeHandle = null;
-        
-        if (_isPreviewUpdatePending)
-        {
-            _cropPreview?.UpdatePreview(IsCropStateValid() ? CreateCroppedImage() : null);
-            _isPreviewUpdatePending = false;
-        }
     }
 
     private void UpdateCursorBasedOnPosition(Point position, Control control)
@@ -1503,8 +1499,6 @@ public partial class ImageCropWindow : Window
             
             _cropArea = new Rect(newX, newY, cropWidth, cropHeight);
             ApplyCropTransform();
-            // Mark preview for update when drag ends for better performance
-            _isPreviewUpdatePending = true;
 
             Log.Information("PerformDrag completed - new _cropArea: {CropArea}", _cropArea);
         }
@@ -1521,7 +1515,6 @@ public partial class ImageCropWindow : Window
         _rotationAngle = NormalizeAngle(_rotationInitialAngle + (currentAngle - _rotationStartAngle));
         UpdateRotation();
         UpdateCutout();
-        UpdatePreview();
     }
 
     private void PerformResize(Point currentPosition)
@@ -1565,8 +1558,6 @@ public partial class ImageCropWindow : Window
             
             _cropArea = new Rect(centerX - halfNewSize, centerY - halfNewSize, halfNewSize * 2, halfNewSize * 2);
             ApplyCropTransform();
-            // Mark preview for update when resize ends for better performance
-            _isPreviewUpdatePending = true;
 
             Log.Information("PerformResize completed - new _cropArea: {CropArea}, halfNewSize: {HalfNewSize}", _cropArea, halfNewSize);
         }

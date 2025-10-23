@@ -122,8 +122,7 @@
                                                Width="110"
                                                Height="110"
                                                ImagePath="{Binding SelectedImagePath, Mode=TwoWay}"
-                                               IsClickable="True"
-                                               ImageClicked="OnProfileImageClicked"/>
+                                               IsClickable="True"/>
                 <TextBlock Text="Click to add photo" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
               </StackPanel>
 

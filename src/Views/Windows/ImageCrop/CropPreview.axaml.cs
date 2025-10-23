@@ -28,6 +28,12 @@ public partial class CropPreview : UserControl
         {
             // Save the cropped bitmap to a reusable temporary file for the ProfileImage to display
             var tempPath = SaveBitmapToReusableTempFile(preview);
+            
+            // Clear the cache and force reload to show live updates
+            UniversalImageConverter.ClearCache(tempPath);
+            
+            // Temporarily clear the path, then set it again to trigger a refresh
+            profileImageBorder.ImagePath = "";
             profileImageBorder.ImagePath = tempPath;
         }
         else

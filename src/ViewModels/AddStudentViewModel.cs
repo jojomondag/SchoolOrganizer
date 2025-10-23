@@ -45,6 +45,12 @@ public partial class AddStudentViewModel : ObservableObject
     [ObservableProperty]
     private string selectedImagePath = string.Empty;
 
+    [ObservableProperty]
+    private string? cropSettings;
+
+    [ObservableProperty]
+    private string? originalImagePath;
+
     public bool IsImageMissing => string.IsNullOrWhiteSpace(SelectedImagePath);
 
     // Teacher management
@@ -384,6 +390,8 @@ public partial class AddStudentViewModel : ObservableObject
         StudentEmail = student.Email;
         EnrollmentDate = new DateTimeOffset(student.EnrollmentDate);
         SelectedImagePath = student.PictureUrl;
+        CropSettings = student.CropSettings;
+        OriginalImagePath = student.OriginalImagePath;
     }
 
     public void ResetToAddMode()
@@ -395,6 +403,8 @@ public partial class AddStudentViewModel : ObservableObject
         StudentEmail = string.Empty;
         EnrollmentDate = DateTimeOffset.Now;
         SelectedImagePath = string.Empty;
+        CropSettings = null;
+        OriginalImagePath = null;
     }
 
     // Override OnPropertyChanged to handle computed properties

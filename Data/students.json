@@ -1,1 +1,21 @@
-[]
+[
+  {
+    "Teacher": null,
+    "RoleInfo": "",
+    "SecondaryInfo": null,
+    "PersonType": 0,
+    "Id": 1,
+    "Name": "we",
+    "PictureUrl": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/student_1_1761206133069.png",
+    "OriginalImagePath": "/Users/josef.nobach/Documents/GitHub/SchoolOrganizer/bin/Debug/net9.0/Data/ProfileImages/Originals/1761206031215_Ai Programmering Klubb.jpg",
+    "ClassName": "",
+    "Teachers": [],
+    "Email": "we",
+    "EnrollmentDate": "2025-10-23T09:50:33.794789",
+    "CropSettings": "{\u0022X\u0022:148.9296875,\u0022Y\u0022:95.1875,\u0022Width\u0022:311,\u0022Height\u0022:311,\u0022RotationAngle\u0022:0,\u0022ImageDisplayWidth\u0022:622,\u0022ImageDisplayHeight\u0022:622,\u0022ImageDisplayOffsetX\u0022:0,\u0022ImageDisplayOffsetY\u0022:35.5}",
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  }
+]

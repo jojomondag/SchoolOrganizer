@@ -485,19 +485,29 @@ public partial class StudentGalleryView : UserControl
 
             if (!string.IsNullOrEmpty(result.imagePath))
             {
-                // Find the fresh student object by ID from the ViewModel to avoid stale references
-                var viewModel = DataContext as StudentGalleryViewModel;
-                var freshStudent = viewModel?.Students.OfType<Student>().FirstOrDefault(s => s.Id == student.Id);
-                
-                if (freshStudent != null)
+                // Check if this is a temporary student (ID = -1) from AddStudentView
+                if (student.Id == -1)
                 {
-                    // Use StudentCoordinatorService to publish the image update with all the crop data
-                    // The ViewModel will handle updating the student objects properly
-                    Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(freshStudent, result.imagePath, result.cropSettings, result.originalImagePath);
+                    // For temporary students, just publish the update with the original student object
+                    // The AddStudentView will handle updating its ViewModel
+                    Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(student, result.imagePath, result.cropSettings, result.originalImagePath);
                 }
                 else
                 {
-                    Log.Warning("Could not find fresh student object with ID {StudentId} for image update", student.Id);
+                    // Find the fresh student object by ID from the ViewModel to avoid stale references
+                    var viewModel = DataContext as StudentGalleryViewModel;
+                    var freshStudent = viewModel?.Students.OfType<Student>().FirstOrDefault(s => s.Id == student.Id);
+                    
+                    if (freshStudent != null)
+                    {
+                        // Use StudentCoordinatorService to publish the image update with all the crop data
+                        // The ViewModel will handle updating the student objects properly
+                        Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(freshStudent, result.imagePath, result.cropSettings, result.originalImagePath);
+                    }
+                    else
+                    {
+                        Log.Warning("Could not find fresh student object with ID {StudentId} for image update", student.Id);
+                    }
                 }
             }
         }
