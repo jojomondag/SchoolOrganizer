@@ -11,94 +11,6 @@
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
   </UserControl.Resources>
 
-  <UserControl.Styles>
-
-    <Style Selector="TextBox">
-      <Setter Property="Padding" Value="10,6"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="6"/>
-      <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
-      <Setter Property="FocusAdorner" Value="{x:Null}"/>
-    </Style>
-    
-    <Style Selector="TextBox:focus">
-      <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
-      <Setter Property="BorderThickness" Value="2"/>
-      <Setter Property="FocusAdorner" Value="{x:Null}"/>
-    </Style>
-    
-    <Style Selector="ComboBox">
-      <Setter Property="Padding" Value="10,6"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="6"/>
-      <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
-    </Style>
-    
-    <Style Selector="DatePicker">
-      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="6"/>
-      <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
-    </Style>
-    
-    <Style Selector="ComboBox:focus, DatePicker:focus">
-      <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
-      <Setter Property="BorderThickness" Value="2"/>
-    </Style>
-    
-    <Style Selector="Button.secondary">
-      <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-      <Setter Property="Padding" Value="20,8"/>
-      <Setter Property="CornerRadius" Value="6"/>
-    </Style>
-    
-    <Style Selector="Button.secondary:pointerover">
-      <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
-    </Style>
-    
-    <Style Selector="Button.primary">
-      <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
-      <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
-      <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="Padding" Value="24,8"/>
-      <Setter Property="CornerRadius" Value="6"/>
-      <Setter Property="FontWeight" Value="SemiBold"/>
-    </Style>
-    
-    
-    <!-- Tab Styles -->
-    <Style Selector="ToggleButton.tab">
-      <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
-      <Setter Property="BorderThickness" Value="1,1,0,1"/>
-      <Setter Property="Padding" Value="20,8"/>
-      <Setter Property="CornerRadius" Value="0"/>
-      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-    </Style>
-    
-    <Style Selector="ToggleButton.tab:first-child">
-      <Setter Property="CornerRadius" Value="6,0,0,6"/>
-    </Style>
-    
-    <Style Selector="ToggleButton.tab:last-child">
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="0,6,6,0"/>
-    </Style>
-    
-    <Style Selector="ToggleButton.tab:checked">
-      <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
-      <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
-    </Style>
-    
-    <Style Selector="ToggleButton.tab:pointerover">
-      <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
-    </Style>
-  </UserControl.Styles>
 
   <Border Background="{DynamicResource BackgroundPrimaryBrush}" Padding="12">
     <Grid RowDefinitions="Auto,*,Auto">
@@ -228,7 +140,7 @@
                               BorderThickness="1" 
                               CornerRadius="6" 
                               Margin="3"
-                              Padding="12,8"
+                              Padding="10,6"
                               Cursor="Hand"
                               PointerPressed="OnClassroomCardPressed">
                         <Grid RowDefinitions="Auto,Auto">
@@ -237,21 +149,26 @@
                                        FontSize="13" 
                                        FontWeight="SemiBold" 
                                        Foreground="{DynamicResource TextPrimaryBrush}"
-                                       TextWrapping="Wrap"/>
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="1" Text="{Binding Section}" 
-                                       FontSize="10" 
+                                       FontSize="9" 
                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                        HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Margin="4,0,0,0"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxWidth="80"
                                        IsVisible="{Binding Section, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                           </Grid>
                           <TextBlock Grid.Row="1" Text="{Binding Description}" 
-                                     FontSize="9" 
+                                     FontSize="7" 
                                      Foreground="{DynamicResource TextSecondaryBrush}"
                                      TextWrapping="Wrap"
-                                     MaxHeight="28"
+                                     MaxHeight="16"
                                      TextTrimming="CharacterEllipsis"
                                      IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                     Margin="0,2,0,0"/>
+                                     Margin="0,1,0,0"/>
                         </Grid>
                       </Border>
                     </DataTemplate>

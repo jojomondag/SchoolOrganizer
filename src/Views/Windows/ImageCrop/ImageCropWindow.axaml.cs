@@ -57,6 +57,10 @@ public partial class ImageCropWindow : Window
     private ImageHistory? _imageHistory;
     private int? _studentId;
     private string? _currentOriginalImagePath;
+    
+    // Performance optimization fields
+    private DateTime _lastPreviewUpdate = DateTime.MinValue;
+    private const int PreviewThrottleMs = 33; // 30fps throttling
     #endregion
     #region Properties
     public Func<Task<string?>>? SavePathProvider { get; set; }
@@ -936,22 +940,114 @@ public partial class ImageCropWindow : Window
 
     private void UpdatePreviewLive()
     {
-        // Live preview updates during drag/resize operations
-        if (IsCropStateValid())
+        // Throttled live preview updates during drag/resize operations
+        var now = DateTime.Now;
+        if ((now - _lastPreviewUpdate).TotalMilliseconds < PreviewThrottleMs)
         {
-            _cropPreview?.UpdatePreview(CreateCroppedImage());
+            return; // Skip this update to throttle
+        }
+
+        if (!IsCropStateValid())
+        {
+            return;
+        }
+
+        _lastPreviewUpdate = now;
+
+        // Use fast rendering for live updates
+        var preview = CreateCroppedImageFast();
+        if (preview != null)
+        {
+            _cropPreview?.UpdatePreviewDirect(preview);
         }
     }
     private Bitmap? CreateCroppedImage()
     {
+        return CreateCroppedImageInternal(false);
+    }
+
+    private Bitmap? CreateCroppedImageFast()
+    {
         try
         {
-            Log.Information("CreateCroppedImage called - _cropArea: {CropArea}, _fullResolutionBitmap: {HasFullBitmap}, _currentBitmap: {HasCurrentBitmap}", 
-                _cropArea, _fullResolutionBitmap != null, _currentBitmap != null);
+            if (!IsCropStateValid())
+            {
+                return null;
+            }
+
+            // Use display bitmap for fast rendering (much smaller than full resolution)
+            var sourceBitmap = _currentBitmap;
+            if (sourceBitmap == null)
+            {
+                return null;
+            }
+
+            // Fast preview size (140x140 to match preview display)
+            const int previewSize = 140;
+
+            // Calculate scale factors from display bitmap to preview
+            var scaleX = sourceBitmap.PixelSize.Width / _imageDisplaySize.Width;
+            var scaleY = sourceBitmap.PixelSize.Height / _imageDisplaySize.Height;
+            var cropX = (_cropArea.X - _imageDisplayOffset.X) * scaleX;
+            var cropY = (_cropArea.Y - _imageDisplayOffset.Y) * scaleY;
+            var cropWidth = _cropArea.Width * scaleX;
+            var cropHeight = _cropArea.Height * scaleY;
+
+            var renderTarget = new RenderTargetBitmap(new PixelSize(previewSize, previewSize));
+            using var drawingContext = renderTarget.CreateDrawingContext();
+
+            // Simple circular clip for fast rendering
+            var clipRect = new Rect(0, 0, previewSize, previewSize);
+            using (drawingContext.PushClip(clipRect))
+            using (drawingContext.PushGeometryClip(new EllipseGeometry(clipRect)))
+            {
+                if (Math.Abs(_rotationAngle) <= 0.01)
+                {
+                    // No rotation: Simple crop and scale
+                    var sourceRect = new Rect(cropX, cropY, cropWidth, cropHeight);
+                    var destRect = new Rect(0, 0, previewSize, previewSize);
+                    drawingContext.DrawImage(sourceBitmap, sourceRect, destRect);
+                }
+                else
+                {
+                    // With rotation: Apply transform
+                    var centerX = cropX + cropWidth / 2.0;
+                    var centerY = cropY + cropHeight / 2.0;
+                    var scale = previewSize / Math.Max(cropWidth, cropHeight);
+
+                    using (drawingContext.PushTransform(
+                        Matrix.CreateTranslation(-centerX, -centerY) *
+                        Matrix.CreateRotation(_rotationAngle * Math.PI / 180) *
+                        Matrix.CreateScale(scale, scale) *
+                        Matrix.CreateTranslation(previewSize / 2.0, previewSize / 2.0)))
+                    {
+                        drawingContext.DrawImage(
+                            sourceBitmap,
+                            new Rect(0, 0, sourceBitmap.PixelSize.Width, sourceBitmap.PixelSize.Height),
+                            new Rect(0, 0, sourceBitmap.PixelSize.Width, sourceBitmap.PixelSize.Height)
+                        );
+                    }
+                }
+            }
+            return renderTarget;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error in CreateCroppedImageFast: {Message}", ex.Message);
+            return null;
+        }
+    }
+
+    private Bitmap? CreateCroppedImageInternal(bool lowRes)
+    {
+        try
+        {
+            Log.Information("CreateCroppedImageInternal called - lowRes: {LowRes}, _cropArea: {CropArea}, _fullResolutionBitmap: {HasFullBitmap}, _currentBitmap: {HasCurrentBitmap}", 
+                lowRes, _cropArea, _fullResolutionBitmap != null, _currentBitmap != null);
 
             if (!IsCropStateValid())
             {
-                Log.Warning("CreateCroppedImage - Crop state invalid, returning null");
+                Log.Warning("CreateCroppedImageInternal - Crop state invalid, returning null");
                 return null;
             }
 
@@ -959,11 +1055,11 @@ public partial class ImageCropWindow : Window
             var sourceBitmap = _fullResolutionBitmap ?? _currentBitmap;
             if (sourceBitmap == null)
             {
-                Log.Error("CreateCroppedImage - Both _fullResolutionBitmap and _currentBitmap are null, returning null");
+                Log.Error("CreateCroppedImageInternal - Both _fullResolutionBitmap and _currentBitmap are null, returning null");
                 return null;
             }
 
-            Log.Information("CreateCroppedImage - Using source bitmap with PixelSize: {PixelSize}, _imageDisplaySize: {DisplaySize}", 
+            Log.Information("CreateCroppedImageInternal - Using source bitmap with PixelSize: {PixelSize}, _imageDisplaySize: {DisplaySize}", 
                 sourceBitmap.PixelSize, _imageDisplaySize);
 
             // Calculate scale factors based on the full resolution source
@@ -974,9 +1070,8 @@ public partial class ImageCropWindow : Window
         var cropWidth = _cropArea.Width * scaleX;
         var cropHeight = _cropArea.Height * scaleY;
 
-        // Use a consistent high-quality output size for all profile images
-        // This ensures images look sharp even when displayed at large sizes (e.g., 240x240px in ProfileCardLarge)
-        var outputSize = ProfileImageOutputSize;
+        // Use different output sizes for performance optimization
+        var outputSize = lowRes ? 256 : ProfileImageOutputSize;
 
         var renderTarget = new RenderTargetBitmap(new PixelSize(outputSize, outputSize));
         using var drawingContext = renderTarget.CreateDrawingContext();
@@ -1023,10 +1118,11 @@ public partial class ImageCropWindow : Window
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error in CreateCroppedImage: {Message}", ex.Message);
+            Log.Error(ex, "Error in CreateCroppedImageInternal: {Message}", ex.Message);
             return null;
         }
     }
+
     private void RotateImage(double degrees)
     {
         try
@@ -1439,6 +1535,16 @@ public partial class ImageCropWindow : Window
         _isDragging = false;
         _isResizing = false;
         _activeHandle = null;
+        
+        // Trigger final high-resolution preview when drag/resize completes
+        // Use a small delay to ensure smooth transition
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (IsCropStateValid())
+            {
+                _cropPreview?.UpdatePreview(CreateCroppedImage());
+            }
+        }, DispatcherPriority.Render);
     }
 
     private void UpdateCursorBasedOnPosition(Point position, Control control)

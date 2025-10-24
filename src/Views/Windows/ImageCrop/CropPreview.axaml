@@ -64,14 +64,21 @@
             <!-- Heading removed per request -->
             
             <!-- Preview Circle -->
-            <components:ProfileImage Grid.Row="1"
-                                          x:Name="PreviewImageBorder"
-                                          Width="140"
-                                          Height="140"
-                                          BorderThickness="3"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"
-                                          IsClickable="False"/>
+            <Border Grid.Row="1"
+                    x:Name="PreviewImageBorder"
+                    Width="140"
+                    Height="140"
+                    BorderBrush="{DynamicResource WhiteColor}"
+                    BorderThickness="3"
+                    CornerRadius="70"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    ClipToBounds="True">
+                <Image x:Name="PreviewImage"
+                       Width="134"
+                       Height="134"
+                       Stretch="UniformToFill"/>
+            </Border>
             
             <!-- Action Buttons -->
             <StackPanel Grid.Row="2"

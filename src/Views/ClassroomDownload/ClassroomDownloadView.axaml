@@ -68,7 +68,7 @@
                             Click="OnBrowseFolderClick"
                             Padding="20,10"
                             Background="{DynamicResource AccentButtonBackground}"
-                            Foreground="White"
+                            Foreground="{DynamicResource WhiteBrush}"
                             BorderThickness="0"
                             CornerRadius="8"
                             FontWeight="SemiBold"
@@ -81,10 +81,10 @@
                                                        Kind="FolderOpen" 
                                                        Width="18" 
                                                        Height="18"
-                                                       Foreground="White"/>
+                                                       Foreground="{DynamicResource WhiteBrush}"/>
                             <TextBlock Text="Choose Folder" 
                                        FontSize="14"
-                                       Foreground="White"/>
+                                       Foreground="{DynamicResource WhiteBrush}"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -183,7 +183,7 @@
                                                 Padding="12,6"
                                                 Content="View Assignments"
                                                 Background="{DynamicResource AccentButtonBackground}"
-                                                Foreground="White"
+                                                Foreground="{DynamicResource WhiteBrush}"
                                                 BorderThickness="0"
                                                 CornerRadius="4">
                                             <Button.Styles>
@@ -231,7 +231,7 @@
                                                 Padding="12,6"
                                                 Content="Download"
                                                 Background="{DynamicResource AccentButtonBackground}"
-                                                Foreground="White"
+                                                Foreground="{DynamicResource WhiteBrush}"
                                                 BorderThickness="0"
                                                 CornerRadius="4">
                                             <Button.Styles>
@@ -346,7 +346,7 @@
                                             CommandParameter="{Binding}"
                                             Padding="12,6"
                                             Background="{DynamicResource AccentButtonBackground}"
-                                            Foreground="White"
+                                            Foreground="{DynamicResource WhiteBrush}"
                                             BorderThickness="0"
                                             CornerRadius="4">
                                         <Button.Styles>

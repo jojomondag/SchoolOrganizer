@@ -12,6 +12,188 @@
     <Application.Styles>
         <FluentTheme />
         <materialIcons:MaterialIconStyles />
+        
+        <!-- Form Control Styles -->
+        <Style Selector="TextBox">
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+        
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+        
+        <Style Selector="ComboBox">
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
+        </Style>
+        
+        <Style Selector="DatePicker">
+            <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource BackgroundPrimaryBrush}"/>
+        </Style>
+        
+        <Style Selector="ComboBox:focus, DatePicker:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <!-- Button Variant Styles -->
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+        
+        <Style Selector="Button.secondary:pointerover">
+            <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
+        </Style>
+        
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="24,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- Tab Styles -->
+        <Style Selector="ToggleButton.tab">
+            <Setter Property="Background" Value="{DynamicResource TransparentColor}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BlackBrush}"/>
+            <Setter Property="BorderThickness" Value="1,1,0,1"/>
+            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+        
+        <Style Selector="ToggleButton.tab:first-child">
+            <Setter Property="CornerRadius" Value="6,0,0,6"/>
+        </Style>
+        
+        <Style Selector="ToggleButton.tab:last-child">
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="0,6,6,0"/>
+        </Style>
+        
+        <Style Selector="ToggleButton.tab:checked">
+            <Setter Property="Background" Value="{DynamicResource BlackBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource WhiteBrush}"/>
+        </Style>
+        
+        <Style Selector="ToggleButton.tab:pointerover">
+            <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}"/>
+        </Style>
+
+        <!-- Star Rating Styles -->
+        <Style Selector="Button.StarButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.StarButton:pointerover">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <Style Selector="materialIcons|MaterialIcon.StarIcon">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+        </Style>
+
+        <Style Selector="materialIcons|MaterialIcon.StarFilled">
+            <Setter Property="Foreground" Value="{DynamicResource StarGoldBrush}"/>
+        </Style>
+
+        <Style Selector="materialIcons|MaterialIcon.StarEmpty">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+
+        <!-- Search Box Styles -->
+        <Style Selector="TextBox.search-box">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="8,12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource BackgroundTertiaryBrush}"/>
+            <Setter Property="SelectionForegroundBrush" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        
+        <Style Selector="TextBox.search-box:focus">
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        
+        <Style Selector="TextBox.search-box:focus /template/ Border">
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        
+        <Style Selector="TextBox.search-box:pointerover">
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        
+        <Style Selector="TextBox.search-box:pointerover /template/ Border">
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- Transparent Button Styles -->
+        <Style Selector="Button.transparent">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Arrow"/>
+        </Style>
+        
+        <Style Selector="Button.transparent:pointerover">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        
+        <Style Selector="Button.transparent:pressed">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- Action Button Styles -->
+        <Style Selector="Button.action-button">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Background" Value="{DynamicResource WhiteBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        
+        <Style Selector="Button.action-button:pointerover /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
+        </Style>
     </Application.Styles>
 
     <Application.Resources>
@@ -19,6 +201,20 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://SchoolOrganizer/src/Views/Styles/Colors.axaml" />
             </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Control Templates -->
+            <ControlTemplate x:Key="FlatButtonTemplate" TargetType="Button">
+                <Border x:Name="PART_Border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                </Border>
+            </ControlTemplate>
         </ResourceDictionary>
     </Application.Resources>
 

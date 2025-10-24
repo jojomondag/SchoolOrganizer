@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
 
     <!-- Dark Theme Colors (7 core colors only) -->
     <Color x:Key="WhiteColor">#FFFFFF</Color>
@@ -51,5 +52,8 @@
     <SolidColorBrush x:Key="AccentButtonBackground" Color="#2c3e50" />
     <SolidColorBrush x:Key="AccentButtonBackgroundHover" Color="#34495e" />
     <SolidColorBrush x:Key="LightBlueBrush" Color="#e8f4f8" />
+    
+    <!-- Star Rating Brush -->
+    <SolidColorBrush x:Key="StarGoldBrush" Color="{StaticResource StarGoldColor}" />
 
 </ResourceDictionary>

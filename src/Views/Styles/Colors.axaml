@@ -22,4 +22,7 @@
     <Color x:Key="AccentButtonBackgroundColor">#2c3e50</Color>
     <Color x:Key="AccentButtonBackgroundHoverColor">#34495e</Color>
     
+    <!-- Star Rating Color -->
+    <Color x:Key="StarGoldColor">#FFD700</Color>
+    
 </ResourceDictionary>

@@ -3,8 +3,6 @@ using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using System;
 using System.IO;
-using SchoolOrganizer.Src.Views.ProfileCards.Components;
-using SchoolOrganizer.Src.Converters;
 namespace SchoolOrganizer.Src.Views.Windows.ImageCrop;
 public partial class CropPreview : UserControl
 {
@@ -14,80 +12,61 @@ public partial class CropPreview : UserControl
     public event EventHandler? ResetClicked;
     public event EventHandler? SaveClicked;
     
-    private string? _tempFilePath;
     public CropPreview()
     {
         InitializeComponent();
     }
     public void UpdatePreview(Bitmap? preview)
     {
-        var profileImageBorder = this.FindControl<ProfileImage>("PreviewImageBorder");
-        if (profileImageBorder == null) return;
+        var previewImage = this.FindControl<Image>("PreviewImage");
+        if (previewImage == null) return;
         
         if (preview != null)
         {
-            // Save the cropped bitmap to a reusable temporary file for the ProfileImage to display
-            var tempPath = SaveBitmapToReusableTempFile(preview);
-            
-            // Clear the cache and force reload to show live updates
-            UniversalImageConverter.ClearCache(tempPath);
-            
-            // Temporarily clear the path, then set it again to trigger a refresh
-            profileImageBorder.ImagePath = "";
-            profileImageBorder.ImagePath = tempPath;
+            // Direct bitmap assignment for final preview - no file I/O needed
+            previewImage.Source = preview;
         }
         else
         {
-            profileImageBorder.ImagePath = "";
+            previewImage.Source = null;
+        }
+    }
+
+    public void UpdatePreviewDirect(Bitmap? preview)
+    {
+        var previewImage = this.FindControl<Image>("PreviewImage");
+        if (previewImage == null) return;
+        
+        if (preview != null)
+        {
+            // Direct bitmap assignment for live updates - much faster than file I/O
+            previewImage.Source = preview;
+        }
+        else
+        {
+            previewImage.Source = null;
         }
     }
 
     public void UpdatePreviewFromPath(string imagePath)
     {
-        var profileImageBorder = this.FindControl<ProfileImage>("PreviewImageBorder");
-        if (profileImageBorder == null) return;
+        var previewImage = this.FindControl<Image>("PreviewImage");
+        if (previewImage == null) return;
         
         System.Diagnostics.Debug.WriteLine($"CropPreview.UpdatePreviewFromPath called with: {imagePath}");
         System.Diagnostics.Debug.WriteLine($"File exists: {File.Exists(imagePath)}");
         
-        // Force a complete refresh by clearing and resetting the ImagePath
-        profileImageBorder.ImagePath = "";
-        
-        // Use Dispatcher to ensure the UI updates on the UI thread
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        if (File.Exists(imagePath))
         {
-            // Clear the cache for this path to ensure fresh image loading
-            UniversalImageConverter.ClearCache(imagePath);
-            
-            profileImageBorder.ImagePath = imagePath;
-            System.Diagnostics.Debug.WriteLine($"CropPreview ProfileImage.ImagePath set to: {profileImageBorder.ImagePath}");
-            
-            // Property change notification is automatic when setting ImagePath
-        }, Avalonia.Threading.DispatcherPriority.Render);
+            // Load image directly from file path
+            previewImage.Source = new Bitmap(imagePath);
+        }
+        else
+        {
+            previewImage.Source = null;
+        }
     }
 
-    private string SaveBitmapToReusableTempFile(Bitmap bitmap)
-    {
-        try
-        {
-            // Create temp file path only once
-            if (string.IsNullOrEmpty(_tempFilePath))
-            {
-                var tempDir = Path.Combine(Path.GetTempPath(), "SchoolOrganizer", "CropPreview");
-                Directory.CreateDirectory(tempDir);
-                _tempFilePath = Path.Combine(tempDir, "crop_preview.png");
-            }
-            
-            // Save bitmap to the same reusable file
-            bitmap.Save(_tempFilePath);
-            
-            return _tempFilePath;
-        }
-        catch (Exception)
-        {
-            return "";
-        }
-    }
     public void ShowActions(bool show)
     {
         var panel = this.FindControl<StackPanel>("ActionButtonsPanel");
@@ -119,20 +98,4 @@ public partial class CropPreview : UserControl
     private void ResetButton_Click(object? sender, RoutedEventArgs e) => ResetClicked?.Invoke(this, EventArgs.Empty);
     private void SaveButton_Click(object? sender, RoutedEventArgs e) => SaveClicked?.Invoke(this, EventArgs.Empty);
     
-    protected override void OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
-    {
-        // Clean up temp file when control is removed from visual tree
-        if (!string.IsNullOrEmpty(_tempFilePath) && File.Exists(_tempFilePath))
-        {
-            try
-            {
-                File.Delete(_tempFilePath);
-            }
-            catch (Exception)
-            {
-                // Silently handle cleanup errors
-            }
-        }
-        base.OnDetachedFromVisualTree(e);
-    }
 }
