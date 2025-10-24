@@ -463,57 +463,135 @@ public partial class StudentGalleryView : UserControl
     }
 
     /// <summary>
-    /// Opens the ImageCropper window for editing the profile image.
+    /// Opens the ImageCropper view for editing the profile image.
     /// </summary>
     private async Task OpenImageCropperForStudent(Student student)
     {
         try
         {
-            // Get the parent window
-            var parentWindow = TopLevel.GetTopLevel(this) as Window;
-            if (parentWindow == null)
-            {
-                return;
-            }
+            if (ViewModel == null) return;
 
-            // Open the ImageCrop window with student context, passing existing ORIGINAL image and crop settings
-            var result = await ImageCropWindow.ShowForStudentAsync(
-                parentWindow,
-                student.Id,
-                student.OriginalImagePath,  // Load the original, not the cropped result
-                student.CropSettings);
+            // Set up the image editing state in the ViewModel
+            ViewModel.StartImageEdit(student, student.OriginalImagePath, student.CropSettings);
 
-            if (!string.IsNullOrEmpty(result.imagePath))
+            // Initialize the ImageCropView
+            var imageCropContainer = this.FindControl<Border>("ImageCropViewContainer");
+            if (imageCropContainer != null)
             {
-                // Check if this is a temporary student (ID = -1) from AddStudentView
-                if (student.Id == -1)
+                // Create and setup the ImageCropView
+                var imageCropView = new SchoolOrganizer.Src.Views.ImageCrop.ImageCropView
                 {
-                    // For temporary students, just publish the update with the original student object
-                    // The AddStudentView will handle updating its ViewModel
-                    Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(student, result.imagePath, result.cropSettings, result.originalImagePath);
-                }
-                else
-                {
-                    // Find the fresh student object by ID from the ViewModel to avoid stale references
-                    var viewModel = DataContext as StudentGalleryViewModel;
-                    var freshStudent = viewModel?.Students.OfType<Student>().FirstOrDefault(s => s.Id == student.Id);
-                    
-                    if (freshStudent != null)
-                    {
-                        // Use StudentCoordinatorService to publish the image update with all the crop data
-                        // The ViewModel will handle updating the student objects properly
-                        Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(freshStudent, result.imagePath, result.cropSettings, result.originalImagePath);
-                    }
-                    else
-                    {
-                        Log.Warning("Could not find fresh student object with ID {StudentId} for image update", student.Id);
-                    }
-                }
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch
+                };
+                var imageCropViewModel = new ImageCropViewModel();
+                imageCropView.DataContext = imageCropViewModel;
+
+                // Wire up events
+                imageCropView.ImageSaved += OnImageCropSaved;
+                imageCropView.CancelRequested += OnImageCropCancelled;
+                imageCropViewModel.CancelRequested += OnImageCropCancelled;
+                imageCropViewModel.ImageSaved += OnImageCropViewModelSaved;
+
+                // Add the view to the container
+                imageCropContainer.Child = imageCropView;
+
+                // Load the image for the student
+                await imageCropView.LoadImageForStudentAsync(
+                    student.Id,
+                    student.OriginalImagePath,
+                    student.CropSettings
+                );
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error opening ImageCropper");
+        }
+    }
+
+    private void OnImageCropSaved(object? sender, string imagePath)
+    {
+        if (ViewModel == null || ViewModel.StudentForImageEdit == null) return;
+
+        var student = ViewModel.StudentForImageEdit;
+
+        // Check if this is a temporary student (ID = -1) from AddStudentView
+        if (student.Id == -1)
+        {
+            // For temporary students, publish the update with the original student object
+            Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(
+                student, imagePath, student.CropSettings, student.OriginalImagePath);
+        }
+        else
+        {
+            // For regular students, the StudentGalleryViewModel will handle the update via CompleteImageEdit
+            // Just need to trigger the save in ViewModel which will be handled by the ImageSaved event
+        }
+    }
+
+    private void OnImageCropViewModelSaved(object? sender, (string imagePath, string? cropSettings, string? originalImagePath) data)
+    {
+        if (ViewModel == null || ViewModel.StudentForImageEdit == null) return;
+
+        var student = ViewModel.StudentForImageEdit;
+
+        // Check if this is a temporary student (ID = -1) from AddStudentView
+        if (student.Id == -1)
+        {
+            // For temporary students, publish through coordinator so AddStudentView can receive it
+            Services.StudentCoordinatorService.Instance.PublishStudentImageUpdated(
+                student, data.imagePath, data.cropSettings, data.originalImagePath);
+
+            // Cancel the image edit state (don't save to JSON for temporary students)
+            ViewModel.CancelImageEditCommand.Execute(null);
+        }
+        else
+        {
+            // For regular students, use the ViewModel's CompleteImageEdit command to save
+            _ = ViewModel.CompleteImageEditCommand.ExecuteAsync(data);
+        }
+
+        // Clean up the view
+        var imageCropContainer = this.FindControl<Border>("ImageCropViewContainer");
+        if (imageCropContainer != null)
+        {
+            if (imageCropContainer.Child is SchoolOrganizer.Src.Views.ImageCrop.ImageCropView view)
+            {
+                view.ImageSaved -= OnImageCropSaved;
+                view.CancelRequested -= OnImageCropCancelled;
+                if (view.ViewModel != null)
+                {
+                    view.ViewModel.CancelRequested -= OnImageCropCancelled;
+                    view.ViewModel.ImageSaved -= OnImageCropViewModelSaved;
+                }
+            }
+            imageCropContainer.Child = null;
+        }
+    }
+
+    private void OnImageCropCancelled(object? sender, EventArgs e)
+    {
+        if (ViewModel == null) return;
+
+        // Cancel the image edit
+        ViewModel.CancelImageEditCommand.Execute(null);
+
+        // Clean up the view
+        var imageCropContainer = this.FindControl<Border>("ImageCropViewContainer");
+        if (imageCropContainer != null)
+        {
+            if (imageCropContainer.Child is SchoolOrganizer.Src.Views.ImageCrop.ImageCropView view)
+            {
+                view.ImageSaved -= OnImageCropSaved;
+                view.CancelRequested -= OnImageCropCancelled;
+                if (view.ViewModel != null)
+                {
+                    view.ViewModel.CancelRequested -= OnImageCropCancelled;
+                    view.ViewModel.ImageSaved -= OnImageCropViewModelSaved;
+                }
+            }
+            imageCropContainer.Child = null;
         }
     }
 

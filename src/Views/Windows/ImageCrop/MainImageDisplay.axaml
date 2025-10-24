@@ -29,10 +29,7 @@
                 BoxShadow="{DynamicResource ShadowLight}"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
-        <Grid Name="ImageContainer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Grid.Clip>
-                <RectangleGeometry RadiusX="8" RadiusY="8"/>
-            </Grid.Clip>
+        <Grid Name="ImageContainer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ClipToBounds="False">
 
             <!-- Background when no image (bottom layer) -->
             <Grid Name="BackgroundPattern"
@@ -50,7 +47,7 @@
 
             <!-- Image display (middle layer - on top of background pattern) -->
             <Image Name="MainImage"
-                   Stretch="UniformToFill"
+                   Stretch="Uniform"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    IsVisible="False">
@@ -59,7 +56,10 @@
             <!-- Crop overlay (top layer) -->
             <Grid Name="CropOverlay"
                   IsVisible="False"
-                  Background="Transparent">
+                  Background="Transparent"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  ClipToBounds="False">
                 <!-- Single path overlay with even-odd hole -->
                 <Path Name="OverlayCutout"
                       Fill="{DynamicResource BlackColor}"

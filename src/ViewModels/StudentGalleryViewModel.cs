@@ -80,6 +80,18 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     [ObservableProperty]
     private Student? studentBeingEdited = null;
+
+    [ObservableProperty]
+    private bool isEditingImage = false;
+
+    [ObservableProperty]
+    private Student? studentForImageEdit = null;
+
+    [ObservableProperty]
+    private string? imageEditOriginalPath = null;
+
+    [ObservableProperty]
+    private string? imageEditCropSettings = null;
     
     partial void OnIsAddingStudentChanged(bool value)
     {
@@ -504,7 +516,7 @@ public partial class StudentGalleryViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void CancelAddStudent() 
+    private void CancelAddStudent()
     {
         IsAddingStudent = false;
         StudentBeingEdited = null; // Clear the student being edited
@@ -513,6 +525,56 @@ public partial class StudentGalleryViewModel : ObservableObject
     public void SetStudentForEdit(Student student)
     {
         StudentBeingEdited = student;
+    }
+
+    /// <summary>
+    /// Initiates image editing mode for a student
+    /// </summary>
+    public void StartImageEdit(Student student, string? originalImagePath = null, string? cropSettings = null)
+    {
+        StudentForImageEdit = student;
+        ImageEditOriginalPath = originalImagePath;
+        ImageEditCropSettings = cropSettings;
+        IsEditingImage = true;
+    }
+
+    /// <summary>
+    /// Completes image editing and updates the student
+    /// </summary>
+    [RelayCommand]
+    private async Task CompleteImageEdit((string imagePath, string? cropSettings, string? originalImagePath) data)
+    {
+        if (StudentForImageEdit != null)
+        {
+            // Update the student with the new image data
+            StudentForImageEdit.PictureUrl = data.imagePath;
+            StudentForImageEdit.CropSettings = data.cropSettings;
+            StudentForImageEdit.OriginalImagePath = data.originalImagePath;
+
+            // Save changes
+            await SaveAllStudentsToJson();
+
+            // Refresh the UI
+            await ApplySearchImmediate();
+        }
+
+        // Reset image editing state
+        IsEditingImage = false;
+        StudentForImageEdit = null;
+        ImageEditOriginalPath = null;
+        ImageEditCropSettings = null;
+    }
+
+    /// <summary>
+    /// Cancels image editing without saving
+    /// </summary>
+    [RelayCommand]
+    private void CancelImageEdit()
+    {
+        IsEditingImage = false;
+        StudentForImageEdit = null;
+        ImageEditOriginalPath = null;
+        ImageEditCropSettings = null;
     }
 
     [RelayCommand]

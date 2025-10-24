@@ -11,6 +11,7 @@ public partial class CropPreview : UserControl
     public event EventHandler? RotateRightClicked;
     public event EventHandler? ResetClicked;
     public event EventHandler? SaveClicked;
+    public event EventHandler? CancelClicked;
     
     public CropPreview()
     {
@@ -97,5 +98,6 @@ public partial class CropPreview : UserControl
     private void RotateRightButton_Click(object? sender, RoutedEventArgs e) => RotateRightClicked?.Invoke(this, EventArgs.Empty);
     private void ResetButton_Click(object? sender, RoutedEventArgs e) => ResetClicked?.Invoke(this, EventArgs.Empty);
     private void SaveButton_Click(object? sender, RoutedEventArgs e) => SaveClicked?.Invoke(this, EventArgs.Empty);
-    
+    private void CancelButton_Click(object? sender, RoutedEventArgs e) => CancelClicked?.Invoke(this, EventArgs.Empty);
+
 }

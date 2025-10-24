@@ -87,7 +87,7 @@
                         Spacing="8" 
                         HorizontalAlignment="Center"
                         IsVisible="False">
-                <Button Classes="IconButton" ToolTip.Tip="Cancel" Click="BackButton_Click">
+                <Button Name="CancelButton" Classes="IconButton" ToolTip.Tip="Cancel" Click="CancelButton_Click">
                     <materialIcons:MaterialIcon Kind="Close" />
                 </Button>
 

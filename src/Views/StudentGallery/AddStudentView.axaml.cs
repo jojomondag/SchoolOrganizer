@@ -68,13 +68,24 @@ public partial class AddStudentView : UserControl
         // Check if this is our temporary student (ID = -1)
         if (args.student.Id == -1 && ViewModel != null)
         {
-            // Update the ViewModel with the new image data
-            ViewModel.SelectedImagePath = args.imagePath;
-            ViewModel.CropSettings = args.cropSettings;
-            ViewModel.OriginalImagePath = args.originalImagePath;
-            
-            // Update the temporary student for the ProfileImage
-            SetupTemporaryStudentForProfileImage();
+            // Update on UI thread to ensure proper rendering
+            Dispatcher.UIThread.Post(() =>
+            {
+                // Update the ViewModel with the new image data
+                ViewModel.SelectedImagePath = args.imagePath;
+                ViewModel.CropSettings = args.cropSettings;
+                ViewModel.OriginalImagePath = args.originalImagePath;
+
+                // Update the temporary student for the ProfileImage
+                SetupTemporaryStudentForProfileImage();
+                
+                // Force the ProfileImage to refresh its display
+                var profileImage = this.FindControl<ProfileImage>("ProfileImage");
+                if (profileImage != null)
+                {
+                    profileImage.ForceImageRefresh();
+                }
+            });
         }
     }
 
@@ -93,22 +104,9 @@ public partial class AddStudentView : UserControl
 
     private void OnProfileImageClicked(object? sender, EventArgs e)
     {
-        // This is the same logic as BaseProfileCard.OnProfileImageClicked
-        var profileImage = this.FindControl<ProfileImage>("ProfileImage");
-        if (profileImage?.DataContext is Student student)
+        // Create a temporary student object for the ProfileImage to use with the coordinator service
+        if (ViewModel != null)
         {
-            // Use StudentCoordinatorService directly to avoid double event handling
-            Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(student);
-        }
-    }
-
-    private void SetupTemporaryStudentForProfileImage()
-    {
-        var profileImage = this.FindControl<ProfileImage>("ProfileImage");
-        if (profileImage != null && ViewModel != null)
-        {
-            // Create a temporary student object that the ProfileImage can use
-            // This allows the ProfileImage to work with the coordinator service
             var tempStudent = new SchoolOrganizer.Src.Models.Students.Student
             {
                 Id = -1, // Use -1 to indicate this is a temporary student
@@ -117,9 +115,25 @@ public partial class AddStudentView : UserControl
                 CropSettings = ViewModel.CropSettings,
                 OriginalImagePath = ViewModel.OriginalImagePath
             };
+
+            // Use StudentCoordinatorService to request image change
+            Services.StudentCoordinatorService.Instance.PublishStudentImageChangeRequested(tempStudent);
+        }
+    }
+
+    private void SetupTemporaryStudentForProfileImage()
+    {
+        var profileImage = this.FindControl<ProfileImage>("ProfileImage");
+        if (profileImage != null && ViewModel != null)
+        {
+            // Don't set DataContext - let the ProfileImage use the binding to SelectedImagePath
+            // The ProfileImage will get its image path from the ViewModel binding
             
-            // Set the temporary student as DataContext for the ProfileImage
-            profileImage.DataContext = tempStudent;
+            // Force image refresh to ensure the new image is displayed
+            if (!string.IsNullOrEmpty(ViewModel.SelectedImagePath))
+            {
+                profileImage.ForceImageRefresh();
+            }
         }
     }
 

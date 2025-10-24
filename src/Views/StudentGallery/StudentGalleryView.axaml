@@ -8,6 +8,7 @@
              xmlns:profileCard="using:SchoolOrganizer.Src.Views.ProfileCards"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:addStudent="using:SchoolOrganizer.Src.Views.StudentGallery"
+             xmlns:imageCrop="using:SchoolOrganizer.Src.Views.ImageCrop"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="SchoolOrganizer.Src.Views.StudentGallery.StudentGalleryView"
              x:DataType="vm:StudentGalleryViewModel"
@@ -34,21 +35,39 @@
     <!-- Student Gallery -->
   <Border Grid.Row="1" Background="{DynamicResource BackgroundTertiaryBrush}">
     <Grid>
-      <!-- Add Student View - Completely replaces gallery when IsAddingStudent is true -->
+      <!-- Add Student View - Completely replaces gallery when IsAddingStudent is true AND NOT editing image -->
       <addStudent:AddStudentView Name="AddStudentView"
-                                 IsVisible="{Binding $parent[UserControl].DataContext.IsAddingStudent, FallbackValue=False}"
                                  HorizontalAlignment="Stretch"
-                                 VerticalAlignment="Stretch"/>
+                                 VerticalAlignment="Stretch">
+        <addStudent:AddStudentView.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="$parent[UserControl].DataContext.IsAddingStudent" FallbackValue="False"/>
+            <Binding Path="$parent[UserControl].DataContext.IsEditingImage" Converter="{x:Static BoolConverters.Not}" FallbackValue="True"/>
+          </MultiBinding>
+        </addStudent:AddStudentView.IsVisible>
+      </addStudent:AddStudentView>
 
-      <!-- Student Gallery Content - Only shown when NOT adding student -->
+      <!-- Image Crop View - Completely replaces gallery when IsEditingImage is true -->
+      <Border Name="ImageCropViewContainer"
+              IsVisible="{Binding $parent[UserControl].DataContext.IsEditingImage, FallbackValue=False}"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch"
+              Background="{DynamicResource BackgroundTertiaryBrush}"/>
+
+      <!-- Student Gallery Content - Only shown when NOT adding student AND NOT editing image (these three views are mutually exclusive) -->
       <ScrollViewer Name="StudentsScrollViewer"
                     Padding="0,20,0,40"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled"
                     ClipToBounds="False"
                     VerticalAlignment="Stretch"
-                    HorizontalAlignment="Stretch"
-                    IsVisible="{Binding $parent[UserControl].DataContext.IsAddingStudent, Converter={x:Static BoolConverters.Not}, FallbackValue=True}">
+                    HorizontalAlignment="Stretch">
+        <ScrollViewer.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="$parent[UserControl].DataContext.IsAddingStudent" Converter="{x:Static BoolConverters.Not}" FallbackValue="True"/>
+            <Binding Path="$parent[UserControl].DataContext.IsEditingImage" Converter="{x:Static BoolConverters.Not}" FallbackValue="True"/>
+          </MultiBinding>
+        </ScrollViewer.IsVisible>
       <Grid HorizontalAlignment="Stretch" VerticalAlignment="Top" ClipToBounds="False">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
