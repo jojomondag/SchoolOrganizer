@@ -452,6 +452,9 @@ public partial class StudentGalleryView : UserControl
     // Event handler for when StudentCoordinatorService requests an image change
     private async void OnStudentImageChangeRequestedFromCoordinator(object? sender, SchoolOrganizer.Src.Models.Students.Student student)
     {
+        System.Diagnostics.Debug.WriteLine($"OnStudentImageChangeRequestedFromCoordinator called for student: {student.Name}");
+        System.Diagnostics.Debug.WriteLine($"Student OriginalImagePath: {student.OriginalImagePath}");
+        System.Diagnostics.Debug.WriteLine($"Student CropSettings: {student.CropSettings}");
         await OpenImageCropperForStudent(student);
     }
 
@@ -468,13 +471,19 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"OpenImageCropperForStudent called for student: {student.Name}");
+            System.Diagnostics.Debug.WriteLine($"ViewModel is null: {ViewModel == null}");
+            
             if (ViewModel == null) return;
 
             // Set up the image editing state in the ViewModel
             ViewModel.StartImageEdit(student, student.OriginalImagePath, student.CropSettings);
+            System.Diagnostics.Debug.WriteLine($"IsEditingImage set to: {ViewModel.IsEditingImage}");
 
             // Initialize the ImageCropView
             var imageCropContainer = this.FindControl<Border>("ImageCropViewContainer");
+            System.Diagnostics.Debug.WriteLine($"ImageCropViewContainer found: {imageCropContainer != null}");
+            
             if (imageCropContainer != null)
             {
                 // Create and setup the ImageCropView
@@ -494,17 +503,21 @@ public partial class StudentGalleryView : UserControl
 
                 // Add the view to the container
                 imageCropContainer.Child = imageCropView;
+                System.Diagnostics.Debug.WriteLine($"ImageCropView added to container");
 
                 // Load the image for the student
+                System.Diagnostics.Debug.WriteLine($"Calling LoadImageForStudentAsync with studentId: {student.Id}, originalPath: {student.OriginalImagePath}");
                 await imageCropView.LoadImageForStudentAsync(
                     student.Id,
                     student.OriginalImagePath,
                     student.CropSettings
                 );
+                System.Diagnostics.Debug.WriteLine($"LoadImageForStudentAsync completed");
             }
         }
         catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error in OpenImageCropperForStudent: {ex.Message}");
             Log.Error(ex, "Error opening ImageCropper");
         }
     }
