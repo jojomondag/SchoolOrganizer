@@ -45,6 +45,9 @@ public partial class StudentGalleryView : UserControl
         SizeChanged += OnSizeChanged;
         Loaded += OnLoaded;
         
+        // Subscribe to crop save requests from the ViewModel
+        OnDataContextChanged(this, EventArgs.Empty);
+        
         // Subscribe to container prepared events for newly created cards
         var studentsContainer = this.FindControl<ItemsControl>("StudentsContainer");
         if (studentsContainer != null)
@@ -160,6 +163,9 @@ public partial class StudentGalleryView : UserControl
         {
             UnsubscribeFromViewModelSelections(oldViewModel);
             
+            // Unsubscribe from crop save requests
+            oldViewModel.CropSaveRequested -= OnCropSaveRequested;
+            
             // Clean up keyboard handler
             _keyboardHandler?.Dispose();
             _keyboardHandler = null;
@@ -213,6 +219,9 @@ public partial class StudentGalleryView : UserControl
             // Subscribe to StudentCoordinatorService events for image changes
             coordinator.StudentImageChangeRequested += OnStudentImageChangeRequestedFromCoordinator;
             coordinator.EditStudentRequested += OnEditStudentRequestedFromCoordinator;
+            
+            // Subscribe to crop save requests
+            viewModel.CropSaveRequested += OnCropSaveRequested;
         }
         else
         {
@@ -464,6 +473,13 @@ public partial class StudentGalleryView : UserControl
         await OpenEditStudentWindow(student);
     }
 
+    // Event handler for when crop save is requested (e.g., during navigation)
+    private async void OnCropSaveRequested(object? sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("OnCropSaveRequested called");
+        await SaveCurrentCropStateAsync();
+    }
+
     /// <summary>
     /// Opens the ImageCropper view for editing the profile image.
     /// </summary>
@@ -604,6 +620,33 @@ public partial class StudentGalleryView : UserControl
                 }
             }
             imageCropContainer.Child = null;
+        }
+    }
+
+    /// <summary>
+    /// Saves the current crop state - called when navigating away from crop mode
+    /// </summary>
+    public async Task SaveCurrentCropStateAsync()
+    {
+        if (ViewModel == null || !ViewModel.IsEditingImage) return;
+
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("StudentGalleryView: SaveCurrentCropStateAsync called");
+            
+            // Find the ImageCropView and trigger its save functionality
+            var imageCropContainer = this.FindControl<Border>("ImageCropViewContainer");
+            if (imageCropContainer?.Child is SchoolOrganizer.Src.Views.ImageCrop.ImageCropView imageCropView)
+            {
+                // Trigger the save functionality in the ImageCropView
+                // This will call HandleSaveButtonAsync which saves the image and triggers the completion
+                await imageCropView.TriggerSaveAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in SaveCurrentCropStateAsync: {ex.Message}");
+            Log.Error(ex, "Error saving crop state during navigation");
         }
     }
 

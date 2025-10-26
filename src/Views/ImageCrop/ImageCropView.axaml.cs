@@ -1183,6 +1183,27 @@ public partial class ImageCropView : UserControl
     }
     #endregion
 
+    #region Public Methods for External Triggers
+    /// <summary>
+    /// Triggers the save functionality from external sources (e.g., navigation)
+    /// </summary>
+    public async Task TriggerSaveAsync()
+    {
+        if (_currentBitmap == null) return;
+
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("ImageCropView: TriggerSaveAsync called");
+            await HandleSaveButtonAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in TriggerSaveAsync: {ex.Message}");
+            Log.Error(ex, "Error triggering save from external source");
+        }
+    }
+    #endregion
+
     #region EXIF Orientation Handling
     private static Bitmap LoadBitmapWithCorrectOrientation(Stream stream, string? filePath)
     {

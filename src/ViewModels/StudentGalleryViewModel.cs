@@ -577,6 +577,33 @@ public partial class StudentGalleryViewModel : ObservableObject
         ImageEditCropSettings = null;
     }
 
+    /// <summary>
+    /// Saves the current crop state - called when navigating away from crop mode
+    /// </summary>
+    public Task SaveCurrentCropStateAsync()
+    {
+        if (!IsEditingImage) return Task.CompletedTask;
+
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("StudentGalleryViewModel: SaveCurrentCropStateAsync called");
+            
+            // This will be handled by the StudentGalleryView which has access to the ImageCropView
+            // The view will trigger the save functionality and then complete the image edit
+            // We'll use an event to communicate with the view
+            CropSaveRequested?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error saving crop state");
+        }
+        
+        return Task.CompletedTask;
+    }
+
+    // Event to request crop save from the view
+    public event EventHandler? CropSaveRequested;
+
     [RelayCommand]
     private async Task BackToGallery()
     {

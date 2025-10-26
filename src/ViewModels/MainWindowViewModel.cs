@@ -23,12 +23,13 @@ public partial class MainWindowViewModel : ObservableObject
         get => _currentViewModel;
         set
         {
-            if (SetProperty(ref _currentViewModel, value))
-            {
-                OnPropertyChanged(nameof(IsStudentGalleryActive));
-                OnPropertyChanged(nameof(IsClassroomDownloadActive));
-                OnPropertyChanged(nameof(ActiveContentBrush));
-            }
+        if (SetProperty(ref _currentViewModel, value))
+        {
+            OnPropertyChanged(nameof(IsStudentGalleryActive));
+            OnPropertyChanged(nameof(IsClassroomDownloadActive));
+            OnPropertyChanged(nameof(IsInCropMode));
+            OnPropertyChanged(nameof(ActiveContentBrush));
+        }
         }
     }
 
@@ -79,21 +80,25 @@ public partial class MainWindowViewModel : ObservableObject
         System.Diagnostics.Debug.WriteLine("MainWindowViewModel: OnCoordinatorAddStudentRequested called");
         _studentGalleryViewModel.AddStudentCommand.Execute(null);
         OnPropertyChanged(nameof(IsAddStudentMode));
+        OnPropertyChanged(nameof(IsInCropMode));
     }
 
     private void OnCoordinatorAddStudentCompleted(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(IsAddStudentMode));
+        OnPropertyChanged(nameof(IsInCropMode));
     }
 
     private void OnCoordinatorAddStudentCancelled(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(IsAddStudentMode));
+        OnPropertyChanged(nameof(IsInCropMode));
     }
 
     public bool IsStudentGalleryActive => CurrentViewModel is StudentGalleryViewModel;
     public bool IsClassroomDownloadActive => CurrentViewModel is ClassroomDownloadViewModel;
     public bool IsAddStudentMode => IsStudentGalleryActive && _studentGalleryViewModel.IsAddingStudent;
+    public bool IsInCropMode => IsStudentGalleryActive && _studentGalleryViewModel.IsEditingImage;
     public IBrush ActiveContentBrush => CurrentViewModel switch
     {
         StudentGalleryViewModel => Brushes.White,
@@ -102,8 +107,14 @@ public partial class MainWindowViewModel : ObservableObject
     };
 
     [RelayCommand]
-    private void NavigateToStudentGallery() 
+    private async Task NavigateToStudentGallery() 
     {
+        // Save crop state if we're currently in crop mode
+        if (IsInCropMode)
+        {
+            await SaveCurrentCropStateAsync();
+        }
+
         Log.Information("NavigateToStudentGallery command executed");
         Log.Information("Current ViewModel before navigation: {CurrentViewModel}", CurrentViewModel?.GetType().Name ?? "null");
         Log.Information("StudentGalleryViewModel state - IsLoading: {IsLoading}, Students.Count: {StudentsCount}, AllStudents.Count: {AllStudentsCount}", 
@@ -141,8 +152,14 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void NavigateToClassroomDownload()
+    private async Task NavigateToClassroomDownload()
     {
+        // Save crop state if we're currently in crop mode
+        if (IsInCropMode)
+        {
+            await SaveCurrentCropStateAsync();
+        }
+
         if (_classroomDownloadViewModel == null)
         {
             _classroomDownloadViewModel = new ClassroomDownloadViewModel(_authService);
@@ -168,6 +185,25 @@ public partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private void ToggleMenu() => IsMenuOpen = !IsMenuOpen;
+
+    /// <summary>
+    /// Saves the current crop state if we're in crop mode
+    /// </summary>
+    private async Task SaveCurrentCropStateAsync()
+    {
+        if (!IsInCropMode) return;
+
+        try
+        {
+            // Trigger the save functionality in the StudentGalleryView
+            // This will be handled by the StudentGalleryView which has access to the ImageCropView
+            await _studentGalleryViewModel.SaveCurrentCropStateAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error saving crop state during navigation");
+        }
+    }
 
     [RelayCommand]
     private void Logout()
