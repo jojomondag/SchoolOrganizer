@@ -48,7 +48,7 @@ public partial class ImageHistoryCard : UserControl
         
         // Initialize properties
         HasImage = false;
-        HasError = true; // Start with error state until image loads
+        HasError = false; // Start with no error state
         
         // Handle delete button click
         DeleteButton.Click += (s, e) =>
@@ -95,36 +95,54 @@ public partial class ImageHistoryCard : UserControl
     {
         System.Diagnostics.Debug.WriteLine($"LoadImageAsync called for path: {ImagePath}");
         
-        if (string.IsNullOrEmpty(ImagePath) || !File.Exists(ImagePath))
+        if (string.IsNullOrEmpty(ImagePath))
         {
-            System.Diagnostics.Debug.WriteLine($"Image path invalid or file doesn't exist: {ImagePath}");
+            System.Diagnostics.Debug.WriteLine($"Image path is null or empty");
             HasImage = false;
-            HasError = true;
+            HasError = false;
+            return;
+        }
+
+        if (!File.Exists(ImagePath))
+        {
+            System.Diagnostics.Debug.WriteLine($"Image file doesn't exist: {ImagePath}");
+            HasImage = false;
+            HasError = false; // Don't show any error state
             return;
         }
 
         try
         {
             System.Diagnostics.Debug.WriteLine($"Loading image from: {ImagePath}");
-            Bitmap bmp;
-            using (var fs = File.OpenRead(ImagePath))
-            using (var ms = new MemoryStream())
-            {
-                await fs.CopyToAsync(ms);
-                ms.Position = 0;
-                bmp = new Bitmap(ms);
-            }
             
-            CardImage.Source = bmp;
-            HasImage = true;
-            HasError = false;
+            // Use a more robust image loading approach
+            using var fs = File.OpenRead(ImagePath);
+            using var ms = new MemoryStream();
+            await fs.CopyToAsync(ms);
+            ms.Position = 0;
+            
+            var bmp = new Bitmap(ms);
+            
+            // Set the image source on the UI thread
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                CardImage.Source = bmp;
+                HasImage = true;
+                HasError = false;
+            });
+            
             System.Diagnostics.Debug.WriteLine($"Image loaded successfully: {ImagePath}");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading image {ImagePath}: {ex.Message}");
-            HasImage = false;
-            HasError = true;
+            
+            // Just hide the image, don't show any error state
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                HasImage = false;
+                HasError = false;
+            });
         }
     }
 }

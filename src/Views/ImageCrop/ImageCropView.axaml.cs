@@ -149,8 +149,8 @@ public partial class ImageCropView : UserControl
 
     private void HandleCancel()
     {
-        CancelRequested?.Invoke(this, EventArgs.Empty);
-        ViewModel?.CancelCommand.Execute(null);
+        // Only clear the image, don't close the entire crop view
+        ResetImageState();
     }
     #endregion
 
@@ -1146,12 +1146,10 @@ public partial class ImageCropView : UserControl
         _currentBitmap = null;
         _fullResolutionBitmap?.Dispose();
         _fullResolutionBitmap = null;
-        if (!ValidateControls(MainImage, CropOverlay, BackgroundPattern)) return;
-
-        MainImage!.Source = null;
-        MainImage.IsVisible = false;
-        CropOverlay!.IsVisible = false;
-        BackgroundPattern!.IsVisible = true;
+        
+        // Clear the main image display using the new method
+        _mainImageDisplay?.ClearImage();
+        
         _cropPreview?.UpdatePreview(null);
         SetPreviewState(false, false, false);
     }

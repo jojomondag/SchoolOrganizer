@@ -63,4 +63,30 @@ public partial class MainImageDisplay : UserControl
     public Border? GetHandleTopRight() => this.FindControl<Border>("HandleTopRight");
     public Border? GetHandleBottomLeft() => this.FindControl<Border>("HandleBottomLeft");
     public Border? GetHandleBottomRight() => this.FindControl<Border>("HandleBottomRight");
+
+    /// <summary>
+    /// Clears the main image display and resets it to the initial state where users can select a new image
+    /// </summary>
+    public void ClearImage()
+    {
+        var mainImage = GetMainImage();
+        var backgroundPattern = GetBackgroundPattern();
+        var cropOverlay = GetCropOverlay();
+
+        if (mainImage != null)
+        {
+            mainImage.Source = null;
+            mainImage.IsVisible = false;
+        }
+
+        if (backgroundPattern != null)
+        {
+            backgroundPattern.IsVisible = true;
+        }
+
+        if (cropOverlay != null)
+        {
+            cropOverlay.IsVisible = false;
+        }
+    }
 }

@@ -23,15 +23,6 @@
                    Stretch="UniformToFill"
                    IsVisible="{Binding HasImage}" />
             
-            <!-- Error placeholder -->
-            <TextBlock Name="ErrorText"
-                       Text="?"
-                       FontSize="20"
-                       Foreground="{DynamicResource TextPrimaryBrush}"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       IsVisible="{Binding HasError}" />
-            
             <!-- Delete button -->
             <Button Name="DeleteButton"
                     HorizontalAlignment="Right"
