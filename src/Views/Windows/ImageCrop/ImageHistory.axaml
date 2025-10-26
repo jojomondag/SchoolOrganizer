@@ -2,11 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="260" d:DesignHeight="400"
+             xmlns:local="using:SchoolOrganizer.Src.Views.Windows.ImageCrop"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="400"
              x:Class="SchoolOrganizer.Src.Views.Windows.ImageCrop.ImageHistory">
 
     <UserControl.Styles>
-        <!-- Delete button style for gallery thumbnails - white background, light blue on hover -->
+        <!-- Delete button style for gallery thumbnails -->
         <Style Selector="Button.DeleteButton">
             <Setter Property="Width" Value="18"/>
             <Setter Property="Height" Value="18"/>
@@ -39,20 +40,14 @@
             </Setter>
         </Style>
 
-        <!-- Hover effect for the delete button - change to light blue background -->
-        <Style Selector="Button.DeleteButton:pointerover /template/ Border#PART_Background">
-            <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
-        </Style>
-
+        <!-- Hover effect for the delete button - simplified -->
         <Style Selector="Button.DeleteButton:pointerover">
+            <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
             <Setter Property="Opacity" Value="1"/>
         </Style>
 
-        <Style Selector="Button.DeleteButton:pressed /template/ Border#PART_Background">
-            <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
-        </Style>
-
         <Style Selector="Button.DeleteButton:pressed">
+            <Setter Property="Background" Value="{DynamicResource ActionBlueLightBrush}"/>
             <Setter Property="Opacity" Value="0.85"/>
         </Style>
         <!-- Always-thin scrollbar for the gallery - use a custom template to prevent any hover expansion -->
@@ -100,21 +95,35 @@
                 BorderBrush="{DynamicResource CardBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="8"
-                Padding="8"
-                BoxShadow="{DynamicResource CardBoxShadows}">
-        <Grid RowDefinitions="Auto, *" RowSpacing="10">
-            <!-- Heading removed per request -->
-            
-            <!-- Thin scrollbar positioned to the right of thumbnails -->
+                Padding="4"
+                BoxShadow="{DynamicResource CardBoxShadows}"
+                ClipToBounds="False">
+        <Grid RowDefinitions="Auto, *" RowSpacing="4">
+            <!-- Image gallery with ItemsControl -->
             <ScrollViewer Grid.Row="1" 
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto"
-                          Padding="0,0,0,0">
-                <Grid Name="ImageGalleryGrid" 
-                      ColumnDefinitions="*,*"
-                      RowSpacing="6"
-                      ColumnSpacing="6"
-                      Margin="0,0,16,0" />
+                          Padding="8"
+                          ClipToBounds="False">
+                <ItemsControl Name="ImageGalleryItemsControl"
+                              Margin="0,0,6,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="2" 
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Top"
+                                         Margin="2" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <local:ImageHistoryCard ImagePath="{Binding}"
+                                                    Margin="8"
+                                                    ImageSelected="OnCardImageSelected"
+                                                    ImageDeleted="OnCardImageDeleted" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </ScrollViewer>
         </Grid>
         </Border>

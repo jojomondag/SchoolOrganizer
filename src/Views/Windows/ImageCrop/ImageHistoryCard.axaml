@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:material="using:Material.Icons.Avalonia"
+             xmlns:local="using:SchoolOrganizer.Src.Views.Windows.ImageCrop"
+             mc:Ignorable="d" d:DesignWidth="130" d:DesignHeight="130"
+             x:Class="SchoolOrganizer.Src.Views.Windows.ImageCrop.ImageHistoryCard"
+             x:DataType="local:ImageHistoryCard">
+
+
+    <Border Width="130"
+            Height="130"
+            CornerRadius="4"
+            BorderBrush="{DynamicResource ImageCropperThumbnailBorderBrush}"
+            BorderThickness="2"
+            Background="{DynamicResource ImageCropperThumbnailBackgroundBrush}"
+            Cursor="Hand">
+        
+        <Grid>
+            <!-- Image -->
+            <Image Name="CardImage"
+                   Stretch="UniformToFill"
+                   IsVisible="{Binding HasImage}" />
+            
+            <!-- Error placeholder -->
+            <TextBlock Name="ErrorText"
+                       Text="?"
+                       FontSize="20"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding HasError}" />
+            
+            <!-- Delete button -->
+            <Button Name="DeleteButton"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,2,2,0"
+                    Cursor="Hand"
+                    ZIndex="10"
+                    Classes="DeleteButton">
+                <material:MaterialIcon Kind="CloseCircleOutline"
+                                       Width="18"
+                                       Height="18"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+            </Button>
+        </Grid>
+    </Border>
+</UserControl>

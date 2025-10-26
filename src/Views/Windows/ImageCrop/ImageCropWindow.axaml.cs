@@ -401,6 +401,13 @@ public partial class ImageCropWindow : Window
             UpdateCropSize();
         }
         await LoadGallery();
+        
+        // Add the current image to history if it exists
+        if (!string.IsNullOrEmpty(_currentOriginalImagePath) && _imageHistory != null)
+        {
+            _imageHistory.AddImageToHistory(_currentOriginalImagePath);
+        }
+        
         if (IsCropStateValid())
         {
             await Task.Delay(100); // Small delay to ensure UI is ready

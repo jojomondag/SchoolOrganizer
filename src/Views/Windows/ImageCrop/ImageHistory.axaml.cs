@@ -1,160 +1,94 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Layout;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
+﻿using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Threading;
-using Material.Icons;
-using Material.Icons.Avalonia;
 using System;
-using System.IO;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+
 namespace SchoolOrganizer.Src.Views.Windows.ImageCrop;
+
 public partial class ImageHistory : UserControl
 {
-    private const int ThumbSize = 90;
-    private Grid? _galleryGrid;
+    private ItemsControl? _itemsControl;
+    private ObservableCollection<string> _imagePaths = new();
+
     public event EventHandler<string>? ImageSelected;
     public event EventHandler<string>? ImageDeleted;
+
     public ImageHistory()
     {
         InitializeComponent();
-        _galleryGrid = this.FindControl<Grid>("ImageGalleryGrid");
+        _itemsControl = this.FindControl<ItemsControl>("ImageGalleryItemsControl");
+        
+        if (_itemsControl != null)
+        {
+            _itemsControl.ItemsSource = _imagePaths;
+        }
     }
+
+    public void OnCardImageSelected(object? sender, string imagePath)
+    {
+        ImageSelected?.Invoke(this, imagePath);
+    }
+
+    public void OnCardImageDeleted(object? sender, string imagePath)
+    {
+        ImageDeleted?.Invoke(this, imagePath);
+        _imagePaths.Remove(imagePath);
+    }
+
     public async Task LoadGalleryAsync(string[] imagePaths, Func<string, Task<object?>>? cropSettingsProvider = null)
     {
-        if (_galleryGrid == null) return;
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            _galleryGrid.Children.Clear();
-            _galleryGrid.RowDefinitions.Clear();
+            // Don't clear existing images - this should accumulate history
             if (imagePaths == null || imagePaths.Length == 0)
             {
-                var txt = new TextBlock
-                {
-                    Text = "No images in history",
-                    FontSize = 12,
-                    Foreground = GetBrush("TextSecondaryBrush", Colors.Gray),
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(0, 20, 0, 0)
-                };
-                Grid.SetRow(txt, 0);
-                Grid.SetColumnSpan(txt, 2);
-                _galleryGrid.Children.Add(txt);
                 return;
             }
-            var brushes = (
-                Border: GetBrush("ImageCropperThumbnailBorderBrush", Colors.Black),
-                BorderHover: GetBrush("ImageCropperThumbnailBorderHoverBrush", Color.FromRgb(44, 62, 80)),
-                Background: GetBrush("ImageCropperThumbnailBackgroundBrush", Color.FromRgb(232, 244, 248)),
-                Text: GetBrush("TextPrimaryBrush", Colors.Black)
-            );
-            int idx = 0;
-            foreach (var path in imagePaths.Where(File.Exists))
+
+            // Add new images that aren't already in the history
+            foreach (var path in imagePaths.Where(System.IO.File.Exists))
             {
-                int row = idx / 2;
-                int col = idx % 2;
-                while (_galleryGrid.RowDefinitions.Count <= row)
-                    _galleryGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-                var container = new Grid();
-                try
+                if (!_imagePaths.Contains(path))
                 {
-                    Bitmap bmp;
-                    using (var fs = File.OpenRead(path))
-                    using (var ms = new MemoryStream())
-                    {
-                        fs.CopyTo(ms);
-                        ms.Position = 0;
-                        bmp = new Bitmap(ms);
-                    }
-                    container.Children.Add(new Image
-                    {
-                        Source = bmp,
-                        Stretch = Stretch.UniformToFill
-                    });
-                    var delBtn = CreateDeleteButton();
-                    var localPath = path;
-                    delBtn.Click += (s, e) =>
-                    {
-                        e.Handled = true;
-                        ImageDeleted?.Invoke(this, localPath);
-                    };
-                    delBtn.PointerPressed += (s, e) => e.Handled = true;
-                    delBtn.PointerReleased += (s, e) => e.Handled = true;
-                    container.Children.Add(delBtn);
+                    _imagePaths.Add(path);
                 }
-                catch
-                {
-                    container.Children.Add(new TextBlock
-                    {
-                        Text = "?",
-                        FontSize = 20,
-                        Foreground = brushes.Text,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Center
-                    });
-                }
-                var border = new Border
-                {
-                    Width = ThumbSize,
-                    Height = ThumbSize,
-                    CornerRadius = new CornerRadius(4),
-                    ClipToBounds = true,
-                    BorderBrush = brushes.Border,
-                    BorderThickness = new Thickness(2),
-                    Background = brushes.Background,
-                    Cursor = new Cursor(StandardCursorType.Hand),
-                    Child = container
-                };
-                var localPath2 = path;
-                border.PointerPressed += (s, e) =>
-                {
-                    if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed) return;
-                    var pt = e.GetPosition(container);
-                    if (new Rect(container.Bounds.Width - 20, 2, 18, 18).Contains(pt)) return;
-                    ImageSelected?.Invoke(this, localPath2);
-                    e.Handled = true;
-                };
-                Grid.SetRow(border, row);
-                Grid.SetColumn(border, col);
-                _galleryGrid.Children.Add(border);
-                idx++;
             }
         });
+
+        // Load images asynchronously
+        await LoadImagesAsync();
     }
+
+    public void AddImageToHistory(string imagePath)
+    {
+        System.Diagnostics.Debug.WriteLine($"AddImageToHistory called with: {imagePath}");
+        System.Diagnostics.Debug.WriteLine($"Current history count: {_imagePaths.Count}");
+        
+        if (!string.IsNullOrEmpty(imagePath) && System.IO.File.Exists(imagePath) && !_imagePaths.Contains(imagePath))
+        {
+            System.Diagnostics.Debug.WriteLine($"Adding new image to history: {imagePath}");
+            _imagePaths.Add(imagePath);
+            System.Diagnostics.Debug.WriteLine($"History count after adding: {_imagePaths.Count}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"Not adding image - already exists or invalid: {imagePath}");
+        }
+    }
+
+    private async Task LoadImagesAsync()
+    {
+        // The ImageHistoryCard will automatically load images when ImagePath is set
+        // due to the property change subscription in the constructor
+        await Task.CompletedTask;
+    }
+
     public void ClearGallery()
     {
-        if (_galleryGrid == null) return;
-        _galleryGrid.Children.Clear();
-        _galleryGrid.RowDefinitions.Clear();
-    }
-    private Button CreateDeleteButton()
-    {
-        var icon = new MaterialIcon
-        {
-            Kind = MaterialIconKind.CloseCircleOutline,
-            Width = 18,
-            Height = 18,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-
-        return new Button
-        {
-            Content = icon,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(0, 2, 2, 0),
-            Cursor = new Cursor(StandardCursorType.Hand),
-            ZIndex = 10,
-            Classes = { "DeleteButton" }
-        };
-    }
-    private IBrush GetBrush(string key, Color fallback)
-    {
-        return this.FindResource(key) as IBrush ?? new SolidColorBrush(fallback);
+        _imagePaths.Clear();
     }
 }

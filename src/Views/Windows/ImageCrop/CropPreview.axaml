@@ -68,7 +68,7 @@
                     x:Name="PreviewImageBorder"
                     Width="140"
                     Height="140"
-                    BorderBrush="{DynamicResource WhiteColor}"
+                    BorderBrush="{DynamicResource ProfileImageBorderBrush}"
                     BorderThickness="3"
                     CornerRadius="70"
                     HorizontalAlignment="Center"
