@@ -7,7 +7,6 @@ using System.Linq;
 using Avalonia;
 using Avalonia.VisualTree;
 using Avalonia.Threading;
-using SchoolOrganizer.Src.Views.Windows.ImageCrop;
 using SchoolOrganizer.Src.Services;
 using SchoolOrganizer.Src.Models.Students;
 using Serilog;
