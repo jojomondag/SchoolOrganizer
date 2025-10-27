@@ -37,5 +37,10 @@ public partial class ClassroomWrapper : ObservableObject
     /// <summary>
     /// Course ID for API calls
     /// </summary>
-    public string Id => Classroom.Id ?? string.Empty;
+    public string ClassroomId => Classroom.Id ?? string.Empty;
+    
+    /// <summary>
+    /// Alias for ClassroomId for backward compatibility
+    /// </summary>
+    public string Id => ClassroomId;
 }

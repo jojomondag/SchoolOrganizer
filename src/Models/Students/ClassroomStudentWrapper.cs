@@ -12,10 +12,16 @@ public partial class ClassroomStudentWrapper : ObservableObject
     private bool isSelected;
 
     public Google.Apis.Classroom.v1.Data.Student ClassroomStudent { get; }
+    
+    /// <summary>
+    /// The ID of the classroom this student belongs to
+    /// </summary>
+    public string ClassroomId { get; }
 
-    public ClassroomStudentWrapper(Google.Apis.Classroom.v1.Data.Student classroomStudent)
+    public ClassroomStudentWrapper(Google.Apis.Classroom.v1.Data.Student classroomStudent, string classroomId)
     {
         ClassroomStudent = classroomStudent ?? throw new ArgumentNullException(nameof(classroomStudent));
+        ClassroomId = classroomId ?? throw new ArgumentNullException(nameof(classroomId));
     }
 
     /// <summary>

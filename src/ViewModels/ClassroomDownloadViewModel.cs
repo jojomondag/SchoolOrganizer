@@ -124,22 +124,56 @@ public partial class ClassroomDownloadViewModel : ObservableObject
             var courses = await _cachedClassroomService.GetActiveClassroomsAsync();
             Log.Information($"Retrieved {courses.Count} courses from API");
 
-            // Create CourseWrapper objects on UI thread to avoid threading issues
+            // Create CourseWrapper objects WITHOUT calling UpdateFolderStatus (deferred)
             var courseWrappers = new List<CourseWrapper>();
-            Dispatcher.UIThread.Post(() =>
+            foreach (var course in courses)
             {
-                foreach (var course in courses)
-                {
-                    courseWrappers.Add(new CourseWrapper(course, this));
-                }
+                courseWrappers.Add(new CourseWrapper(course, this, deferFolderCheck: true));
+            }
+            
+            // Update UI immediately with courses (folder status will be updated in background)
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
                 Classrooms = new ObservableCollection<CourseWrapper>(courseWrappers);
-                StatusText = $"Found {Classrooms.Count} courses. Select a course to download.";
+                StatusText = $"Found {Classrooms.Count} courses. Checking folder status...";
+            });
+
+            // Update folder status for all courses in parallel (background operation)
+            _ = Task.Run(async () =>
+            {
+                await UpdateAllCourseFolderStatusAsync(courseWrappers);
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    StatusText = $"Found {Classrooms.Count} courses. Select a course to download.";
+                });
             });
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error loading classrooms");
             Dispatcher.UIThread.Post(() => StatusText = $"Error loading classrooms: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Updates folder status for all courses in parallel for better performance
+    /// </summary>
+    private async Task UpdateAllCourseFolderStatusAsync(List<CourseWrapper> courses)
+    {
+        try
+        {
+            // Run folder checks in parallel batches to avoid overwhelming the file system
+            const int batchSize = 5;
+            for (int i = 0; i < courses.Count; i += batchSize)
+            {
+                var batch = courses.Skip(i).Take(batchSize);
+                var tasks = batch.Select(course => Task.Run(() => course.UpdateFolderStatus(forceRefresh: true)));
+                await Task.WhenAll(tasks);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error updating course folder status");
         }
     }
 
@@ -488,7 +522,7 @@ public partial class CourseWrapper : ObservableObject
     [ObservableProperty]
     private bool _isAutoSyncEnabled;
 
-    public CourseWrapper(Course course, ClassroomDownloadViewModel viewModel)
+    public CourseWrapper(Course course, ClassroomDownloadViewModel viewModel, bool deferFolderCheck = false)
     {
         Course = course;
         _viewModel = viewModel;
@@ -502,7 +536,11 @@ public partial class CourseWrapper : ObservableObject
                 _viewModel.TeacherName)
         );
         
-        UpdateFolderStatus(); // Check if folder exists
+        // Only check folder status immediately if not deferred
+        if (!deferFolderCheck)
+        {
+            UpdateFolderStatus(); // Check if folder exists
+        }
     }
 
     [RelayCommand]

@@ -1039,12 +1039,12 @@ public partial class StudentGalleryViewModel : ObservableObject
     {
         try
         {
-            // Find the student's assignment folder by searching through existing course folders
-            var studentFolderPath = await FindStudentAssignmentFolder(student);
+            // Quick check: Find the student's assignment folder (this should be fast with caching)
+            var studentFolderPath = await FindStudentAssignmentFolderQuick(student);
             
             if (string.IsNullOrEmpty(studentFolderPath))
             {
-                // Try to download assignments for this student
+                // Folder doesn't exist - need to download
                 if (string.IsNullOrEmpty(student.Email))
                 {
                     return;
@@ -1061,44 +1061,163 @@ public partial class StudentGalleryViewModel : ObservableObject
                 if (downloadSuccess)
                 {
                     // Retry finding the folder after download
-                    studentFolderPath = await FindStudentAssignmentFolder(student);
+                    studentFolderPath = await FindStudentAssignmentFolderQuick(student);
                     
                     if (string.IsNullOrEmpty(studentFolderPath))
                     {
+                        IsDownloadingAssignments = false;
+                        DownloadStatusText = string.Empty;
                         return;
                     }
                 }
                 else
                 {
+                    IsDownloadingAssignments = false;
+                    DownloadStatusText = string.Empty;
                     return;
                 }
+                
+                // Clear download status after successful download
+                IsDownloadingAssignments = false;
+                DownloadStatusText = string.Empty;
             }
 
-            var fileCount = await Task.Run(() => Directory.GetFiles(studentFolderPath, "*", SearchOption.AllDirectories).Length);
-            if (fileCount == 0)
+            // Folder exists - open immediately without blocking
+            // Quick check if folder has any files (non-recursive for speed)
+            var hasFiles = await Task.Run(() => 
             {
+                try
+                {
+                    return Directory.EnumerateFiles(studentFolderPath, "*", SearchOption.TopDirectoryOnly).Any() ||
+                           Directory.EnumerateDirectories(studentFolderPath).Any();
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+            
+            if (!hasFiles)
+            {
+                Log.Warning($"Student folder exists but is empty: {studentFolderPath}");
                 return;
             }
 
-            // Create and show AssignmentViewer
+            // Create and show AssignmentViewer immediately
             var detailViewModel = new SchoolOrganizer.Src.ViewModels.StudentDetailViewModel();
             var detailWindow = new SchoolOrganizer.Src.Views.AssignmentManagement.AssignmentViewer(detailViewModel);
 
-            // Load the student files asynchronously, passing the student object for rating persistence
-            await detailViewModel.LoadStudentFilesAsync(student.Name, student.ClassName, studentFolderPath, student);
-
+            // Show window immediately
             detailWindow.Show();
+            
+            // Load the student files asynchronously in the background (window is already showing)
+            _ = Task.Run(async () => 
+            {
+                try
+                {
+                    await detailViewModel.LoadStudentFilesAsync(student.Name, student.ClassName, studentFolderPath, student);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Error loading student files for {student.Name}");
+                }
+            });
         }
         catch (Exception ex)
         {
             Log.Error(ex, $"Error opening assignments for {student.Name}");
-        }
-        finally
-        {
-            // Clear download status
             IsDownloadingAssignments = false;
             DownloadStatusText = string.Empty;
         }
+    }
+    
+    /// <summary>
+    /// Quick folder search that uses cached download folder path
+    /// </summary>
+    private async Task<string?> FindStudentAssignmentFolderQuick(Student student)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var downloadFolderPath = SettingsService.Instance.LoadDownloadFolderPath();
+                Log.Information($"[FindFolder] Download folder: {downloadFolderPath}");
+                
+                if (string.IsNullOrEmpty(downloadFolderPath) || !Directory.Exists(downloadFolderPath))
+                {
+                    Log.Warning($"[FindFolder] Invalid download folder path: {downloadFolderPath}");
+                    return null;
+                }
+
+                var sanitizedStudentName = Services.Utilities.DirectoryUtil.SanitizeFolderName(student.Name);
+                Log.Information($"[FindFolder] Searching for: '{student.Name}' → '{sanitizedStudentName}'");
+
+                // Quick search through course folders
+                var courseFolders = Directory.GetDirectories(downloadFolderPath);
+                Log.Information($"[FindFolder] Checking {courseFolders.Length} course folders");
+                
+                foreach (var courseFolder in courseFolders)
+                {
+                    var courseName = Path.GetFileName(courseFolder);
+                    Log.Information($"[FindFolder] Checking course: {courseName}");
+                    
+                    // Try exact sanitized name match first
+                    var studentFolderPath = Path.Combine(courseFolder, sanitizedStudentName);
+                    if (Directory.Exists(studentFolderPath))
+                    {
+                        Log.Information($"[FindFolder] ✓ FOUND at: {studentFolderPath}");
+                        return studentFolderPath;
+                    }
+                    
+                    // Try fuzzy matching against all student folders in this course
+                    try
+                    {
+                        var existingFolders = Directory.GetDirectories(courseFolder);
+                        Log.Information($"[FindFolder] Course has {existingFolders.Length} student folders");
+                        
+                        foreach (var folder in existingFolders)
+                        {
+                            var folderName = Path.GetFileName(folder);
+                            
+                            // Case-insensitive exact match
+                            if (folderName.Equals(sanitizedStudentName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                Log.Information($"[FindFolder] ✓ FOUND (case-insensitive): {folder}");
+                                return folder;
+                            }
+                            
+                            // Partial name match (contains)
+                            if (folderName.Contains(sanitizedStudentName, StringComparison.OrdinalIgnoreCase) ||
+                                sanitizedStudentName.Contains(folderName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                Log.Information($"[FindFolder] ✓ FOUND (partial match): {folder}");
+                                return folder;
+                            }
+                            
+                            // Match against original unsanitized name
+                            if (folderName.Contains(student.Name, StringComparison.OrdinalIgnoreCase) ||
+                                student.Name.Contains(folderName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                Log.Information($"[FindFolder] ✓ FOUND (original name match): {folder}");
+                                return folder;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, $"[FindFolder] Error searching in: {courseFolder}");
+                    }
+                }
+
+                Log.Warning($"[FindFolder] ✗ NOT FOUND: {student.Name}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "[FindFolder] Error in folder search");
+                return null;
+            }
+        });
     }
 
     /// <summary>

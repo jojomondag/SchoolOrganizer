@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SchoolOrganizer.Src.Models.Students;
+using SchoolOrganizer.Src.Models.UI;
 using SchoolOrganizer.Src.Services;
 using Google.Apis.Classroom.v1.Data;
 
@@ -18,6 +19,13 @@ public partial class AddStudentViewModel : ObservableObject
     public event EventHandler<AddedStudentResult>? StudentAdded;
     public event EventHandler<List<AddedStudentResult>>? MultipleStudentsAdded;
     public event EventHandler? Cancelled;
+
+    // Display configuration properties - initialized with defaults to prevent null binding errors
+    [ObservableProperty]
+    private ProfileCardDisplayLevel currentDisplayLevel = ProfileCardDisplayLevel.Medium;
+
+    [ObservableProperty]
+    private ProfileCardDisplayConfig displayConfig = ProfileCardDisplayConfig.GetConfig(ProfileCardDisplayLevel.Medium);
 
     // Mode switching
     [ObservableProperty]
@@ -58,11 +66,9 @@ public partial class AddStudentViewModel : ObservableObject
     public ObservableCollection<string> SelectedTeachers { get; } = new();
 
     // Classroom import properties
-    public ObservableCollection<Course> AvailableClassrooms { get; } = new();
+    public ObservableCollection<ClassroomWrapper> AvailableClassrooms { get; } = new();
     public ObservableCollection<ClassroomStudentWrapper> ClassroomStudents { get; } = new();
-    
-    [ObservableProperty]
-    private Course? selectedClassroom;
+    public ObservableCollection<ClassroomStudentGroup> GroupedClassroomStudents { get; } = new();
     
     [ObservableProperty]
     private bool isLoadingClassrooms = false;
@@ -199,6 +205,7 @@ public partial class AddStudentViewModel : ObservableObject
         {
             student.IsSelected = true;
         }
+        UpdateValidationText();
     }
 
     [RelayCommand]
@@ -208,6 +215,7 @@ public partial class AddStudentViewModel : ObservableObject
         {
             student.IsSelected = false;
         }
+        UpdateValidationText();
     }
 
     // Classroom import methods
@@ -230,7 +238,7 @@ public partial class AddStudentViewModel : ObservableObject
             AvailableClassrooms.Clear();
             foreach (var classroom in classrooms)
             {
-                AvailableClassrooms.Add(classroom);
+                AvailableClassrooms.Add(new ClassroomWrapper(classroom));
             }
             
             if (classrooms.Count == 0)
@@ -253,10 +261,29 @@ public partial class AddStudentViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task OnClassroomSelected()
+    private async Task ToggleClassroom(ClassroomWrapper classroomWrapper)
     {
-        if (SelectedClassroom == null) return;
+        if (classroomWrapper == null) return;
         
+        // Toggle the classroom state
+        classroomWrapper.IsToggled = !classroomWrapper.IsToggled;
+        
+        if (classroomWrapper.IsToggled)
+        {
+            // Classroom is now toggled ON - load and add its students
+            await LoadStudentsForClassroom(classroomWrapper);
+        }
+        else
+        {
+            // Classroom is now toggled OFF - remove its students
+            RemoveStudentsFromClassroom(classroomWrapper.ClassroomId);
+        }
+        
+        UpdateValidationText();
+    }
+    
+    private async Task LoadStudentsForClassroom(ClassroomWrapper classroomWrapper)
+    {
         if (classroomService == null)
         {
             ValidationText = "Please login with Google to load students";
@@ -266,38 +293,71 @@ public partial class AddStudentViewModel : ObservableObject
         try
         {
             IsLoadingStudents = true;
-            ValidationText = "Loading students...";
-            ClassroomStudents.Clear();
+            ValidationText = $"Loading students from {classroomWrapper.Name}...";
             
-            var students = await classroomService.GetStudentsInCourseAsync(SelectedClassroom.Id);
+            var students = await classroomService.GetStudentsInCourseAsync(classroomWrapper.ClassroomId);
+            
+            // Create a group for this classroom
+            var group = new ClassroomStudentGroup(classroomWrapper.ClassroomId, classroomWrapper.Name);
             
             foreach (var student in students)
             {
-                ClassroomStudents.Add(new ClassroomStudentWrapper(student));
+                var wrapper = new ClassroomStudentWrapper(student, classroomWrapper.ClassroomId);
+                // Automatically select all students when classroom is toggled
+                wrapper.IsSelected = true;
+                ClassroomStudents.Add(wrapper);
+                group.Students.Add(wrapper);
             }
             
-            // Automatically select all students when classroom is selected
-            foreach (var student in ClassroomStudents)
-            {
-                student.IsSelected = true;
-            }
-            
-            if (students.Count == 0)
-            {
-                ValidationText = "No students found in this classroom";
-            }
-            else
-            {
-                ValidationText = $"Found {students.Count} students. All students are selected for import.";
-            }
+            // Add the group to the grouped collection
+            GroupedClassroomStudents.Add(group);
         }
         catch (Exception ex)
         {
-            ValidationText = $"Error loading students: {ex.Message}";
+            ValidationText = $"Error loading students from {classroomWrapper.Name}: {ex.Message}";
+            // If there was an error, toggle the classroom back off
+            classroomWrapper.IsToggled = false;
         }
         finally
         {
             IsLoadingStudents = false;
+        }
+    }
+    
+    private void RemoveStudentsFromClassroom(string classroomId)
+    {
+        // Remove all students from this classroom (flat list)
+        var studentsToRemove = ClassroomStudents.Where(s => s.ClassroomId == classroomId).ToList();
+        foreach (var student in studentsToRemove)
+        {
+            ClassroomStudents.Remove(student);
+        }
+        
+        // Remove the group for this classroom
+        var groupToRemove = GroupedClassroomStudents.FirstOrDefault(g => g.ClassroomId == classroomId);
+        if (groupToRemove != null)
+        {
+            GroupedClassroomStudents.Remove(groupToRemove);
+        }
+    }
+    
+    private void UpdateValidationText()
+    {
+        var toggledClassrooms = AvailableClassrooms.Where(c => c.IsToggled).ToList();
+        var totalStudents = ClassroomStudents.Count;
+        
+        if (toggledClassrooms.Count == 0)
+        {
+            ValidationText = "Select one or more classrooms to view students";
+        }
+        else if (totalStudents == 0)
+        {
+            ValidationText = "No students found in selected classrooms";
+        }
+        else
+        {
+            var selectedCount = ClassroomStudents.Count(s => s.IsSelected);
+            ValidationText = $"{toggledClassrooms.Count} classroom(s) active • {totalStudents} total students • {selectedCount} selected for import";
         }
     }
 
@@ -310,9 +370,10 @@ public partial class AddStudentViewModel : ObservableObject
             return;
         }
 
-        if (SelectedClassroom == null)
+        var toggledClassrooms = AvailableClassrooms.Where(c => c.IsToggled).ToList();
+        if (toggledClassrooms.Count == 0)
         {
-            ValidationText = "Please select a classroom";
+            ValidationText = "Please toggle at least one classroom";
             return;
         }
 
@@ -324,10 +385,15 @@ public partial class AddStudentViewModel : ObservableObject
             foreach (var wrapper in selectedStudents)
             {
                 var student = wrapper.ClassroomStudent;
+                
+                // Find the classroom this student belongs to
+                var classroom = AvailableClassrooms.FirstOrDefault(c => c.ClassroomId == wrapper.ClassroomId);
+                var className = classroom?.Name ?? "Unknown Class";
+                
                 var result = new AddedStudentResult
                 {
                     Name = student.Profile?.Name?.FullName ?? "Unknown Student",
-                    ClassName = SelectedClassroom.Name ?? "Unknown Class",
+                    ClassName = className,
                     Email = student.Profile?.EmailAddress ?? string.Empty,
                     EnrollmentDate = DateTimeOffset.Now,
                     Teachers = new List<string> { teacherName },
@@ -415,11 +481,6 @@ public partial class AddStudentViewModel : ObservableObject
         if (e.PropertyName == nameof(SelectedImagePath))
         {
             OnPropertyChanged(nameof(IsImageMissing));
-        }
-        else if (e.PropertyName == nameof(SelectedClassroom))
-        {
-            // Automatically load students when classroom is selected
-            _ = OnClassroomSelected();
         }
         else if (e.PropertyName == nameof(IsManualMode) || e.PropertyName == nameof(IsClassroomMode) || e.PropertyName == nameof(IsEditMode))
         {

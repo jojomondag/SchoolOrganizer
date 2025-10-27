@@ -206,7 +206,7 @@
                                                 <SolidColorBrush Color="{Binding IsAutoSyncEnabled, Converter={StaticResource ParameterizedConverter}, ConverterParameter=#2563eb|#2563eb}"/>
                                             </Button.BorderBrush>
                                             <Button.BorderThickness>
-                                                <Binding Path="IsAutoSyncEnabled" Converter="{StaticResource ParameterizedConverter}" ConverterParameter="0|1"/>
+                                                1
                                             </Button.BorderThickness>
                                             <materialIcons:MaterialIcon Kind="Sync"
                                                                        Width="18"
@@ -253,7 +253,7 @@
               Margin="20,0"
               IsVisible="{Binding IsShowingContent}">
             <!-- Content View -->
-            <ListBox ItemsSource="{Binding CurrentContentViewModel.Students}"
+            <ListBox ItemsSource="{Binding CurrentContentViewModel.Students, FallbackValue={x:Null}}"
                      Background="Transparent"
                      BorderThickness="0"
                      ClipToBounds="True">

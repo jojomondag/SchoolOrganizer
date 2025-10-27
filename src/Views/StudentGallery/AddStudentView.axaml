@@ -135,14 +135,16 @@
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                      <Border Background="{DynamicResource BackgroundPrimaryBrush}" 
-                              BorderBrush="{DynamicResource BlackBrush}" 
+                      <Border BorderBrush="{DynamicResource BlackBrush}" 
                               BorderThickness="1" 
                               CornerRadius="6" 
                               Margin="3"
                               Padding="10,6"
                               Cursor="Hand"
                               PointerPressed="OnClassroomCardPressed">
+                        <Border.Background>
+                          <SolidColorBrush Color="{Binding IsToggled, Converter={x:Static views:ParameterizedConverter.Instance}, ConverterParameter='#ADD8E6|Transparent'}"/>
+                        </Border.Background>
                         <Grid RowDefinitions="Auto,Auto">
                           <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                             <TextBlock Grid.Column="0" Text="{Binding Name}" 
@@ -193,31 +195,53 @@
             </StackPanel>
 
             <!-- Students List -->
-            <StackPanel IsVisible="{Binding SelectedClassroom, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel IsVisible="{Binding ClassroomStudents.Count, Converter={x:Static views:ComparisonConverter.Instance}, ConverterParameter='>,0'}">
               <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,6">
-                <TextBlock Grid.Column="0" Text="Select Students to Import" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="0" Text="Selected Students to Import" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 <Button Grid.Column="1" Content="Select All" Classes="secondary" FontSize="10" Padding="6,3" Margin="0,0,6,0" Command="{Binding SelectAllClassroomStudentsCommand}"/>
                 <Button Grid.Column="2" Content="Deselect All" Classes="secondary" FontSize="10" Padding="6,3" Command="{Binding DeselectAllClassroomStudentsCommand}"/>
               </Grid>
               
-              <!-- Students List -->
+              <!-- Grouped Students List -->
               <Border Background="{DynamicResource BackgroundPrimaryBrush}" 
                       BorderBrush="{DynamicResource BlackBrush}" 
                       BorderThickness="1" 
                       CornerRadius="6" 
-                      MaxHeight="400">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
-                  <ItemsControl ItemsSource="{Binding ClassroomStudents}">
-                    <ItemsControl.ItemsPanel>
-                      <ItemsPanelTemplate>
-                        <UniformGrid Columns="2"/>
-                      </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
+                      MinHeight="300"
+                      MaxHeight="600">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8,8,8,24">
+                  <ItemsControl ItemsSource="{Binding GroupedClassroomStudents}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <CheckBox Content="{Binding ClassroomStudent.Profile.Name.FullName}" 
-                                  IsChecked="{Binding IsSelected}" 
-                                  Margin="4,2" FontSize="11"/>
+                        <StackPanel Margin="0,0,0,12">
+                          <!-- Classroom Header -->
+                          <StackPanel Margin="0,0,0,6">
+                            <TextBlock Text="{Binding ClassroomName}" 
+                                       FontSize="12" 
+                                       FontWeight="Bold" 
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       Margin="0,0,0,4"/>
+                            <Rectangle Height="1" 
+                                       Fill="{DynamicResource BlackBrush}" 
+                                       Opacity="0.3"/>
+                          </StackPanel>
+                          
+                          <!-- Students in this Classroom -->
+                          <ItemsControl ItemsSource="{Binding Students}">
+                            <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                <UniformGrid Columns="2"/>
+                              </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                <CheckBox Content="{Binding ClassroomStudent.Profile.Name.FullName}" 
+                                          IsChecked="{Binding IsSelected}" 
+                                          Margin="4,2" FontSize="11"/>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>

@@ -1,8 +1,10 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Media;
 using SchoolOrganizer.Src.ViewModels;
+using Serilog;
 
 namespace SchoolOrganizer.Src.Views.ClassroomDownload;
 
@@ -11,6 +13,22 @@ public partial class ClassroomDownloadView : UserControl
     public ClassroomDownloadView()
     {
         InitializeComponent();
+    }
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        
+        // Validate DataContext to ensure it's set properly
+        if (DataContext is ClassroomDownloadViewModel viewModel)
+        {
+            Log.Debug("ClassroomDownloadView DataContext set successfully");
+        }
+        else if (DataContext != null)
+        {
+            Log.Warning("ClassroomDownloadView DataContext is not ClassroomDownloadViewModel: {Type}", 
+                DataContext.GetType().Name);
+        }
     }
 
     private async void OnBrowseFolderClick(object? sender, RoutedEventArgs e)

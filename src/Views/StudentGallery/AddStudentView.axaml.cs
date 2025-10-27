@@ -283,9 +283,9 @@ public partial class AddStudentView : UserControl
 
     private void OnClassroomCardPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (ViewModel != null && sender is Border border && border.DataContext is Google.Apis.Classroom.v1.Data.Course classroom)
+        if (ViewModel != null && sender is Border border && border.DataContext is ClassroomWrapper classroomWrapper)
         {
-            ViewModel.SelectedClassroom = classroom;
+            ViewModel.ToggleClassroomCommand.Execute(classroomWrapper);
         }
     }
 
