@@ -29,15 +29,12 @@ public partial class AddStudentViewModel : ObservableObject
 
     // Mode switching
     [ObservableProperty]
-    private bool isManualMode = true;
-    
-    [ObservableProperty]
-    private bool isClassroomMode = false;
+    private bool isClassroomMode = true;
 
     [ObservableProperty]
     private bool isEditMode = false;
 
-    // Manual entry properties
+    // Properties used for edit mode and student data
     [ObservableProperty]
     private string studentName = string.Empty;
     
@@ -90,7 +87,7 @@ public partial class AddStudentViewModel : ObservableObject
         {
             if (IsEditMode)
                 return "Save Changes";
-            return IsManualMode ? "Add Student" : "Import Selected Students";
+            return "Import Selected Students";
         }
     }
 
@@ -131,16 +128,8 @@ public partial class AddStudentViewModel : ObservableObject
 
     // Commands for mode switching
     [RelayCommand]
-    private void SwitchToManualMode()
-    {
-        IsManualMode = true;
-        IsClassroomMode = false;
-    }
-    
-    [RelayCommand]
     private void SwitchToClassroomMode()
     {
-        IsManualMode = false;
         IsClassroomMode = true;
         
         // Ensure classrooms are loaded when switching to classroom mode
@@ -153,30 +142,7 @@ public partial class AddStudentViewModel : ObservableObject
     [RelayCommand]
     private async Task AddStudent()
     {
-        if (IsManualMode)
-        {
-            if (string.IsNullOrWhiteSpace(StudentName))
-            {
-                ValidationText = "Name is required";
-                return;
-            }
-
-            var result = new AddedStudentResult
-            {
-                Name = StudentName,
-                ClassName = SelectedClassName,
-                Teachers = new List<string>(SelectedTeachers),
-                Email = StudentEmail,
-                EnrollmentDate = EnrollmentDate.DateTime,
-                PicturePath = SelectedImagePath
-            };
-
-            StudentAdded?.Invoke(this, result);
-        }
-        else
-        {
-            await ImportFromClassroom();
-        }
+        await ImportFromClassroom();
     }
 
     [RelayCommand]
@@ -265,13 +231,19 @@ public partial class AddStudentViewModel : ObservableObject
     {
         if (classroomWrapper == null) return;
         
+        // Check if this classroom is already loaded to prevent duplicates
+        bool classroomAlreadyLoaded = GroupedClassroomStudents.Any(g => g.ClassroomId == classroomWrapper.ClassroomId);
+        
         // Toggle the classroom state
         classroomWrapper.IsToggled = !classroomWrapper.IsToggled;
         
         if (classroomWrapper.IsToggled)
         {
-            // Classroom is now toggled ON - load and add its students
-            await LoadStudentsForClassroom(classroomWrapper);
+            // Classroom is now toggled ON - load and add its students only if not already loaded
+            if (!classroomAlreadyLoaded)
+            {
+                await LoadStudentsForClassroom(classroomWrapper);
+            }
         }
         else
         {
@@ -482,7 +454,7 @@ public partial class AddStudentViewModel : ObservableObject
         {
             OnPropertyChanged(nameof(IsImageMissing));
         }
-        else if (e.PropertyName == nameof(IsManualMode) || e.PropertyName == nameof(IsClassroomMode) || e.PropertyName == nameof(IsEditMode))
+        else if (e.PropertyName == nameof(IsClassroomMode) || e.PropertyName == nameof(IsEditMode))
         {
             OnPropertyChanged(nameof(PrimaryButtonText));
         }
@@ -495,16 +467,7 @@ public partial class AddStudentViewModel : ObservableObject
     {
         var coordinator = Services.StudentCoordinatorService.Instance;
         
-        coordinator.ManualEntryRequested += OnManualEntryRequested;
         coordinator.ClassroomImportRequested += OnClassroomImportRequested;
-    }
-
-    /// <summary>
-    /// Handles manual entry request from coordinator service
-    /// </summary>
-    private void OnManualEntryRequested(object? sender, EventArgs e)
-    {
-        SwitchToManualMode();
     }
 
     /// <summary>

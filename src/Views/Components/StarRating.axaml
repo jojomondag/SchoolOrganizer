@@ -9,19 +9,19 @@
 
   <StackPanel Orientation="Horizontal" Spacing="4">
     <Button Classes="StarButton" Name="Star1" Click="OnStarClick" Tag="1">
-      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star1Icon" Kind="Star"/>
+      <materialIcons:MaterialIcon Classes="StarIcon StarEmpty" Name="Star1Icon" Kind="StarBorder"/>
     </Button>
     <Button Classes="StarButton" Name="Star2" Click="OnStarClick" Tag="2">
-      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star2Icon" Kind="Star"/>
+      <materialIcons:MaterialIcon Classes="StarIcon StarEmpty" Name="Star2Icon" Kind="StarBorder"/>
     </Button>
     <Button Classes="StarButton" Name="Star3" Click="OnStarClick" Tag="3">
-      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star3Icon" Kind="Star"/>
+      <materialIcons:MaterialIcon Classes="StarIcon StarEmpty" Name="Star3Icon" Kind="StarBorder"/>
     </Button>
     <Button Classes="StarButton" Name="Star4" Click="OnStarClick" Tag="4">
-      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star4Icon" Kind="Star"/>
+      <materialIcons:MaterialIcon Classes="StarIcon StarEmpty" Name="Star4Icon" Kind="StarBorder"/>
     </Button>
     <Button Classes="StarButton" Name="Star5" Click="OnStarClick" Tag="5">
-      <materialIcons:MaterialIcon Classes="StarIcon" Name="Star5Icon" Kind="Star"/>
+      <materialIcons:MaterialIcon Classes="StarIcon StarEmpty" Name="Star5Icon" Kind="StarBorder"/>
     </Button>
   </StackPanel>
 </UserControl>

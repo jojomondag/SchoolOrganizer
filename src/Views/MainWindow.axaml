@@ -127,23 +127,6 @@
 
                         <!-- Add Student Navigation (when in add student mode) -->
                         <StackPanel IsVisible="{Binding IsAddStudentMode}">
-                            <!-- Manual Entry -->
-                            <Button Command="{Binding NavigateToManualEntryCommand}"
-                                    HorizontalAlignment="Stretch" 
-                                    HorizontalContentAlignment="Left"
-                                    Padding="12,8"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    CornerRadius="4">
-                                <Button.Content>
-                                    <StackPanel Orientation="Horizontal" Spacing="12">
-                                        <materialIcons:MaterialIcon Kind="AccountPlus" Width="20" Height="20"/>
-                                        <TextBlock Text="Manual Entry" VerticalAlignment="Center" 
-                                                  IsVisible="{Binding IsMenuOpen}"/>
-                                    </StackPanel>
-                                </Button.Content>
-                            </Button>
-
                             <!-- From Classroom -->
                             <Button Command="{Binding NavigateToClassroomImportCommand}"
                                     HorizontalAlignment="Stretch" 

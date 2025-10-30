@@ -395,8 +395,20 @@ public class StudentDetailViewModel : ReactiveObject
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(assignmentName))
+        {
+            Log.Warning("Cannot save assignment rating - assignment name is null or empty");
+            return;
+        }
+
         try
         {
+            // Initialize AssignmentRatings if null (can happen if deserialized from JSON without this property)
+            if (Student.AssignmentRatings == null)
+            {
+                Student.AssignmentRatings = new Dictionary<string, int>();
+            }
+
             // Update the rating in the student's data
             if (rating > 0)
             {
@@ -405,7 +417,10 @@ public class StudentDetailViewModel : ReactiveObject
             else
             {
                 // Remove rating if set to 0
-                Student.AssignmentRatings.Remove(assignmentName);
+                if (Student.AssignmentRatings.ContainsKey(assignmentName))
+                {
+                    Student.AssignmentRatings.Remove(assignmentName);
+                }
             }
 
             // Save to JSON (delegating to a service would be better, but for now we'll save directly)
@@ -416,7 +431,9 @@ public class StudentDetailViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error saving assignment rating for {AssignmentName}", assignmentName);
+            Log.Error(ex, "Error saving assignment rating for {AssignmentName} - {ExceptionType}: {Message}", 
+                assignmentName, ex.GetType().Name, ex.Message);
+            // Don't re-throw to prevent UI crash - error is logged
         }
     }
 
@@ -478,6 +495,16 @@ public class StudentDetailViewModel : ReactiveObject
         {
             var now = DateTime.Now;
 
+            // Initialize dictionaries if null (can happen if deserialized from JSON without these properties)
+            if (Student.AssignmentNotes == null)
+            {
+                Student.AssignmentNotes = new Dictionary<string, string>();
+            }
+            if (Student.AssignmentNotesTimestamps == null)
+            {
+                Student.AssignmentNotesTimestamps = new Dictionary<string, DateTime>();
+            }
+
             // Update the note and timestamp in the student's data
             if (!string.IsNullOrWhiteSpace(notes))
             {
@@ -530,6 +557,12 @@ public class StudentDetailViewModel : ReactiveObject
 
         try
         {
+            // Initialize dictionary if null (can happen if deserialized from JSON without this property)
+            if (Student.AssignmentNotesSidebarWidths == null)
+            {
+                Student.AssignmentNotesSidebarWidths = new Dictionary<string, double>();
+            }
+
             // Update the sidebar width in the student's data
             Student.AssignmentNotesSidebarWidths[assignmentName] = width;
 
@@ -550,6 +583,12 @@ public class StudentDetailViewModel : ReactiveObject
     /// </summary>
     private async Task SaveStudentToJson()
     {
+        if (Student == null)
+        {
+            Log.Warning("Cannot save student data - Student object is null");
+            return;
+        }
+
         await StudentDataLock.FileLock.WaitAsync();
         try
         {
@@ -573,13 +612,22 @@ public class StudentDetailViewModel : ReactiveObject
             }
 
             // Find and update the current student
-            var studentToUpdate = students.FirstOrDefault(s => s.Id == Student?.Id);
+            var studentToUpdate = students.FirstOrDefault(s => s.Id == Student.Id);
             if (studentToUpdate != null)
             {
-                studentToUpdate.AssignmentRatings = Student!.AssignmentRatings;
-                studentToUpdate.AssignmentNotes = Student!.AssignmentNotes;
-                studentToUpdate.AssignmentNotesTimestamps = Student!.AssignmentNotesTimestamps;
-                studentToUpdate.AssignmentNotesSidebarWidths = Student!.AssignmentNotesSidebarWidths;
+                // Ensure dictionaries are initialized before assigning - use Student's dictionaries if they exist, otherwise create new ones
+                studentToUpdate.AssignmentRatings = Student.AssignmentRatings != null 
+                    ? new Dictionary<string, int>(Student.AssignmentRatings) 
+                    : new Dictionary<string, int>();
+                studentToUpdate.AssignmentNotes = Student.AssignmentNotes != null 
+                    ? new Dictionary<string, string>(Student.AssignmentNotes) 
+                    : new Dictionary<string, string>();
+                studentToUpdate.AssignmentNotesTimestamps = Student.AssignmentNotesTimestamps != null 
+                    ? new Dictionary<string, DateTime>(Student.AssignmentNotesTimestamps) 
+                    : new Dictionary<string, DateTime>();
+                studentToUpdate.AssignmentNotesSidebarWidths = Student.AssignmentNotesSidebarWidths != null 
+                    ? new Dictionary<string, double>(Student.AssignmentNotesSidebarWidths) 
+                    : new Dictionary<string, double>();
 
                 // Save back to JSON
                 var updatedJsonContent = System.Text.Json.JsonSerializer.Serialize(students,
@@ -590,12 +638,12 @@ public class StudentDetailViewModel : ReactiveObject
             }
             else
             {
-                Log.Warning("Could not find student with ID {StudentId} in the JSON file", Student?.Id);
+                Log.Warning("Could not find student with ID {StudentId} in the JSON file", Student.Id);
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error saving student data to JSON");
+            Log.Error(ex, "Error saving student data to JSON - {ExceptionType}: {Message}", ex.GetType().Name, ex.Message);
         }
         finally
         {

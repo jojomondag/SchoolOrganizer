@@ -38,6 +38,21 @@ public partial class App : Application
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
             
+            // Add global exception handler
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                var exception = e.ExceptionObject as Exception;
+                Log.Fatal(exception, "UNHANDLED EXCEPTION - IsTerminating: {IsTerminating}", e.IsTerminating);
+                Log.Fatal("Exception Type: {ExceptionType}", exception?.GetType().FullName);
+                Log.Fatal("Stack Trace: {StackTrace}", exception?.StackTrace);
+            };
+
+            System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (sender, e) =>
+            {
+                Log.Fatal(e.Exception, "UNOBSERVED TASK EXCEPTION");
+                e.SetObserved(); // Prevent process termination
+            };
+            
             // Main application window
             var mainWindow = new MainWindow();
             mainWindow.DataContext = new MainWindowViewModel();

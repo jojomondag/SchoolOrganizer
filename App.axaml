@@ -118,7 +118,7 @@
         </Style>
 
         <Style Selector="materialIcons|MaterialIcon.StarFilled">
-            <Setter Property="Foreground" Value="{DynamicResource StarGoldBrush}"/>
+            <Setter Property="Foreground" Value="#FFD700"/>
         </Style>
 
         <Style Selector="materialIcons|MaterialIcon.StarEmpty">

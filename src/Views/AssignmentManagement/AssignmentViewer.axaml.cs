@@ -552,13 +552,26 @@ public partial class AssignmentViewer : Window
         }
     }
 
+    private bool _isProcessingRatingChange = false;
+
     /// <summary>
     /// Handles the rating changed event from the StarRating control
     /// </summary>
     private async void OnAssignmentRatingChanged(object? sender, int newRating)
     {
+        // Prevent re-entrancy
+        if (_isProcessingRatingChange)
+        {
+            Log.Debug("OnAssignmentRatingChanged - Already processing a rating change, skipping");
+            return;
+        }
+
+        _isProcessingRatingChange = true;
         try
         {
+            Log.Information("OnAssignmentRatingChanged called - Sender: {SenderType}, NewRating: {NewRating}",
+                sender?.GetType().Name, newRating);
+
             if (sender is not Components.StarRating starRating)
             {
                 Log.Warning("OnAssignmentRatingChanged - sender is not a StarRating control");
@@ -572,23 +585,43 @@ public partial class AssignmentViewer : Window
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(assignmentGroup.AssignmentName))
+            {
+                Log.Warning("OnAssignmentRatingChanged - Assignment name is null or empty");
+                return;
+            }
+
             if (DataContext is not StudentDetailViewModel viewModel)
             {
                 Log.Warning("OnAssignmentRatingChanged - DataContext is not a StudentDetailViewModel");
                 return;
             }
 
-            Log.Information("Rating changed for assignment {AssignmentName} to {Rating}",
-                assignmentGroup.AssignmentName, newRating);
+            if (viewModel.Student == null)
+            {
+                Log.Warning("OnAssignmentRatingChanged - Student is null");
+                return;
+            }
 
-            // Save the rating
+            Log.Information("Rating changed for assignment {AssignmentName} to {Rating}, Student: {StudentName}",
+                assignmentGroup.AssignmentName, newRating, viewModel.Student.Name);
+
+            // Don't manually set assignmentGroup.Rating here - the TwoWay binding handles it automatically
+            // Setting it manually causes a feedback loop with the binding system
+            
+            // Save the rating to database
             await viewModel.SaveAssignmentRatingAsync(assignmentGroup.AssignmentName, newRating);
 
             Log.Information("Rating saved successfully for assignment {AssignmentName}", assignmentGroup.AssignmentName);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error handling assignment rating change");
+            Log.Error(ex, "Error handling assignment rating change - {ExceptionType}: {Message}\nStack Trace: {StackTrace}", 
+                ex.GetType().Name, ex.Message, ex.StackTrace);
+        }
+        finally
+        {
+            _isProcessingRatingChange = false;
         }
     }
 

@@ -132,16 +132,6 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void NavigateToManualEntry()
-    {
-        if (IsAddStudentMode)
-        {
-            // Use StudentCoordinatorService to publish manual entry request
-            Services.StudentCoordinatorService.Instance.PublishManualEntryRequested();
-        }
-    }
-
-    [RelayCommand]
     private void NavigateToClassroomImport()
     {
         if (IsAddStudentMode)

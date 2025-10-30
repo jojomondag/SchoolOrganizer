@@ -41,7 +41,6 @@ namespace SchoolOrganizer.Src.Services
         public event EventHandler<Student>? ViewAssignmentsRequested;
 
         // Add Student Mode Events
-        public event EventHandler? ManualEntryRequested;
         public event EventHandler? ClassroomImportRequested;
         public event EventHandler? AddStudentCompleted;
         public event EventHandler? AddStudentCancelled;
@@ -129,14 +128,6 @@ namespace SchoolOrganizer.Src.Services
         public void PublishViewAssignmentsRequested(Student student)
         {
             ViewAssignmentsRequested?.Invoke(this, student);
-        }
-
-        /// <summary>
-        /// Publishes a manual entry request event
-        /// </summary>
-        public void PublishManualEntryRequested()
-        {
-            ManualEntryRequested?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>

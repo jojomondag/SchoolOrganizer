@@ -946,7 +946,6 @@ public partial class StudentGalleryViewModel : ObservableObject
         coordinator.StudentUpdated += OnCoordinatorStudentUpdated;
         coordinator.EditStudentRequested += OnCoordinatorEditStudentRequested;
         coordinator.ViewAssignmentsRequested += OnCoordinatorViewAssignmentsRequested;
-        coordinator.ManualEntryRequested += OnCoordinatorManualEntryRequested;
         coordinator.ClassroomImportRequested += OnCoordinatorClassroomImportRequested;
         coordinator.AddStudentCompleted += OnCoordinatorAddStudentCompleted;
         coordinator.AddStudentCancelled += OnCoordinatorAddStudentCancelled;
@@ -1004,11 +1003,6 @@ public partial class StudentGalleryViewModel : ObservableObject
     private async void OnCoordinatorViewAssignmentsRequested(object? sender, Student student)
     {
         await HandleViewAssignments(student);
-    }
-
-    private void OnCoordinatorManualEntryRequested(object? sender, EventArgs e)
-    {
-        // This will be handled by the view layer
     }
 
     private void OnCoordinatorClassroomImportRequested(object? sender, EventArgs e)
