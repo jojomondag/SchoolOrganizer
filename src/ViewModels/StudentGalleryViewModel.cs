@@ -1073,6 +1073,10 @@ public partial class StudentGalleryViewModel : ObservableObject
                         DownloadStatusText = string.Empty;
                         return;
                     }
+                    
+                    // Clear download status after successful download
+                    IsDownloadingAssignments = false;
+                    DownloadStatusText = string.Empty;
                 }
                 else
                 {
@@ -1080,10 +1084,6 @@ public partial class StudentGalleryViewModel : ObservableObject
                     DownloadStatusText = string.Empty;
                     return;
                 }
-                
-                // Clear download status after successful download
-                IsDownloadingAssignments = false;
-                DownloadStatusText = string.Empty;
             }
 
             // Folder exists - open immediately without blocking

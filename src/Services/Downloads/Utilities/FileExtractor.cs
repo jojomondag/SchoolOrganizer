@@ -7,7 +7,7 @@ using Serilog;
 using SharpCompress.Archives;
 using SharpCompress.Common;
 
-namespace SchoolOrganizer.Src.Services.Utilities;
+namespace SchoolOrganizer.Src.Services.Downloads.Utilities;
 
 public static class FileExtractor
 {
@@ -77,3 +77,4 @@ IconIndex=3
         File.WriteAllText(shortcutPath, shortcutContent);
     }
 }
+

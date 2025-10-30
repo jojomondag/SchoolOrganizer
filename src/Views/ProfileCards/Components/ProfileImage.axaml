@@ -8,7 +8,6 @@
   <UserControl.Resources>
     <views:UniversalImageConverter x:Key="UniversalImageConverter" x:Shared="True"/>
     <views:SimpleMathConverter x:Key="SimpleMathConverter" x:Shared="True"/>
-    <views:DoubleToCornerRadiusConverter x:Key="DoubleToCornerRadiusConverter" x:Shared="True"/>
     <views:ProfileImageCornerRadiusConverter x:Key="ProfileImageCornerRadiusConverter" x:Shared="True"/>
   </UserControl.Resources>
 

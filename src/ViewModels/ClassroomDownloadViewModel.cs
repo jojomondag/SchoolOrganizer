@@ -9,6 +9,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Google.Apis.Classroom.v1.Data;
 using SchoolOrganizer.Src.Services;
+using SchoolOrganizer.Src.Services.Downloads.Core;
+using SchoolOrganizer.Src.Services.Downloads.Utilities;
 using SchoolOrganizer.Src.Services.Utilities;
 using Serilog;
 
@@ -614,7 +616,7 @@ public partial class CourseWrapper : ObservableObject
         _isDownloaded = false; // Initialize as not downloaded
         _courseFolderPath = Path.Combine(
             _viewModel.SelectedFolderPath,
-            DirectoryUtil.GetCourseDirectoryName(
+            SchoolOrganizer.Src.Services.Downloads.Utilities.DirectoryUtil.GetCourseDirectoryName(
                 Course.Name ?? "Unknown Course",
                 Course.Section ?? "No Section",
                 Course.Id ?? "Unknown ID",
