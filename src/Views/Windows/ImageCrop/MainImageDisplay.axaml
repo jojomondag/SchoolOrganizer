@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="SchoolOrganizer.Src.Views.Windows.ImageCrop.MainImageDisplay">
 
@@ -89,6 +90,31 @@
                     </Canvas>
                 </Grid>
             </Grid>
+
+            <!-- Hover hint overlay (shown when hovering over gray area and image is loaded) -->
+            <Border Name="HoverHintOverlay"
+                    IsVisible="False"
+                    Background="{DynamicResource BlackColor}"
+                    Opacity="0.75"
+                    CornerRadius="8"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,16"
+                    Padding="16,12"
+                    IsHitTestVisible="False"
+                    ZIndex="1000">
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <materialIcons:MaterialIcon Kind="ImageEdit"
+                                                 Width="20"
+                                                 Height="20"
+                                                 Foreground="{DynamicResource WhiteColor}"/>
+                    <TextBlock Text="Click to change image"
+                               Foreground="{DynamicResource WhiteColor}"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
         </Grid>
         </Border>
     </Border>

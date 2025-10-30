@@ -24,8 +24,8 @@ public partial class ImageCropView : UserControl
 {
     #region Constants
     private const double MinimumCropSize = 50;
-    private const double MaximumCropSize = 400;
-    private const double MaximumCropRatio = 0.8;
+    private const double MaximumCropSize = 2000;
+    private const double MaximumCropRatio = 0.95;
     private const double SidebarWidth = 260;
     private const double ScreenMargin = 60;
     private const int MaximumImageSize = 4096;
@@ -1507,7 +1507,7 @@ public partial class ImageCropView : UserControl
             );
             halfNewSize = Math.Min(halfNewSize, Math.Min(centerX - _imageDisplayOffset.X, _imageDisplayOffset.X + _imageDisplaySize.Width - centerX));
             halfNewSize = Math.Min(halfNewSize, Math.Min(centerY - _imageDisplayOffset.Y, _imageDisplayOffset.Y + _imageDisplaySize.Height - centerY));
-            halfNewSize = Math.Min(halfNewSize, Math.Min(_imageDisplaySize.Width, _imageDisplaySize.Height) * 0.4);
+            halfNewSize = Math.Min(halfNewSize, Math.Min(_imageDisplaySize.Width, _imageDisplaySize.Height) * 0.95);
 
             halfNewSize = Math.Max(halfNewSize, MinimumCropSize / 2);
 
