@@ -35,6 +35,8 @@ public class AttachmentProcessor
     /// <param name="existingFileIds">Set of file IDs already downloaded in this assignment directory</param>
     /// <param name="existingFileNames">Set of exact filenames (case-sensitive) already used in this assignment directory</param>
     /// <param name="updateStatus">Optional callback to update status messages</param>
+    /// <param name="existingDriveModifiedTime">Existing Drive file modification time for change detection</param>
+    /// <param name="existingLocalPath">Existing local file path for change detection</param>
     /// <returns>DownloadedFileInfo if successful, null otherwise</returns>
     public async Task<DownloadedFileInfo?> ProcessAttachmentAsync(
         Attachment attachment,
@@ -44,13 +46,12 @@ public class AttachmentProcessor
         string assignmentName,
         HashSet<string>? existingFileIds = null,
         HashSet<string>? existingFileNames = null,
-        Action<string>? updateStatus = null)
+        Action<string>? updateStatus = null,
+        DateTime? existingDriveModifiedTime = null,
+        string? existingLocalPath = null)
     {
         try
         {
-            // Ensure the assignment directory exists (CreateDirectory handles existence automatically)
-            Directory.CreateDirectory(assignmentDirectory);
-
             if (attachment.DriveFile != null)
             {
                 return await ProcessDriveFileAttachmentAsync(
@@ -61,7 +62,9 @@ public class AttachmentProcessor
                     assignmentName,
                     existingFileIds ?? new HashSet<string>(),
                     existingFileNames ?? new HashSet<string>(),
-                    updateStatus);
+                    updateStatus,
+                    existingDriveModifiedTime,
+                    existingLocalPath);
             }
             else if (attachment.Link != null)
             {
@@ -93,23 +96,42 @@ public class AttachmentProcessor
         string assignmentName,
         HashSet<string> existingFileIds,
         HashSet<string> existingFileNames,
-        Action<string>? updateStatus)
+        Action<string>? updateStatus,
+        DateTime? existingDriveModifiedTime = null,
+        string? existingLocalPath = null)
     {
         try
         {
             string fileName = DirectoryUtil.SanitizeFolderName(driveFile.Title ?? "File");
-            string statusMessage = $"Downloading: {driveFile.Title} for {studentName} - {assignmentName}";
-            updateStatus?.Invoke(statusMessage);
-
-            // Fetch file metadata to determine MIME type
+            
+            // Fetch file metadata to determine MIME type and modification time
             var file = await _driveService.Files.Get(driveFile.Id).ExecuteAsync();
             string mimeType = file.MimeType ?? "";
+            DateTime? driveModifiedTime = file.ModifiedTimeDateTimeOffset?.UtcDateTime;
+
+            // Check if file needs updating (only for incremental sync)
+            bool needsDownload = true;
+            if (existingDriveModifiedTime.HasValue && driveModifiedTime.HasValue && existingLocalPath != null)
+            {
+                // File exists and modification times match - skip download
+                if (driveModifiedTime.Value <= existingDriveModifiedTime.Value && File.Exists(existingLocalPath))
+                {
+                    needsDownload = false;
+                    Log.Debug($"File {driveFile.Id} unchanged, skipping download");
+                }
+            }
 
             // Check if the file needs to be unpacked (ZIP/RAR) - create URL shortcut instead
             if (MimeTypeHelper.NeedsUnpacking(mimeType))
             {
                 string linkPath = Path.Combine(assignmentDirectory, fileName + ".url");
-                await File.WriteAllTextAsync(linkPath, $"[InternetShortcut]\nURL=https://drive.google.com/file/d/{driveFile.Id}/view");
+                
+                // Only update if it doesn't exist or is different
+                if (needsDownload || !File.Exists(linkPath))
+                {
+                    await File.WriteAllTextAsync(linkPath, $"[InternetShortcut]\nURL=https://drive.google.com/file/d/{driveFile.Id}/view");
+                    updateStatus?.Invoke($"Updated link: {driveFile.Title} for {studentName} - {assignmentName}");
+                }
                 
                 return new DownloadedFileInfo(
                     driveFile.Id,
@@ -122,16 +144,21 @@ public class AttachmentProcessor
             }
 
             // Download the file using intelligent naming strategy
-            string filePath = await _fileDownloader.DownloadFileAsync(
-                driveFile.Id,
-                driveFile.Title ?? "Untitled",
-                mimeType,
-                assignmentDirectory,
-                existingFileIds,
-                existingFileNames);
+            string filePath = needsDownload || existingLocalPath == null
+                ? await _fileDownloader.DownloadFileAsync(
+                    driveFile.Id,
+                    driveFile.Title ?? "Untitled",
+                    mimeType,
+                    assignmentDirectory,
+                    existingFileIds,
+                    existingFileNames)
+                : existingLocalPath;
 
-            string successMessage = $"Downloaded: {Path.GetFileName(filePath)} for {studentName} - {assignmentName}";
-            updateStatus?.Invoke(successMessage);
+            if (needsDownload)
+            {
+                string successMessage = $"Downloaded: {Path.GetFileName(filePath)} for {studentName} - {assignmentName}";
+                updateStatus?.Invoke(successMessage);
+            }
 
             return new DownloadedFileInfo(
                 driveFile.Id,

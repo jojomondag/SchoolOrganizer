@@ -42,9 +42,6 @@ public class FileDownloader
     {
         try
         {
-            // Ensure the destination directory exists (CreateDirectory handles existence automatically)
-            Directory.CreateDirectory(destinationFolder);
-
             existingFileIds ??= new HashSet<string>();
             existingFileNames ??= new HashSet<string>();
 

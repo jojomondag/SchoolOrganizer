@@ -46,22 +46,9 @@ public static class FileNamingStrategy
         // Only create subfolder if the filename is exactly the same
         string directPath = Path.Combine(destinationFolder, finalFileName);
         
-        // Check both file system and tracked filenames for exact matches
-        bool exactDuplicateExists = false;
-        
-        if (existingFileNames != null)
-        {
-            // Check if we've already tracked this exact filename (case-sensitive)
-            exactDuplicateExists = existingFileNames.Contains(finalFileName);
-        }
-        
-        // Also check the file system for exact matches (case-sensitive comparison)
-        if (!exactDuplicateExists && Directory.Exists(destinationFolder))
-        {
-            var filesInFolder = Directory.GetFiles(destinationFolder, "*", SearchOption.TopDirectoryOnly);
-            exactDuplicateExists = filesInFolder.Any(f => 
-                string.Equals(Path.GetFileName(f), finalFileName, StringComparison.Ordinal));
-        }
+        // Check if we've already tracked this exact filename (case-sensitive)
+        // Only check HashSet to avoid expensive file system operations
+        bool exactDuplicateExists = existingFileNames?.Contains(finalFileName) ?? false;
         
         if (!exactDuplicateExists)
         {

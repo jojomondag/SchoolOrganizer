@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Classroom.v1.Data;
 using SchoolOrganizer.Src.Services.Downloads.Files;
+using SchoolOrganizer.Src.Services.Downloads.Models;
 using SchoolOrganizer.Src.Services.Downloads.Utilities;
 using Serilog;
 
@@ -27,12 +28,14 @@ public class SubmissionProcessor
     /// <summary>
     /// Processes submissions for a student and downloads all attachments
     /// </summary>
+    /// <param name="manifest">Optional manifest for tracking file metadata and change detection</param>
     public async Task<bool> ProcessSubmissionsAsync(
         List<StudentSubmission> submissions,
         Student student,
         Dictionary<string, CourseWork> courseWorkDict,
         string studentDirectory,
-        Action<string>? updateStatus = null)
+        Action<string>? updateStatus = null,
+        CourseManifest? manifest = null)
     {
         var tasks = new List<Task<bool>>();
         var processedAttachments = new HashSet<string>();
@@ -76,32 +79,23 @@ public class SubmissionProcessor
                 {
                     processedAttachments.Add(attachmentId);
                     
-                    if (_semaphore != null)
+                    // Get manifest entry for change detection
+                    FileManifestEntry? manifestEntry = null;
+                    if (manifest != null && attachment.DriveFile != null && manifest.Files.TryGetValue(attachment.DriveFile.Id, out var entry))
                     {
-                        // With semaphore (for DownloadManager - parallel downloads with limit)
-                        tasks.Add(ProcessAttachmentWithSemaphoreAsync(
-                            attachment,
-                            assignmentDirectory,
-                            submission.Id,
-                            studentName,
-                            assignmentName,
-                            existingFileIds,
-                            existingFileNames,
-                            updateStatus));
+                        manifestEntry = entry;
                     }
-                    else
-                    {
-                        // Without semaphore (for StudentFileDownloader - full parallelization)
-                        tasks.Add(ProcessAttachmentAsync(
-                            attachment,
-                            assignmentDirectory,
-                            submission.Id,
-                            studentName,
-                            assignmentName,
-                            existingFileIds,
-                            existingFileNames,
-                            updateStatus));
-                    }
+                    
+                    tasks.Add(ProcessAttachmentCoreAsync(
+                        attachment,
+                        assignmentDirectory,
+                        submission.Id,
+                        studentName,
+                        assignmentName,
+                        existingFileIds,
+                        existingFileNames,
+                        updateStatus,
+                        manifestEntry));
                 }
             }
         }
@@ -110,7 +104,7 @@ public class SubmissionProcessor
         return results.Any(r => r);
     }
 
-    private async Task<bool> ProcessAttachmentWithSemaphoreAsync(
+    private async Task<bool> ProcessAttachmentCoreAsync(
         Attachment attachment,
         string assignmentDirectory,
         string submissionId,
@@ -118,9 +112,13 @@ public class SubmissionProcessor
         string assignmentName,
         HashSet<string> existingFileIds,
         HashSet<string> existingFileNames,
-        Action<string>? updateStatus)
+        Action<string>? updateStatus,
+        FileManifestEntry? manifestEntry = null)
     {
-        await _semaphore!.WaitAsync();
+        // Acquire semaphore if one is configured (for DownloadManager throttling)
+        if (_semaphore != null)
+            await _semaphore.WaitAsync();
+
         try
         {
             var fileInfo = await _attachmentProcessor.ProcessAttachmentAsync(
@@ -131,56 +129,26 @@ public class SubmissionProcessor
                 assignmentName,
                 existingFileIds,
                 existingFileNames,
-                updateStatus);
+                updateStatus,
+                manifestEntry?.DriveModifiedTimeUtc,
+                manifestEntry?.LocalPath);
             
             // Track downloaded file ID (filename is already tracked in FileNamingStrategy)
             if (fileInfo != null && attachment.DriveFile != null)
             {
-                existingFileIds.Add(attachment.DriveFile.Id);
-                // Note: Filename tracking happens in FileNamingStrategy.GetFilePathForDownload
-                // which adds the filename to existingFileNames when determining the path
+                // Thread-safe add (ConcurrentDictionary or semaphore ensures safety)
+                lock (existingFileIds)
+                {
+                    existingFileIds.Add(attachment.DriveFile.Id);
+                }
             }
             
             return fileInfo != null;
         }
         finally
         {
-            _semaphore.Release();
+            _semaphore?.Release();
         }
-    }
-
-    private async Task<bool> ProcessAttachmentAsync(
-        Attachment attachment,
-        string assignmentDirectory,
-        string submissionId,
-        string studentName,
-        string assignmentName,
-        HashSet<string> existingFileIds,
-        HashSet<string> existingFileNames,
-        Action<string>? updateStatus)
-    {
-        var fileInfo = await _attachmentProcessor.ProcessAttachmentAsync(
-            attachment,
-            assignmentDirectory,
-            submissionId,
-            studentName,
-            assignmentName,
-            existingFileIds,
-            existingFileNames,
-            updateStatus);
-        
-        // Track downloaded file ID (filename is already tracked in FileNamingStrategy)
-        if (fileInfo != null && attachment.DriveFile != null)
-        {
-            lock (existingFileIds)
-            {
-                existingFileIds.Add(attachment.DriveFile.Id);
-                // Note: Filename tracking happens in FileNamingStrategy.GetFilePathForDownload
-                // which adds the filename to existingFileNames when determining the path
-            }
-        }
-        
-        return fileInfo != null;
     }
 }
 

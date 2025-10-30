@@ -279,6 +279,7 @@ public partial class ClassroomDownloadViewModel : ObservableObject
             await Task.Run(async () => await _downloadManager.DownloadAssignmentsAsync(courseWrapper.Course, incrementalSync: false));
 
             Log.Information($"Download completed, updating status for {courseWrapper.Course.Name}");
+            
             Dispatcher.UIThread.Post(() => {
                 courseWrapper.UpdateDownloadStatus(true);
                 courseWrapper.UpdateFolderStatus();
@@ -286,6 +287,23 @@ public partial class ClassroomDownloadViewModel : ObservableObject
 
                 // Refresh folder status for all courses to update UI
                 RefreshAllCourseFolderStatus();
+                
+                // Automatically enable sync mode after successful download if not already enabled
+                if (!courseWrapper.IsAutoSyncEnabled)
+                {
+                    Log.Information($"Auto-enabling sync mode for {courseWrapper.Course.Name} after download completion");
+                    courseWrapper.IsAutoSyncEnabled = true;
+                    
+                    // Register for automatic periodic syncing
+                    RegisterCourseForAutoSync(courseWrapper);
+                    
+                    StatusText = $"Download completed. Auto-sync enabled for {courseWrapper.Course.Name}.";
+                    Log.Information($"Auto-sync successfully enabled for {courseWrapper.Course.Name}");
+                }
+                else
+                {
+                    Log.Debug($"Auto-sync already enabled for {courseWrapper.Course.Name}, skipping activation");
+                }
             });
             Log.Information($"Successfully completed download for {courseWrapper.Course.Name}");
             
@@ -571,16 +589,46 @@ public partial class ClassroomDownloadViewModel : ObservableObject
             try
             {
                 Log.Information($"Auto-syncing {course.Course.Name}");
-                await Dispatcher.UIThread.InvokeAsync(async () =>
+                
+                // Perform sync on background thread, only update UI if dispatcher is available
+                if (Dispatcher.UIThread.CheckAccess())
                 {
+                    // We're on UI thread, can directly update
                     course.IsSyncing = true;
                     await SyncAssignmentsAsync(course);
                     course.IsSyncing = false;
-                });
+                }
+                else
+                {
+                    // We're on background thread, invoke UI updates
+                    await Dispatcher.UIThread.InvokeAsync(async () =>
+                    {
+                        course.IsSyncing = true;
+                        await SyncAssignmentsAsync(course);
+                        course.IsSyncing = false;
+                    });
+                }
             }
             catch (Exception ex)
             {
                 Log.Error(ex, $"Error during auto-sync for {course.Course.Name}");
+                
+                // Try to update UI state even on error
+                try
+                {
+                    if (Dispatcher.UIThread.CheckAccess())
+                    {
+                        course.IsSyncing = false;
+                    }
+                    else
+                    {
+                        Dispatcher.UIThread.Post(() => course.IsSyncing = false);
+                    }
+                }
+                catch
+                {
+                    // Ignore UI update errors during error handling
+                }
             }
         }
     }

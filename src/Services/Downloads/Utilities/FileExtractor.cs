@@ -15,56 +15,62 @@ public static class FileExtractor
     {
         var archiveFiles = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories)
                                     .Where(file => file.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
-                                                   file.EndsWith(".rar", StringComparison.OrdinalIgnoreCase));
+                                                   file.EndsWith(".rar", StringComparison.OrdinalIgnoreCase))
+                                    .ToList();
 
-        foreach (var archiveFile in archiveFiles)
+        if (archiveFiles.Count == 0)
+            return;
+
+        // Process archives in parallel for better performance
+        var extractTasks = archiveFiles.Select(archiveFile => ExtractArchiveAsync(archiveFile));
+        await Task.WhenAll(extractTasks);
+    }
+
+    private static async Task ExtractArchiveAsync(string archiveFile)
+    {
+        await Task.Run(() =>
         {
-            string extractPath = Path.Combine(Path.GetDirectoryName(archiveFile)!, Path.GetFileNameWithoutExtension(archiveFile));
-            Directory.CreateDirectory(extractPath);
-
-            await Task.Run(() =>
+            try
             {
-                try
+                string extractPath = Path.Combine(Path.GetDirectoryName(archiveFile)!, Path.GetFileNameWithoutExtension(archiveFile));
+                Directory.CreateDirectory(extractPath);
+
+                if (archiveFile.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (archiveFile.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    ZipFile.ExtractToDirectory(archiveFile, extractPath, overwriteFiles: true);
+                }
+                else if (archiveFile.EndsWith(".rar", StringComparison.OrdinalIgnoreCase))
+                {
+                    using var archive = ArchiveFactory.Open(archiveFile);
+                    foreach (var entry in archive.Entries)
                     {
-                        ZipFile.ExtractToDirectory(archiveFile, extractPath, overwriteFiles: true);
-                    }
-                    else if (archiveFile.EndsWith(".rar", StringComparison.OrdinalIgnoreCase))
-                    {
-                        using (var archive = ArchiveFactory.Open(archiveFile))
+                        if (!entry.IsDirectory)
                         {
-                            foreach (var entry in archive.Entries)
+                            entry.WriteToDirectory(extractPath, new ExtractionOptions()
                             {
-                                if (!entry.IsDirectory)
-                                {
-                                    entry.WriteToDirectory(extractPath, new ExtractionOptions()
-                                    {
-                                        ExtractFullPath = true,
-                                        Overwrite = true
-                                    });
-                                }
-                            }
+                                ExtractFullPath = true,
+                                Overwrite = true
+                            });
                         }
                     }
-                    Log.Information($"Extracted {archiveFile} to {extractPath}.");
-
-                    // Create a link to the extracted folder
-                    string linkFileName = Path.GetFileNameWithoutExtension(archiveFile) + "_extracted.url";
-                    string linkFilePath = Path.Combine(Path.GetDirectoryName(archiveFile)!, linkFileName);
-                    CreateShortcutToFolder(linkFilePath, extractPath);
-                    Log.Information($"Created link to extracted folder: {linkFilePath}");
-
-                    // Remove the archive file after successful extraction
-                    File.Delete(archiveFile);
-                    Log.Information($"Deleted archive file: {archiveFile}");
                 }
-                catch (Exception ex)
-                {
-                    Log.Error($"Error extracting {archiveFile}: {ex.Message}");
-                }
-            });
-        }
+                Log.Information($"Extracted {archiveFile} to {extractPath}.");
+
+                // Create a link to the extracted folder
+                string linkFileName = Path.GetFileNameWithoutExtension(archiveFile) + "_extracted.url";
+                string linkFilePath = Path.Combine(Path.GetDirectoryName(archiveFile)!, linkFileName);
+                CreateShortcutToFolder(linkFilePath, extractPath);
+                Log.Information($"Created link to extracted folder: {linkFilePath}");
+
+                // Remove the archive file after successful extraction
+                File.Delete(archiveFile);
+                Log.Information($"Deleted archive file: {archiveFile}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error extracting {archiveFile}: {ex.Message}");
+            }
+        });
     }
 
     private static void CreateShortcutToFolder(string shortcutPath, string targetPath)
