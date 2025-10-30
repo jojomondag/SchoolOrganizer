@@ -16,7 +16,6 @@
 
   <UserControl.Resources>
     <views:UniversalImageConverter x:Key="UniversalImageConverter"/>
-    <views:StudentSelectionBrushConverter x:Key="StudentSelectionBrushConverter"/>
     <views:DisplayConfigConverter x:Key="DisplayConfigConverter"/>
     <views:ComparisonConverter x:Key="ComparisonConverter"/>
 

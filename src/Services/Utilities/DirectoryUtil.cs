@@ -9,8 +9,6 @@ namespace SchoolOrganizer.Src.Services.Utilities;
 
 public static class DirectoryUtil
 {
-    private static readonly char[] AdditionalInvalidChars = { ':', '&' };
-
     public static string SanitizeFolderName(string folderName)
     {
         if (string.IsNullOrWhiteSpace(folderName))

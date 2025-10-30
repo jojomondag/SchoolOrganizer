@@ -10,7 +10,6 @@ namespace SchoolOrganizer.Src.Views.Components;
 
 public partial class FilePreviewControl : UserControl
 {
-    private readonly ScrollAnimationService _scrollAnimationService;
     private readonly FileHandlingService _fileHandlingService;
     private readonly PanelManagementService _panelManagementService;
     private bool _isContentMaximized = false;
@@ -33,7 +32,6 @@ public partial class FilePreviewControl : UserControl
     public FilePreviewControl()
     {
         InitializeComponent();
-        _scrollAnimationService = new ScrollAnimationService();
         _fileHandlingService = new FileHandlingService();
         _panelManagementService = new PanelManagementService();
         

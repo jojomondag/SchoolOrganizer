@@ -52,9 +52,4 @@ public partial class ClassroomStudentWrapper : ObservableObject
             return photoUrl;
         }
     }
-
-    /// <summary>
-    /// Whether this student has a profile photo
-    /// </summary>
-    public bool HasProfilePhoto => !string.IsNullOrEmpty(ProfilePhotoUrl);
 }

@@ -187,7 +187,7 @@ public partial class ImageCropView : UserControl
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Failed to deserialize crop settings: {ex.Message}");
+                    Log.Warning(ex, "Failed to deserialize crop settings");
                 }
             }
 
@@ -196,7 +196,6 @@ public partial class ImageCropView : UserControl
         else
         {
             // If no original image path is provided, load the first available image from the gallery
-            System.Diagnostics.Debug.WriteLine($"No original image path provided for student {studentId}, loading first available image from gallery");
             await LoadGallery();
             
             // Try to load the first image from the gallery if available
@@ -208,12 +207,11 @@ public partial class ImageCropView : UserControl
                     var firstImagePath = imagePaths.FirstOrDefault(File.Exists);
                     if (!string.IsNullOrEmpty(firstImagePath))
                     {
-                        System.Diagnostics.Debug.WriteLine($"Loading first available image: {firstImagePath}");
                         await LoadImageFromPathWithCropSettingsAsync(firstImagePath, null);
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("No valid images found in gallery");
+                        Log.Warning("No valid images found in gallery");
                     }
                 }
             }
@@ -1190,12 +1188,10 @@ public partial class ImageCropView : UserControl
 
         try
         {
-            System.Diagnostics.Debug.WriteLine("ImageCropView: TriggerSaveAsync called");
             await HandleSaveButtonAsync();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in TriggerSaveAsync: {ex.Message}");
             Log.Error(ex, "Error triggering save from external source");
         }
     }
@@ -1319,7 +1315,7 @@ public partial class ImageCropView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in RotateBitmap: {ex.Message}");
+            Log.Error(ex, "Error rotating bitmap");
             return source;
         }
     }

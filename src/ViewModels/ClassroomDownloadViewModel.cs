@@ -591,17 +591,9 @@ public partial class CourseWrapper : ObservableObject
     private bool _isDownloaded;
     private bool _hasFolder;
     private string _courseFolderPath;
-    private bool _hasNewSubmissions;
-    private bool _isSelected;
     private bool _isMouseOver;
     private DateTime _lastFolderCheck = DateTime.MinValue;
     private static readonly TimeSpan FolderCheckCacheDuration = TimeSpan.FromSeconds(5);
-
-    public bool HasNewSubmissions
-    {
-        get => _hasNewSubmissions;
-        set => SetProperty(ref _hasNewSubmissions, value);
-    }
 
     public bool IsMouseOver
     {
@@ -687,12 +679,6 @@ public partial class CourseWrapper : ObservableObject
     {
         get => _hasFolder;
         set => SetProperty(ref _hasFolder, value);
-    }
-
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set => SetProperty(ref _isSelected, value);
     }
 
     public string CourseFolderPath => _courseFolderPath;

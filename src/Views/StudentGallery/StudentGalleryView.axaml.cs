@@ -19,7 +19,6 @@ public partial class StudentGalleryView : UserControl
     
     public StudentGalleryView()
     {
-        System.Diagnostics.Debug.WriteLine("StudentGalleryView: Constructor called");
         InitializeComponent();
         
         DataContextChanged += OnDataContextChanged;
@@ -39,7 +38,6 @@ public partial class StudentGalleryView : UserControl
         {
             Log.Warning("StudentsContainer not found during constructor");
         }
-        System.Diagnostics.Debug.WriteLine("StudentGalleryView: Constructor completed");
     }
 
     private void SubscribeToViewModelSelections(StudentGalleryViewModel? vm)
@@ -259,9 +257,6 @@ public partial class StudentGalleryView : UserControl
     // Event handler for when StudentCoordinatorService requests an image change
     private async void OnStudentImageChangeRequestedFromCoordinator(object? sender, SchoolOrganizer.Src.Models.Students.Student student)
     {
-        System.Diagnostics.Debug.WriteLine($"OnStudentImageChangeRequestedFromCoordinator called for student: {student.Name}");
-        System.Diagnostics.Debug.WriteLine($"Student OriginalImagePath: {student.OriginalImagePath}");
-        System.Diagnostics.Debug.WriteLine($"Student CropSettings: {student.CropSettings}");
         await OpenImageCropperForStudent(student);
     }
 
@@ -274,7 +269,6 @@ public partial class StudentGalleryView : UserControl
     // Event handler for when crop save is requested (e.g., during navigation)
     private async void OnCropSaveRequested(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("OnCropSaveRequested called");
         await SaveCurrentCropStateAsync();
     }
 
@@ -285,18 +279,13 @@ public partial class StudentGalleryView : UserControl
     {
         try
         {
-            System.Diagnostics.Debug.WriteLine($"OpenImageCropperForStudent called for student: {student.Name}");
-            System.Diagnostics.Debug.WriteLine($"ViewModel is null: {ViewModel == null}");
-            
             if (ViewModel == null) return;
 
             // Set up the image editing state in the ViewModel
             ViewModel.StartImageEdit(student, student.OriginalImagePath, student.CropSettings);
-            System.Diagnostics.Debug.WriteLine($"IsEditingImage set to: {ViewModel.IsEditingImage}");
 
             // Initialize the ImageCropView
             var imageCropContainer = this.FindControl<Border>("ImageCropViewContainer");
-            System.Diagnostics.Debug.WriteLine($"ImageCropViewContainer found: {imageCropContainer != null}");
             
             if (imageCropContainer != null)
             {
@@ -317,24 +306,20 @@ public partial class StudentGalleryView : UserControl
 
                 // Add the view to the container
                 imageCropContainer.Child = imageCropView;
-                System.Diagnostics.Debug.WriteLine($"ImageCropView added to container");
 
                 // Load the image for the student with fallback to PictureUrl when OriginalImagePath is missing
                 var originalPath = string.IsNullOrWhiteSpace(student.OriginalImagePath) && !string.IsNullOrWhiteSpace(student.PictureUrl) && System.IO.File.Exists(student.PictureUrl)
                     ? student.PictureUrl
                     : student.OriginalImagePath;
-                System.Diagnostics.Debug.WriteLine($"Calling LoadImageForStudentAsync with studentId: {student.Id}, originalPath: {originalPath}");
                 await imageCropView.LoadImageForStudentAsync(
                     student.Id,
                     originalPath,
                     student.CropSettings
                 );
-                System.Diagnostics.Debug.WriteLine($"LoadImageForStudentAsync completed");
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in OpenImageCropperForStudent: {ex.Message}");
             Log.Error(ex, "Error opening ImageCropper");
         }
     }
@@ -433,8 +418,6 @@ public partial class StudentGalleryView : UserControl
 
         try
         {
-            System.Diagnostics.Debug.WriteLine("StudentGalleryView: SaveCurrentCropStateAsync called");
-            
             // Find the ImageCropView and trigger its save functionality
             var imageCropContainer = this.FindControl<Border>("ImageCropViewContainer");
             if (imageCropContainer?.Child is SchoolOrganizer.Src.Views.ImageCrop.ImageCropView imageCropView)
@@ -446,7 +429,6 @@ public partial class StudentGalleryView : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in SaveCurrentCropStateAsync: {ex.Message}");
             Log.Error(ex, "Error saving crop state during navigation");
         }
     }
@@ -514,9 +496,6 @@ public partial class StudentGalleryView : UserControl
     // Event handler for clicking on add student cards
     private void OnAddStudentCardClicked(object? sender, IPerson person)
     {
-        System.Diagnostics.Debug.WriteLine("StudentGalleryView: OnAddStudentCardClicked called");
-        System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Sender type: {sender?.GetType().Name}");
-        System.Diagnostics.Debug.WriteLine($"StudentGalleryView: Person type: {person?.GetType().Name}");
         Services.StudentCoordinatorService.Instance.PublishAddStudentRequested();
     }
 

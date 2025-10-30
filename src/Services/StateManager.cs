@@ -184,11 +184,6 @@ namespace SchoolOrganizer.Src.Services
         /// </summary>
         public List<StudentSubmission> Submissions { get; set; } = new List<StudentSubmission>();
         
-        // Enhanced data for faster loading
-        public string CourseName { get; set; } = string.Empty;
-        public string CourseSection { get; set; } = string.Empty;
-        public string CourseState { get; set; } = string.Empty;
-        
         // Last API call timestamp to prevent unnecessary reloading
         public Dictionary<string, DateTime> LastApiCallTimestamps { get; set; } = new Dictionary<string, DateTime>();
     }

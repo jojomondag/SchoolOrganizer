@@ -87,7 +87,6 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void OnCoordinatorAddStudentRequested(object? sender, EventArgs e)
     {
-        System.Diagnostics.Debug.WriteLine("MainWindowViewModel: OnCoordinatorAddStudentRequested called");
         _studentGalleryViewModel.AddStudentCommand.Execute(null);
         OnPropertyChanged(nameof(IsAddStudentMode));
         OnPropertyChanged(nameof(IsInCropMode));
@@ -191,7 +190,6 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     public void AddStudent()
     {
-        System.Diagnostics.Debug.WriteLine("MainWindowViewModel: AddStudent command called");
         _studentGalleryViewModel.AddStudentCommand.Execute(null);
         OnPropertyChanged(nameof(IsAddStudentMode));
     }

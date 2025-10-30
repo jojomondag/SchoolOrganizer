@@ -103,7 +103,6 @@ public class StudentDetailViewModel : ReactiveObject
     }
 
     public ReactiveCommand<StudentFile, Unit> OpenFileCommand { get; }
-    public ReactiveCommand<Unit, Unit> CloseCommand { get; }
 
     public StudentDetailViewModel()
     {
@@ -125,7 +124,6 @@ public class StudentDetailViewModel : ReactiveObject
                 Log.Error(ex, "Exception in OpenFileCommand: {Message}", ex.Message);
             }
         });
-        CloseCommand = ReactiveCommand.Create(() => { });
     }
 
     /// <summary>
@@ -296,21 +294,6 @@ public class StudentDetailViewModel : ReactiveObject
             return pathParts[0];
         }
         return "General";
-    }
-
-
-    private string GetFileType(string extension)
-    {
-        return extension.ToLowerInvariant() switch
-        {
-            ".jpg" or ".jpeg" or ".png" or ".gif" or ".bmp" or ".svg" => "Image",
-            ".java" or ".cs" or ".cpp" or ".c" or ".h" or ".py" or ".js" or ".html" or ".css" or ".xml" => "Code",
-            ".txt" or ".md" or ".rtf" => "Text",
-            ".pdf" => "PDF",
-            ".doc" or ".docx" => "Document",
-            ".zip" or ".rar" or ".7z" => "Archive",
-            _ => "File"
-        };
     }
 
     public void OpenFile(StudentFile file)

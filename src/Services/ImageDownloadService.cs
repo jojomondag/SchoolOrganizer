@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Serilog;
+using SchoolOrganizer.Src.Services.Utilities;
 
 namespace SchoolOrganizer.Src.Services;
 
@@ -42,7 +43,7 @@ public class ImageDownloadService
         try
         {
             // Clean the student name for filename
-            var cleanName = CleanFileName(studentName);
+            var cleanName = DirectoryUtil.SanitizeFolderName(studentName);
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var extension = GetFileExtensionFromUrl(imageUrl);
             var fileName = $"{cleanName}_{timestamp}{extension}";
@@ -73,19 +74,6 @@ public class ImageDownloadService
     }
 
     /// <summary>
-    /// Cleans a filename by removing invalid characters
-    /// </summary>
-    private static string CleanFileName(string fileName)
-    {
-        var invalidChars = Path.GetInvalidFileNameChars();
-        foreach (var invalidChar in invalidChars)
-        {
-            fileName = fileName.Replace(invalidChar, '_');
-        }
-        return fileName.Trim();
-    }
-
-    /// <summary>
     /// Extracts file extension from URL, defaults to .jpg
     /// </summary>
     private static string GetFileExtensionFromUrl(string url)
@@ -101,10 +89,5 @@ public class ImageDownloadService
         {
             return ".jpg";
         }
-    }
-
-    public void Dispose()
-    {
-        _httpClient?.Dispose();
     }
 }

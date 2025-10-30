@@ -95,8 +95,6 @@ public partial class StudentGalleryViewModel : ObservableObject
     
     partial void OnIsAddingStudentChanged(bool value)
     {
-        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel: OnIsAddingStudentChanged called - IsAddingStudent = {value}");
-        
         // Refresh the Students collection to show/hide the Add Student Card
         _ = ApplySearchImmediate();
         
@@ -355,7 +353,7 @@ public partial class StudentGalleryViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error deleting student: {ex.Message}");
+            Log.Error(ex, "Error deleting student");
         }
     }
 
@@ -432,8 +430,6 @@ public partial class StudentGalleryViewModel : ObservableObject
     }
 
     public void OnWindowResized() => UpdateDisplayLevelBasedOnItemCount();
-
-    public void TriggerCardLayoutUpdate() { }
 
     private void UpdateDisplayLevelBasedOnItemCount()
     {
@@ -526,9 +522,7 @@ public partial class StudentGalleryViewModel : ObservableObject
     [RelayCommand]
     private void AddStudent() 
     {
-        System.Diagnostics.Debug.WriteLine("StudentGalleryViewModel: AddStudent command called");
         IsAddingStudent = true;
-        System.Diagnostics.Debug.WriteLine($"StudentGalleryViewModel: IsAddingStudent set to {IsAddingStudent}");
     }
 
     [RelayCommand]
@@ -608,8 +602,6 @@ public partial class StudentGalleryViewModel : ObservableObject
 
         try
         {
-            System.Diagnostics.Debug.WriteLine("StudentGalleryViewModel: SaveCurrentCropStateAsync called");
-            
             // This will be handled by the StudentGalleryView which has access to the ImageCropView
             // The view will trigger the save functionality and then complete the image edit
             // We'll use an event to communicate with the view
@@ -919,28 +911,6 @@ public partial class StudentGalleryViewModel : ObservableObject
             await Task.Delay(delayMs);
         }
         return false;
-    }
-
-    private async Task<List<Student>> LoadAllStudentsFromJson()
-    {
-        try
-        {
-            var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
-            var jsonPath = Path.Combine(projectRoot, "Data", "students.json");
-            
-            if (File.Exists(jsonPath))
-            {
-                var jsonContent = await File.ReadAllTextAsync(jsonPath);
-                var studentList = JsonSerializer.Deserialize<List<Student>>(jsonContent);
-                return studentList ?? new List<Student>();
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error loading all students from JSON");
-        }
-        
-        return new List<Student>();
     }
 
     private async Task LoadProfileImageAsync()
@@ -1280,16 +1250,4 @@ public partial class StudentGalleryViewModel : ObservableObject
             }
         });
     }
-
-    /// <summary>
-    /// Find the student's assignment folder by searching through existing course folders
-    /// </summary>
-    private async Task<string?> FindStudentAssignmentFolder(Student student)
-    {
-        var assignmentService = new Services.StudentAssignmentService();
-        return await assignmentService.FindStudentAssignmentFolderAsync(student);
-    }
-
-
-
 }

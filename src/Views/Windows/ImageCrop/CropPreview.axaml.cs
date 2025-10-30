@@ -54,9 +54,6 @@ public partial class CropPreview : UserControl
         var previewImage = this.FindControl<Image>("PreviewImage");
         if (previewImage == null) return;
         
-        System.Diagnostics.Debug.WriteLine($"CropPreview.UpdatePreviewFromPath called with: {imagePath}");
-        System.Diagnostics.Debug.WriteLine($"File exists: {File.Exists(imagePath)}");
-        
         if (File.Exists(imagePath))
         {
             // Load image directly from file path

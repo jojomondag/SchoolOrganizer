@@ -19,14 +19,4 @@ public interface IPerson
     /// Secondary role information (e.g., "Teacher: John Doe" for students)
     /// </summary>
     string? SecondaryInfo { get; }
-    
-    /// <summary>
-    /// The type of person
-    /// </summary>
-    PersonType PersonType { get; }
-}
-
-public enum PersonType
-{
-    Student
 }

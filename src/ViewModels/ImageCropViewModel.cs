@@ -12,25 +12,10 @@ public partial class ImageCropViewModel : ObservableObject
     private int? studentId;
 
     [ObservableProperty]
-    private string? currentImagePath;
-
-    [ObservableProperty]
     private string? originalImagePath;
 
     [ObservableProperty]
     private string? cropSettings;
-
-    [ObservableProperty]
-    private bool isImageLoaded;
-
-    [ObservableProperty]
-    private string? savedImagePath;
-
-    [ObservableProperty]
-    private string? savedCropSettings;
-
-    [ObservableProperty]
-    private string? savedOriginalImagePath;
 
     // Events
     public event EventHandler? CancelRequested;
@@ -48,7 +33,6 @@ public partial class ImageCropViewModel : ObservableObject
         StudentId = studentId;
         OriginalImagePath = existingOriginalImagePath;
         CropSettings = existingCropSettings;
-        IsImageLoaded = !string.IsNullOrEmpty(existingOriginalImagePath);
     }
 
     /// <summary>
@@ -65,10 +49,6 @@ public partial class ImageCropViewModel : ObservableObject
     /// </summary>
     public void NotifyImageSaved(string imagePath, string? cropSettings, string? originalImagePath)
     {
-        SavedImagePath = imagePath;
-        SavedCropSettings = cropSettings;
-        SavedOriginalImagePath = originalImagePath;
-
         ImageSaved?.Invoke(this, (imagePath, cropSettings, originalImagePath));
     }
 }

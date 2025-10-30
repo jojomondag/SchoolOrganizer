@@ -13,10 +13,4 @@ public class AddStudentCard : IPerson
     public string Email => string.Empty;
     public string RoleInfo => "Click to add";
     public string? SecondaryInfo => null;
-    public PersonType PersonType => PersonType.Student;
-    
-    /// <summary>
-    /// Indicates this is the special add card
-    /// </summary>
-    public bool IsAddCard => true;
 }

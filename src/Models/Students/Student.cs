@@ -68,7 +68,6 @@ public partial class Student : ObservableObject, IPerson
     public string? SecondaryInfo => Teachers.Count == 0 ? null : 
         Teachers.Count == 1 ? $"Teacher: {Teachers[0]}" : 
         $"Teachers:\n{string.Join("\n", Teachers)}";
-    public PersonType PersonType => PersonType.Student;
 
     public Student()
     {
