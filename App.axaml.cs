@@ -71,9 +71,26 @@ public partial class App : Application
             if (desktop.MainWindow != null)
             {
                 desktop.MainWindow.Show();
-                desktop.MainWindow.WindowState = WindowState.Normal;
+                if (desktop.MainWindow.WindowState == WindowState.Minimized)
+                    desktop.MainWindow.WindowState = WindowState.Normal;
                 desktop.MainWindow.Activate();
             }
+
+            // Also show detached assignment window if active
+            try
+            {
+                var coordinator = SchoolOrganizer.Src.Services.AssignmentViewCoordinator.Instance;
+                if (coordinator.IsDetached)
+                {
+                    var detached = coordinator.ActivateDetachedWindow();
+                    if (!detached.IsVisible)
+                        detached.Show();
+                    if (detached.WindowState == WindowState.Minimized)
+                        detached.WindowState = WindowState.Normal;
+                    detached.Activate();
+                }
+            }
+            catch { }
         }
     }
 

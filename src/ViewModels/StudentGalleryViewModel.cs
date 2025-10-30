@@ -1114,19 +1114,34 @@ public partial class StudentGalleryViewModel : ObservableObject
                 }
             });
 
-            // Open in the user's preferred mode (default is embedded)
-            if (coordinator.PreferEmbedded)
+            // If detached window is currently active, always use it
+            if (coordinator.IsDetached)
             {
-                // User prefers embedded mode
-                coordinator.ActivateEmbeddedView();
-                Log.Information("Opening assignments in embedded mode (user preference)");
+                var detailWindow = coordinator.ActivateDetachedWindow();
+                if (!detailWindow.IsVisible)
+                    detailWindow.Show();
+                if (detailWindow.WindowState == Avalonia.Controls.WindowState.Minimized)
+                    detailWindow.WindowState = Avalonia.Controls.WindowState.Normal;
+                detailWindow.Activate();
+                Log.Information("Detached window active - showing assignments in detached window and bringing to front");
             }
             else
             {
-                // User prefers detached mode
-                var detailWindow = coordinator.ActivateDetachedWindow();
-                detailWindow.Show();
-                Log.Information("Opening assignments in detached mode (user preference)");
+                // Otherwise, open in the user's preferred mode (default is embedded)
+                if (coordinator.PreferEmbedded)
+                {
+                    coordinator.ActivateEmbeddedView();
+                    Log.Information("Opening assignments in embedded mode (user preference)");
+                }
+                else
+                {
+                    var detailWindow = coordinator.ActivateDetachedWindow();
+                    detailWindow.Show();
+                    if (detailWindow.WindowState == Avalonia.Controls.WindowState.Minimized)
+                        detailWindow.WindowState = Avalonia.Controls.WindowState.Normal;
+                    detailWindow.Activate();
+                    Log.Information("Opening assignments in detached mode and bringing to front (user preference)");
+                }
             }
         }
         catch (Exception ex)

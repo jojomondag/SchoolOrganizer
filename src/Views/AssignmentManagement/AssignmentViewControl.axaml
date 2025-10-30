@@ -101,7 +101,7 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <Border Background="{DynamicResource BackgroundTertiaryBrush}"
-                        Margin="0"
+                        Margin="0,8,0,0"
                         BorderBrush="{DynamicResource CardBorderBrush}"
                         BorderThickness="0,0,0,1">
                   <Grid>
@@ -116,8 +116,15 @@
                             Background="{DynamicResource BackgroundSecondaryBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
                             BorderThickness="0,0,0,1"
-                            Padding="15,12">
+                            Padding="16,12"
+                            CornerRadius="6">
                       <Grid>
+                        <!-- Left accent strip -->
+                        <Border Background="{DynamicResource AccentBrush}"
+                                Width="4"
+                                HorizontalAlignment="Left"
+                                CornerRadius="4,0,0,4"
+                                Grid.ColumnSpan="3"/>
                         <Grid.ColumnDefinitions>
                           <ColumnDefinition Width="Auto"/>
                           <ColumnDefinition Width="*"/>
