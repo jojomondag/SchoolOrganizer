@@ -37,7 +37,37 @@ public class GoogleAuthService
     public string TeacherName { get; private set; } = string.Empty;
 
     public async Task<bool> AuthenticateAsync() => await AuthenticateInternalAsync();
-    public async Task<bool> CheckAndAuthenticateAsync() => File.Exists(CredPath) && await AuthenticateInternalAsync();
+    public async Task<bool> CheckAndAuthenticateAsync()
+    {
+        // Check if token file exists first
+        if (!File.Exists(CredPath))
+        {
+            Log.Information("No stored credentials found. User needs to authenticate.");
+            return false;
+        }
+        
+        // Try to authenticate with existing token
+        bool authenticated = await AuthenticateInternalAsync();
+        
+        // If authentication failed, clear credentials to force re-authentication
+        if (!authenticated)
+        {
+            Log.Warning("Authentication failed with stored credentials. Clearing credentials.");
+            try
+            {
+                if (File.Exists(CredPath))
+                {
+                    File.Delete(CredPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error clearing credentials after failed authentication");
+            }
+        }
+        
+        return authenticated;
+    }
 
     private async Task<bool> AuthenticateInternalAsync()
     {

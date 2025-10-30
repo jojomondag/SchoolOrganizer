@@ -140,15 +140,25 @@ public partial class StudentGalleryViewModel : ObservableObject
 
     // Events - Removed direct event publishers, now using StudentCoordinatorService
 
-    public void UpdateAuthenticationState(GoogleAuthService authService)
+    public void UpdateAuthenticationState(GoogleAuthService? authService)
     {
         this.authService = authService;
-        userProfileService = new UserProfileService(authService);
-        IsAuthenticated = true;
-        TeacherName = authService.TeacherName;
-        
-        // Notify property change to trigger AddStudentView auth service update
-        OnPropertyChanged(nameof(IsAuthenticated));
+        if (authService != null)
+        {
+            userProfileService = new UserProfileService(authService);
+            IsAuthenticated = true;
+            TeacherName = authService.TeacherName;
+            
+            // Notify property change to trigger AddStudentView auth service update
+            OnPropertyChanged(nameof(IsAuthenticated));
+        }
+        else
+        {
+            IsAuthenticated = false;
+            TeacherName = "Not Authenticated";
+            ProfileImage = null;
+            OnPropertyChanged(nameof(IsAuthenticated));
+        }
     }
 
     public void SetProfileImage(Bitmap? profileImage) => ProfileImage = profileImage;

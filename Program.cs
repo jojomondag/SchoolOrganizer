@@ -23,10 +23,6 @@ sealed class Program
         }
     }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-            .WithInterFont()
-            .LogToTrace();
+    // Avalonia configuration - delegates to App.BuildAvaloniaApp() for consistency
+    public static AppBuilder BuildAvaloniaApp() => App.BuildAvaloniaApp();
 }

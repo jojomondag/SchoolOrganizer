@@ -299,15 +299,21 @@ public partial class MainWindowViewModel : ObservableObject
     {
         try
         {
-            IsAuthenticated = await _authService.CheckAndAuthenticateAsync();
-            if (IsAuthenticated)
+            bool wasAuthenticated = await _authService.CheckAndAuthenticateAsync();
+            if (wasAuthenticated)
             {
                 SetAuthenticatedState("Welcome back");
+            }
+            else
+            {
+                // Ensure we're in unauthenticated state
+                ResetToUnauthenticatedState();
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error during authentication initialization");
+            ResetToUnauthenticatedState();
         }
     }
 
@@ -316,20 +322,22 @@ public partial class MainWindowViewModel : ObservableObject
         try
         {
             Greeting = loadingMessage;
-            IsAuthenticated = await _authService.AuthenticateAsync();
+            bool authenticated = await _authService.AuthenticateAsync();
             
-            if (IsAuthenticated)
+            if (authenticated)
             {
                 SetAuthenticatedState(isInitialLoad ? "Welcome" : "Welcome");
             }
             else
             {
+                ResetToUnauthenticatedState();
                 Greeting = "Authentication failed. Please check your credentials.json file in the Resources folder.";
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error during authentication");
+            ResetToUnauthenticatedState();
             Greeting = $"Authentication error: {ex.Message}";
         }
     }
@@ -349,6 +357,8 @@ public partial class MainWindowViewModel : ObservableObject
         TeacherName = "Unknown Teacher";
         ProfileImage = null;
         Greeting = "Welcome to School Organizer!";
+        // Update student gallery view model authentication state
+        _studentGalleryViewModel?.UpdateAuthenticationState(null);
     }
 
     private async Task LoadProfileImageAsync()

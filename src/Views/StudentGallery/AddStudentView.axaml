@@ -192,7 +192,16 @@
                              Foreground="{DynamicResource TextSecondaryBrush}" 
                              HorizontalAlignment="Center" 
                              TextWrapping="Wrap"
-                             Margin="0,3,0,0"/>
+                             Margin="0,3,0,8"/>
+                  <Button Command="{Binding OpenGoogleClassroomHelpCommand}"
+                          Classes="secondary"
+                          Padding="8,4"
+                          HorizontalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <materialIcons:MaterialIcon Kind="HelpCircleOutline" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                      <TextBlock Text="Google Classroom Help" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                  </Button>
                 </StackPanel>
               </StackPanel>
             </StackPanel>

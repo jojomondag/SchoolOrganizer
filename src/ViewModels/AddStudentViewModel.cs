@@ -217,6 +217,23 @@ public partial class AddStudentViewModel : ObservableObject
         UpdateValidationText();
     }
 
+    [RelayCommand]
+    private void OpenGoogleClassroomHelp()
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "https://support.google.com/edu/classroom",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            ValidationText = $"Error opening help: {ex.Message}";
+        }
+    }
+
     // Classroom import methods
     private async Task LoadClassroomsAsync()
     {
