@@ -3,7 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:SchoolOrganizer.Src.ViewModels"
-        xmlns:components="using:SchoolOrganizer.Src.Views.Components"
+        xmlns:local="using:SchoolOrganizer.Src.Views.AssignmentManagement"
         xmlns:materialIcons="using:Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
         x:Class="SchoolOrganizer.Src.Views.AssignmentManagement.AssignmentViewer"
@@ -17,213 +17,48 @@
     <vm:StudentDetailViewModel/>
   </Design.DataContext>
 
-  <SplitView IsPaneOpen="{Binding IsNavigationOpen}" 
-             DisplayMode="CompactInline" 
-             OpenPaneLength="250" 
-             CompactPaneLength="56">
-    <SplitView.Pane>
-      <!-- Navigation Menu -->
-      <Border Background="{DynamicResource BackgroundSecondaryBrush}" Padding="0">
-        <Grid>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- Header -->
-            <RowDefinition Height="*"/>    <!-- Navigation items -->
-          </Grid.RowDefinitions>
+  <Grid RowDefinitions="Auto,*">
+    <!-- Header Bar with Attach to Main Window Button -->
+    <Border Grid.Row="0" 
+            Background="{DynamicResource HeaderBackgroundBrush}"
+            BorderBrush="{DynamicResource CardBorderBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="16,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
 
-          <!-- Header with hamburger button and title -->
-          <Border Grid.Row="0" Background="{DynamicResource HeaderBackgroundBrush}" Padding="16,10,16,10">
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
+        <!-- Student Name and Info -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <materialIcons:MaterialIcon Kind="AccountCircle" Width="24" Height="24" 
+                                     Foreground="{DynamicResource TextPrimaryBrush}"/>
+          <StackPanel>
+            <TextBlock Text="{Binding StudentName}" 
+                      FontWeight="Bold" 
+                      FontSize="16"
+                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <TextBlock Text="{Binding CourseName}" 
+                      FontSize="12"
+                      Foreground="{DynamicResource TextSecondaryBrush}"/>
+          </StackPanel>
+        </StackPanel>
 
-              <!-- Hamburger Menu Button -->
-              <Button Grid.Column="0" Click="OnToggleNavigationClick"
-                      Width="32" Height="32" Margin="0,0,8,0"
-                      Background="Transparent" BorderThickness="0">
-                <materialIcons:MaterialIcon Kind="Menu" Width="20" Height="20"/>
-              </Button>
+        <!-- Attach Button -->
+        <Button Grid.Column="1" 
+                Click="OnAttachClick"
+                Padding="12,6"
+                ToolTip.Tip="Attach to main window">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <materialIcons:MaterialIcon Kind="DockWindow" Width="18" Height="18"/>
+            <TextBlock Text="Attach to Main Window" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
 
-              <!-- App Title (when menu is open) -->
-              <TextBlock Grid.Column="1" Text="Assignments" 
-                        VerticalAlignment="Center" FontWeight="Bold"
-                        IsVisible="{Binding IsNavigationOpen}"/>
-            </Grid>
-          </Border>
-
-          <!-- Navigation Items -->
-          <ScrollViewer Grid.Row="1" Margin="8,16,8,8">
-            <StackPanel Spacing="4">
-              <!-- Assignments Section -->
-              <TextBlock Text="Assignments" 
-                        FontWeight="Bold" 
-                        FontSize="12" 
-                        Foreground="{DynamicResource TextSecondaryBrush}"
-                        Margin="0,16,0,8"
-                        IsVisible="{Binding IsNavigationOpen}"/>
-
-              <!-- Dynamic Assignment Items -->
-              <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <Button HorizontalAlignment="Stretch" 
-                            HorizontalContentAlignment="Left"
-                            Padding="12,8"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            CornerRadius="4"
-                            Click="OnAssignmentClick"
-                            Tag="{Binding AssignmentName}">
-                      <Button.Content>
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                          <materialIcons:MaterialIcon Kind="FileDocument" Width="20" Height="20"/>
-                          <TextBlock Text="{Binding AssignmentName}" VerticalAlignment="Center" 
-                                    IsVisible="{Binding $parent[ItemsControl].((vm:StudentDetailViewModel)DataContext).IsNavigationOpen}"/>
-                        </StackPanel>
-                      </Button.Content>
-                    </Button>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </StackPanel>
-          </ScrollViewer>
-        </Grid>
-      </Border>
-    </SplitView.Pane>
-
-    <SplitView.Content>
-      <!-- Main Content Area -->
-      <Border Background="{DynamicResource BackgroundPrimaryBrush}">
-        <ScrollViewer Name="MainScrollViewer"
-                      VerticalScrollBarVisibility="Auto" 
-                      HorizontalScrollBarVisibility="Disabled">
-          <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Border Background="{DynamicResource BackgroundTertiaryBrush}"
-                        Margin="0,0,0,16"
-                        BorderBrush="{DynamicResource CardBorderBrush}"
-                        BorderThickness="0,0,0,2">
-                  <Grid>
-                    <Grid.RowDefinitions>
-                      <RowDefinition Height="Auto"/>
-                      <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Assignment Header -->
-                    <Border Grid.Row="0"
-                            x:Name="AssignmentHeaderBorder"
-                            Background="{DynamicResource BackgroundSecondaryBrush}"
-                            BorderBrush="{DynamicResource CardBorderBrush}"
-                            BorderThickness="0,0,0,1"
-                            Padding="15,12">
-                      <Grid>
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="Auto"/>
-                          <ColumnDefinition Width="*"/>
-                          <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Left: Google Docs Button -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="0,0,16,0">
-                          <!-- Open in Browser Button -->
-                          <Button Click="OnOpenInBrowserClick"
-                                  Padding="8"
-                                  ToolTip.Tip="Open Google Doc in browser">
-                            <materialIcons:MaterialIcon Kind="GoogleDrive" Width="20" Height="20"/>
-                            <Button.IsVisible>
-                              <Binding Path="HasGoogleDocs"/>
-                            </Button.IsVisible>
-                          </Button>
-                        </StackPanel>
-
-                        <!-- Middle: Assignment Title -->
-                        <TextBlock Grid.Column="1"
-                                   Text="{Binding AssignmentName}"
-                                   FontWeight="Bold"
-                                   FontSize="18"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Center"/>
-
-                        <!-- Right: Star Rating and Notes Button -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                          <components:StarRating VerticalAlignment="Center"
-                                                 Rating="{Binding Rating, Mode=TwoWay}"
-                                                 RatingChanged="OnAssignmentRatingChanged"/>
-
-                          <Button Background="Transparent"
-                                  BorderThickness="0"
-                                  Padding="8"
-                                  ToolTip.Tip="Toggle Notes"
-                                  Click="OnToggleNotesClick">
-                            <materialIcons:MaterialIcon Kind="NoteText" Width="20" Height="20"/>
-                          </Button>
-                        </StackPanel>
-                      </Grid>
-                    </Border>
-
-                    <!-- Assignment Files and Notes Sidebar -->
-                    <Grid Grid.Row="1" x:Name="AssignmentContentGrid">
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="0"/>
-                      </Grid.ColumnDefinitions>
-
-                      <!-- Assignment Files -->
-                      <ItemsControl Grid.Column="0" ItemsSource="{Binding Files}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate>
-                            <components:FilePreviewControl/>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-
-                      <!-- GridSplitter for Resizing -->
-                      <GridSplitter Grid.Column="1"
-                                    Width="4"
-                                    Background="{DynamicResource CardBorderBrush}"
-                                    HorizontalAlignment="Center"
-                                    IsVisible="{Binding IsNotesExpanded}"
-                                    DragCompleted="OnNotesSplitterDragCompleted"/>
-
-                      <!-- Notes Sidebar -->
-                      <Border Grid.Column="2"
-                              Background="{DynamicResource BackgroundSecondaryBrush}"
-                              BorderBrush="{DynamicResource CardBorderBrush}"
-                              BorderThickness="1,0,0,0"
-                              Padding="12"
-                              IsVisible="{Binding IsNotesExpanded}">
-                        <Grid RowDefinitions="*,Auto">
-                          <!-- Notes TextBox -->
-                          <TextBox Grid.Row="0"
-                                   Text="{Binding Notes, Mode=TwoWay}"
-                                   AcceptsReturn="True"
-                                   TextWrapping="Wrap"
-                                   Watermark="Add notes about this assignment..."
-                                   BorderThickness="0"
-                                   Background="Transparent"
-                                   TextChanged="OnNotesTextChanged"/>
-
-                          <!-- Timestamp -->
-                          <TextBlock Grid.Row="1"
-                                     Text="{Binding LastModifiedText}"
-                                     FontSize="11"
-                                     Foreground="{DynamicResource TextSecondaryBrush}"
-                                     Margin="0,8,0,0"
-                                     IsVisible="{Binding LastModified, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        </Grid>
-                      </Border>
-                    </Grid>
-                  </Grid>
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </ScrollViewer>
-      </Border>
-    </SplitView.Content>
-  </SplitView>
+    <!-- Assignment View Control -->
+    <local:AssignmentViewControl Grid.Row="1" x:Name="AssignmentControl"/>
+  </Grid>
 </Window>

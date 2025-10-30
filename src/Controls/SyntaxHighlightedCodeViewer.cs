@@ -74,7 +74,8 @@ public class SyntaxHighlightedCodeViewer : UserControl
             TextWrapping = Avalonia.Media.TextWrapping.Wrap,
             MinHeight = 50,
             MinWidth = 100,
-            IsVisible = true
+            IsVisible = true,
+            Padding = new Thickness(8) // Add padding to give code space from edges
         };
 
         Content = _textBlock;

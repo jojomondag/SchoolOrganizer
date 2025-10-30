@@ -15,21 +15,25 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly UserProfileService _userProfileService;
     private readonly StudentGalleryViewModel _studentGalleryViewModel;
     private ClassroomDownloadViewModel? _classroomDownloadViewModel;
+    private readonly AssignmentViewCoordinator _assignmentCoordinator;
 
-    private ObservableObject _currentViewModel;
+    private object _currentViewModel;
 
-    public ObservableObject CurrentViewModel
+    public object CurrentViewModel
     {
         get => _currentViewModel;
         set
         {
-        if (SetProperty(ref _currentViewModel, value))
-        {
-            OnPropertyChanged(nameof(IsStudentGalleryActive));
-            OnPropertyChanged(nameof(IsClassroomDownloadActive));
-            OnPropertyChanged(nameof(IsInCropMode));
-            OnPropertyChanged(nameof(ActiveContentBrush));
-        }
+            if (_currentViewModel != value)
+            {
+                _currentViewModel = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsStudentGalleryActive));
+                OnPropertyChanged(nameof(IsClassroomDownloadActive));
+                OnPropertyChanged(nameof(IsAssignmentViewActive));
+                OnPropertyChanged(nameof(IsInCropMode));
+                OnPropertyChanged(nameof(ActiveContentBrush));
+            }
         }
     }
 
@@ -57,12 +61,18 @@ public partial class MainWindowViewModel : ObservableObject
         _userProfileService = new UserProfileService(_authService);
         _studentGalleryViewModel = new StudentGalleryViewModel(authService);
         _currentViewModel = _studentGalleryViewModel;
+        _assignmentCoordinator = AssignmentViewCoordinator.Instance;
         
         // Subscribe to StudentCoordinatorService for add-student mode detection
         var coordinator = Services.StudentCoordinatorService.Instance;
         coordinator.AddStudentRequested += OnCoordinatorAddStudentRequested;
         coordinator.AddStudentCompleted += OnCoordinatorAddStudentCompleted;
         coordinator.AddStudentCancelled += OnCoordinatorAddStudentCancelled;
+        
+        // Subscribe to AssignmentViewCoordinator events
+        _assignmentCoordinator.ViewModeChanged += OnAssignmentViewModeChanged;
+        _assignmentCoordinator.EmbeddedViewRequested += OnEmbeddedAssignmentViewRequested;
+        _assignmentCoordinator.EmbeddedViewCloseRequested += OnEmbeddedAssignmentViewCloseRequested;
         
         if (authService != null)
         {
@@ -97,14 +107,21 @@ public partial class MainWindowViewModel : ObservableObject
 
     public bool IsStudentGalleryActive => CurrentViewModel is StudentGalleryViewModel;
     public bool IsClassroomDownloadActive => CurrentViewModel is ClassroomDownloadViewModel;
+    public bool IsAssignmentViewActive => CurrentViewModel?.GetType().Name == nameof(StudentDetailViewModel);
     public bool IsAddStudentMode => IsStudentGalleryActive && _studentGalleryViewModel.IsAddingStudent;
     public bool IsInCropMode => IsStudentGalleryActive && _studentGalleryViewModel.IsEditingImage;
     public IBrush ActiveContentBrush => CurrentViewModel switch
     {
         StudentGalleryViewModel => Brushes.White,
         ClassroomDownloadViewModel => Brushes.White,
+        _ when CurrentViewModel?.GetType().Name == nameof(StudentDetailViewModel) => Brushes.White,
         _ => Brushes.White
     };
+
+    /// <summary>
+    /// Gets the shared assignment view model from the coordinator
+    /// </summary>
+    public StudentDetailViewModel AssignmentViewModel => _assignmentCoordinator.SharedViewModel;
 
     [RelayCommand]
     private async Task NavigateToStudentGallery() 
@@ -175,6 +192,69 @@ public partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private void ToggleMenu() => IsMenuOpen = !IsMenuOpen;
+
+    [RelayCommand]
+    private void NavigateToAssignments()
+    {
+        Log.Information("NavigateToAssignments command executed");
+        
+        // Activate embedded view in coordinator
+        _assignmentCoordinator.ActivateEmbeddedView();
+        
+        // Set the assignment view model as the current view
+        CurrentViewModel = AssignmentViewModel;
+        
+        Log.Information("Navigated to embedded assignments view");
+    }
+
+    [RelayCommand]
+    private void ScrollToAssignment(string assignmentName)
+    {
+        Log.Information("ScrollToAssignment command executed for: {AssignmentName}", assignmentName);
+        
+        // Raise an event or use a service to notify the EmbeddedAssignmentView to scroll
+        // For now, we'll use a simple approach through the coordinator
+        AssignmentViewScrollRequested?.Invoke(this, assignmentName);
+    }
+
+    /// <summary>
+    /// Event raised when scrolling to a specific assignment is requested
+    /// </summary>
+    public event EventHandler<string>? AssignmentViewScrollRequested;
+
+    /// <summary>
+    /// Handles assignment view mode changes from the coordinator
+    /// </summary>
+    private void OnAssignmentViewModeChanged(object? sender, EventArgs e)
+    {
+        Log.Information("Assignment view mode changed - Embedded: {IsEmbedded}, Detached: {IsDetached}", 
+            _assignmentCoordinator.IsEmbedded, _assignmentCoordinator.IsDetached);
+        
+        OnPropertyChanged(nameof(IsAssignmentViewActive));
+    }
+
+    /// <summary>
+    /// Handles request to show embedded assignment view
+    /// </summary>
+    private void OnEmbeddedAssignmentViewRequested(object? sender, EventArgs e)
+    {
+        Log.Information("Embedded assignment view requested");
+        CurrentViewModel = AssignmentViewModel;
+    }
+
+    /// <summary>
+    /// Handles request to close embedded assignment view
+    /// </summary>
+    private void OnEmbeddedAssignmentViewCloseRequested(object? sender, EventArgs e)
+    {
+        Log.Information("Embedded assignment view close requested");
+        
+        // Navigate back to student gallery if we're showing the assignment view
+        if (IsAssignmentViewActive)
+        {
+            CurrentViewModel = _studentGalleryViewModel;
+        }
+    }
 
     /// <summary>
     /// Saves the current crop state if we're in crop mode

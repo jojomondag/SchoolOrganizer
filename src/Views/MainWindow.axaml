@@ -4,6 +4,7 @@
         xmlns:views="using:SchoolOrganizer.Src.Views"
         xmlns:studentGallery="using:SchoolOrganizer.Src.Views.StudentGallery"
         xmlns:classroomDownload="using:SchoolOrganizer.Src.Views.ClassroomDownload"
+        xmlns:assignmentManagement="using:SchoolOrganizer.Src.Views.AssignmentManagement"
         xmlns:materialIcons="using:Material.Icons.Avalonia"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -70,8 +71,15 @@
 
                     <!-- Navigation Items -->
                     <StackPanel Grid.Row="1" Margin="8,16,8,8" Spacing="4">
-                        <!-- Normal Navigation (when not in add student mode) -->
-                        <StackPanel IsVisible="{Binding !IsAddStudentMode}">
+                        <!-- Normal Navigation (when not in add student mode or assignment view) -->
+                        <StackPanel>
+                            <StackPanel.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="!IsAddStudentMode"/>
+                                    <Binding Path="!IsAssignmentViewActive"/>
+                                </MultiBinding>
+                            </StackPanel.IsVisible>
+                            
                             <!-- Student Gallery -->
                             <Button Command="{Binding NavigateToStudentGalleryCommand}"
                                     HorizontalAlignment="Stretch" 
@@ -107,6 +115,23 @@
                                 </Button.Content>
                             </Button>
 
+                            <!-- View Assignments -->
+                            <Button Command="{Binding NavigateToAssignmentsCommand}"
+                                    HorizontalAlignment="Stretch" 
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,8"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    CornerRadius="4">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <materialIcons:MaterialIcon Kind="FileDocumentMultiple" Width="20" Height="20"/>
+                                        <TextBlock Text="View Assignments" VerticalAlignment="Center" 
+                                                  IsVisible="{Binding IsMenuOpen}"/>
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+
                             <!-- Classroom Downloads -->
                             <Button Command="{Binding NavigateToClassroomDownloadCommand}"
                                     HorizontalAlignment="Stretch" 
@@ -124,6 +149,63 @@
                                 </Button.Content>
                             </Button>
                         </StackPanel>
+
+                        <!-- Assignment Navigation (when viewing assignments) -->
+                        <ScrollViewer IsVisible="{Binding IsAssignmentViewActive}" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Spacing="4">
+                                <!-- Back Button -->
+                                <Button Command="{Binding NavigateToStudentGalleryCommand}"
+                                        HorizontalAlignment="Stretch" 
+                                        HorizontalContentAlignment="Left"
+                                        Padding="12,8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        CornerRadius="4"
+                                        Margin="0,0,0,8">
+                                    <Button.Content>
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20"/>
+                                            <TextBlock Text="Back to Gallery" VerticalAlignment="Center" 
+                                                      IsVisible="{Binding IsMenuOpen}"/>
+                                        </StackPanel>
+                                    </Button.Content>
+                                </Button>
+
+                                <!-- Assignments Section Header -->
+                                <TextBlock Text="Assignments" 
+                                          FontWeight="Bold" 
+                                          FontSize="12" 
+                                          Foreground="{DynamicResource TextSecondaryBrush}"
+                                          Margin="12,8,0,8"
+                                          IsVisible="{Binding IsMenuOpen}"/>
+
+                                <!-- Dynamic Assignment Items -->
+                                <ItemsControl ItemsSource="{Binding AssignmentViewModel.AllFilesGrouped}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button HorizontalAlignment="Stretch" 
+                                                    HorizontalContentAlignment="Left"
+                                                    Padding="12,8"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    CornerRadius="4"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ScrollToAssignmentCommand}"
+                                                    CommandParameter="{Binding AssignmentName}">
+                                                <Button.Content>
+                                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                                        <materialIcons:MaterialIcon Kind="FileDocument" Width="20" Height="20"/>
+                                                        <TextBlock Text="{Binding AssignmentName}" 
+                                                                  VerticalAlignment="Center" 
+                                                                  TextTrimming="CharacterEllipsis"
+                                                                  IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsMenuOpen}"/>
+                                                    </StackPanel>
+                                                </Button.Content>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
 
                         <!-- Add Student Navigation (when in add student mode) -->
                         <StackPanel IsVisible="{Binding IsAddStudentMode}">
@@ -213,6 +295,11 @@
                 <!-- Template for ClassroomDownloadViewModel -->
                     <DataTemplate DataType="vm:ClassroomDownloadViewModel">
                         <classroomDownload:ClassroomDownloadView/>
+                    </DataTemplate>
+
+                <!-- Template for StudentDetailViewModel (Embedded Assignment View) -->
+                    <DataTemplate DataType="vm:StudentDetailViewModel">
+                        <assignmentManagement:EmbeddedAssignmentView/>
                     </DataTemplate>
 
                 </ContentControl.DataTemplates>

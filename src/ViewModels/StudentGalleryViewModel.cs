@@ -1097,25 +1097,37 @@ public partial class StudentGalleryViewModel : ObservableObject
                 return;
             }
 
-            // Create and show AssignmentViewer immediately
-            var detailViewModel = new SchoolOrganizer.Src.ViewModels.StudentDetailViewModel();
-            var detailWindow = new SchoolOrganizer.Src.Views.AssignmentManagement.AssignmentViewer(detailViewModel);
-
-            // Show window immediately
-            detailWindow.Show();
+            // Use the coordinator to manage the assignment view
+            var coordinator = Services.AssignmentViewCoordinator.Instance;
             
-            // Load the student files asynchronously in the background (window is already showing)
+            // Load student files into the shared ViewModel
             _ = Task.Run(async () => 
             {
                 try
                 {
-                    await detailViewModel.LoadStudentFilesAsync(student.Name, student.ClassName, studentFolderPath, student);
+                    await coordinator.LoadStudentFilesAsync(student.Name, student.ClassName, studentFolderPath, student);
+                    Log.Information($"Loaded student files for {student.Name}");
                 }
                 catch (Exception ex)
                 {
                     Log.Error(ex, $"Error loading student files for {student.Name}");
                 }
             });
+
+            // Open in the user's preferred mode (default is embedded)
+            if (coordinator.PreferEmbedded)
+            {
+                // User prefers embedded mode
+                coordinator.ActivateEmbeddedView();
+                Log.Information("Opening assignments in embedded mode (user preference)");
+            }
+            else
+            {
+                // User prefers detached mode
+                var detailWindow = coordinator.ActivateDetachedWindow();
+                detailWindow.Show();
+                Log.Information("Opening assignments in detached mode (user preference)");
+            }
         }
         catch (Exception ex)
         {

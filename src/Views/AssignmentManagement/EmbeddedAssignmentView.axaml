@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SchoolOrganizer.Src.ViewModels"
+             xmlns:local="using:SchoolOrganizer.Src.Views.AssignmentManagement"
+             xmlns:materialIcons="using:Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SchoolOrganizer.Src.Views.AssignmentManagement.EmbeddedAssignmentView"
+             x:DataType="vm:StudentDetailViewModel">
+
+  <Design.DataContext>
+    <vm:StudentDetailViewModel/>
+  </Design.DataContext>
+
+  <Grid RowDefinitions="Auto,*">
+    <!-- Header Bar with Student Name and Detach Button -->
+    <Border Grid.Row="0" 
+            Background="{DynamicResource HeaderBackgroundBrush}"
+            BorderBrush="{DynamicResource CardBorderBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="16,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Student Name and Info -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <materialIcons:MaterialIcon Kind="AccountCircle" Width="24" Height="24" 
+                                     Foreground="{DynamicResource TextPrimaryBrush}"/>
+          <StackPanel>
+            <TextBlock Text="{Binding StudentName}" 
+                      FontWeight="Bold" 
+                      FontSize="16"
+                      Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <TextBlock Text="{Binding CourseName}" 
+                      FontSize="12"
+                      Foreground="{DynamicResource TextSecondaryBrush}"/>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Detach Button -->
+        <Button Grid.Column="1" 
+                Click="OnDetachClick"
+                Padding="12,6"
+                ToolTip.Tip="Detach to separate window">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <materialIcons:MaterialIcon Kind="OpenInNew" Width="18" Height="18"/>
+            <TextBlock Text="Detach" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- Assignment View Control and Empty State -->
+    <Grid Grid.Row="1">
+      <!-- Show the assignment control when student is loaded -->
+      <local:AssignmentViewControl x:Name="AssignmentControl"
+                                   ShowInternalSidebar="False"
+                                   IsVisible="{Binding StudentName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+      
+      <!-- Empty state when no student is selected -->
+      <Border Background="{DynamicResource BackgroundPrimaryBrush}"
+              IsVisible="{Binding StudentName, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+        <StackPanel HorizontalAlignment="Center" 
+                    VerticalAlignment="Center"
+                    Spacing="16">
+          <materialIcons:MaterialIcon Kind="FolderOpen" 
+                                     Width="64" 
+                                     Height="64"
+                                     Foreground="{DynamicResource TextSecondaryBrush}"/>
+          <TextBlock Text="No student selected" 
+                    FontSize="18"
+                    FontWeight="SemiBold"
+                    Foreground="{DynamicResource TextSecondaryBrush}"
+                    HorizontalAlignment="Center"/>
+          <TextBlock Text="Select a student from the gallery and click 'View Assignments'" 
+                    FontSize="14"
+                    Foreground="{DynamicResource TextSecondaryBrush}"
+                    HorizontalAlignment="Center"
+                    TextAlignment="Center"
+                    MaxWidth="300"
+                    TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>
+
