@@ -142,7 +142,13 @@ public partial class MainWindowViewModel : ObservableObject
             _studentGalleryViewModel.ShowMultipleStudents, 
             _studentGalleryViewModel.ShowSingleStudent, 
             _studentGalleryViewModel.ShowEmptyState);
-        
+        // If a single student (fullscreen card) is shown, exit to gallery grid
+        try
+        {
+            _studentGalleryViewModel.BackToGalleryCommand.Execute(null);
+        }
+        catch { }
+
         CurrentViewModel = _studentGalleryViewModel;
         
         Log.Information("Current ViewModel after navigation: {CurrentViewModel}", CurrentViewModel?.GetType().Name ?? "null");
@@ -169,7 +175,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         if (_classroomDownloadViewModel == null)
         {
-            _classroomDownloadViewModel = new ClassroomDownloadViewModel(_authService);
+            _classroomDownloadViewModel = new ClassroomDownloadViewModel(_authService, _studentGalleryViewModel);
         }
         else
         {

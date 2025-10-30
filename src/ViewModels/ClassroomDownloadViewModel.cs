@@ -23,6 +23,8 @@ public partial class ClassroomDownloadViewModel : ObservableObject
     private System.Threading.Timer? _autoSyncTimer;
     private readonly List<CourseWrapper> _autoSyncCourses = new();
     private readonly object _autoSyncLock = new();
+    private readonly StudentGalleryViewModel? _studentGalleryViewModel;
+    private readonly ImageDownloadService _imageDownloadService;
 
     [ObservableProperty]
     private ObservableCollection<CourseWrapper> _classrooms = new();
@@ -89,9 +91,11 @@ public partial class ClassroomDownloadViewModel : ObservableObject
     }
 
 
-    public ClassroomDownloadViewModel(GoogleAuthService authService)
+    public ClassroomDownloadViewModel(GoogleAuthService authService, StudentGalleryViewModel? studentGalleryViewModel = null)
     {
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _studentGalleryViewModel = studentGalleryViewModel;
+        _imageDownloadService = new ImageDownloadService();
 
         // Update status to show loaded folder path
         if (!string.IsNullOrEmpty(SelectedFolderPath) && SelectedFolderPath != Environment.GetFolderPath(Environment.SpecialFolder.Desktop))
@@ -282,11 +286,100 @@ public partial class ClassroomDownloadViewModel : ObservableObject
                 RefreshAllCourseFolderStatus();
             });
             Log.Information($"Successfully completed download for {courseWrapper.Course.Name}");
+            
+            // Automatically add students to the gallery
+            await ImportStudentsToGalleryAsync(courseWrapper.Course);
         }
         catch (Exception ex)
         {
             Dispatcher.UIThread.Post(() => StatusText = $"Error downloading assignments: {ex.Message}");
             Log.Error(ex, $"Error during download for {courseWrapper?.Course?.Name ?? "Unknown"}");
+        }
+    }
+
+    private async Task ImportStudentsToGalleryAsync(Course course)
+    {
+        if (_studentGalleryViewModel == null || _cachedClassroomService == null)
+        {
+            Log.Information("Student gallery or classroom service not available for import");
+            return;
+        }
+
+        try
+        {
+            Log.Information($"Importing students from {course.Name} to gallery...");
+            
+            // Fetch students from the classroom
+            var students = await _cachedClassroomService.GetStudentsInCourseAsync(course.Id);
+            
+            if (students.Count == 0)
+            {
+                Log.Information($"No students found in {course.Name}");
+                return;
+            }
+
+            // Convert to AddedStudentResult format and download profile images
+            var studentsToAdd = new List<AddStudentViewModel.AddedStudentResult>();
+            foreach (var student in students)
+            {
+                var studentName = student.Profile.Name.FullName ?? "Unknown";
+                var studentResult = new AddStudentViewModel.AddedStudentResult
+                {
+                    Name = studentName,
+                    Email = student.Profile.EmailAddress ?? string.Empty,
+                    ClassName = !string.IsNullOrEmpty(course.Section) 
+                        ? $"{course.Name} - {course.Section}" 
+                        : course.Name ?? "Unknown Class",
+                    Teachers = new List<string> { _authService.TeacherName },
+                    EnrollmentDate = DateTimeOffset.Now,
+                    PicturePath = string.Empty
+                };
+                
+                // Download profile image if available
+                var photoUrl = student.Profile.PhotoUrl;
+                if (!string.IsNullOrEmpty(photoUrl))
+                {
+                    try
+                    {
+                        // Handle URLs that start with "//" by adding "https:"
+                        if (photoUrl.StartsWith("//"))
+                        {
+                            photoUrl = "https:" + photoUrl;
+                        }
+                        
+                        var localPath = await _imageDownloadService.DownloadProfileImageAsync(
+                            photoUrl, 
+                            studentName);
+                        
+                        if (!string.IsNullOrEmpty(localPath))
+                        {
+                            studentResult.PicturePath = localPath;
+                            Log.Information($"Downloaded profile image for {studentName}: {localPath}");
+                        }
+                        else
+                        {
+                            Log.Warning($"Image download returned empty path for {studentName}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, $"Failed to download profile image for {studentName}");
+                    }
+                }
+                
+                studentsToAdd.Add(studentResult);
+            }
+
+            // Add students to the gallery (with duplicate checking)
+            await _studentGalleryViewModel.AddMultipleStudentsAsync(studentsToAdd);
+            
+            Log.Information($"Successfully imported {studentsToAdd.Count} students from {course.Name} to gallery");
+            Dispatcher.UIThread.Post(() => StatusText = $"Added {studentsToAdd.Count} students from {course.Name} to gallery.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, $"Error importing students from {course.Name} to gallery");
+            // Don't show error to user as this is a background operation
         }
     }
 

@@ -252,6 +252,18 @@ public partial class StudentGalleryViewModel : ObservableObject
         {
             SelectedStudent = student;
             ForceGridView = false;
+
+            // If assignments view is already open (embedded or detached), auto-view this student's assignments
+            try
+            {
+                var coordinator = Services.AssignmentViewCoordinator.Instance;
+                if (coordinator.IsDetached || coordinator.IsEmbedded)
+                {
+                    // Reuse existing flow
+                    _ = HandleViewAssignments(student);
+                }
+            }
+            catch { }
         }
     }
 
@@ -708,15 +720,15 @@ public partial class StudentGalleryViewModel : ObservableObject
         }
     }
 
-    public async Task UpdateExistingStudentAsync(Student student, string name, string className, List<string> teachers, string email, DateTime enrollmentDate, string picturePath)
+    public async Task UpdateExistingStudentAsync(Student student, string name, string className, List<string> teachers, string email, DateTime enrollmentDate, string picturePath, string? cropSettings = null, string? originalImagePath = null)
     {
         try
         {
-            UpdateStudentProperties(student, name, className, teachers, email, enrollmentDate, picturePath);
+            UpdateStudentProperties(student, name, className, teachers, email, enrollmentDate, picturePath, cropSettings, originalImagePath);
 
             var inAll = allStudents.FirstOrDefault(s => s.Id == student.Id);
             if (inAll != null && inAll != student)
-                UpdateStudentProperties(inAll, name, className, teachers, email, enrollmentDate, picturePath);
+                UpdateStudentProperties(inAll, name, className, teachers, email, enrollmentDate, picturePath, cropSettings, originalImagePath);
 
             await ApplySearchImmediate();
             await SaveAllStudentsToJson();
@@ -727,12 +739,28 @@ public partial class StudentGalleryViewModel : ObservableObject
         }
     }
 
-    private static void UpdateStudentProperties(Student student, string name, string className, List<string> teachers, string email, DateTime enrollmentDate, string picturePath)
+    private static void UpdateStudentProperties(Student student, string name, string className, List<string> teachers, string email, DateTime enrollmentDate, string picturePath, string? cropSettings = null, string? originalImagePath = null)
     {
+        // Clear image cache if the picture path changed
+        var oldPicturePath = student.PictureUrl;
+        if (!string.IsNullOrWhiteSpace(oldPicturePath) && oldPicturePath != picturePath)
+        {
+            UniversalImageConverter.ClearCache(oldPicturePath);
+        }
+        if (!string.IsNullOrWhiteSpace(picturePath))
+        {
+            UniversalImageConverter.ClearCache(picturePath);
+        }
+        
         student.Name = name;
         student.ClassName = className;
         student.Email = email;
         student.EnrollmentDate = enrollmentDate;
+        student.CropSettings = cropSettings;
+        student.OriginalImagePath = originalImagePath;
+        
+        // Force property change notification by temporarily clearing and setting the path
+        student.PictureUrl = "";
         student.PictureUrl = picturePath ?? string.Empty;
         
         student.ClearTeachers();
@@ -990,7 +1018,9 @@ public partial class StudentGalleryViewModel : ObservableObject
             student.Teachers.ToList(),
             student.Email,
             student.EnrollmentDate,
-            student.PictureUrl
+            student.PictureUrl,
+            student.CropSettings,
+            student.OriginalImagePath
         );
     }
 

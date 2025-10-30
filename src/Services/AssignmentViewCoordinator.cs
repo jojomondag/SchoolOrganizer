@@ -70,6 +70,11 @@ public class AssignmentViewCoordinator
     public bool IsAnyViewActive => _isEmbedded || _isDetached;
 
     /// <summary>
+    /// Returns the current detached window instance if it exists, else null.
+    /// </summary>
+    public AssignmentViewer? GetDetachedWindow() => _detachedWindow;
+
+    /// <summary>
     /// Gets or sets whether the user prefers embedded mode (true) or detached mode (false)
     /// </summary>
     public bool PreferEmbedded

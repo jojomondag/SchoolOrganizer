@@ -16,13 +16,104 @@
     <Grid RowDefinitions="Auto,*,Auto">
       <!-- Header -->
       <StackPanel Grid.Row="0" Margin="0,0,0,8">
-        <TextBlock Text="Add Student" FontSize="22" FontWeight="Light" Foreground="{DynamicResource TextPrimaryBrush}"/>
+        <TextBlock Text="{Binding IsEditMode, Converter={x:Static views:ParameterizedConverter.Instance}, ConverterParameter='Edit Student|Add Student'}" 
+                   FontSize="22" 
+                   FontWeight="Light" 
+                   Foreground="{DynamicResource TextPrimaryBrush}"/>
         <Rectangle Height="1" Fill="{DynamicResource BlackBrush}" Margin="0,6,0,0"/>
       </StackPanel>
 
       <!-- Content -->
       <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,-4,0">
         <StackPanel Spacing="12" Margin="0,0,12,0">
+          
+          <!-- Manual Entry Form -->
+          <StackPanel IsVisible="{Binding IsManualMode}">
+            <!-- Photo and Form Fields Section -->
+            <Grid ColumnDefinitions="Auto,24,*">
+              <!-- Profile Image -->
+              <StackPanel Grid.Column="0" Spacing="8" MinWidth="120" MaxWidth="140">
+                <components:ProfileImage x:Name="ProfileImage"
+                                               Width="110"
+                                               Height="110"
+                                               ImagePath="{Binding SelectedImagePath, Mode=TwoWay}"
+                                               IsClickable="True"/>
+                <TextBlock Text="Click to add photo" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+              </StackPanel>
+
+              <!-- All Form Fields -->
+              <StackPanel Grid.Column="2" Spacing="12">
+                <!-- Name and Email Fields (side by side) -->
+                <Grid ColumnDefinitions="*,20,*">
+                  <StackPanel Grid.Column="0">
+                    <TextBlock Text="Name *" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding StudentName}" Watermark="Enter full name" HorizontalAlignment="Stretch"/>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2">
+                    <TextBlock Text="Email" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding StudentEmail}" Watermark="student@example.com" HorizontalAlignment="Stretch"/>
+                  </StackPanel>
+                </Grid>
+
+                <!-- Class and Enrollment Date (side by side) -->
+                <Grid ColumnDefinitions="*,20,*">
+                  <StackPanel Grid.Column="0">
+                    <TextBlock Text="Class" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <ComboBox ItemsSource="{Binding AvailableClasses}" SelectedItem="{Binding SelectedClassName}" HorizontalAlignment="Stretch"/>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2">
+                    <TextBlock Text="Enrollment Date" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <DatePicker SelectedDate="{Binding EnrollmentDate}" HorizontalAlignment="Stretch"/>
+                  </StackPanel>
+                </Grid>
+
+                <!-- Teachers Section -->
+                <StackPanel>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="Teachers" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                    <Button Grid.Column="1" 
+                            Classes="secondary" 
+                            Padding="8,4" Margin="0,0,0,6"
+                            Click="OnAddTeacherClick">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <materialIcons:MaterialIcon Kind="Plus" Width="24" Height="24" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="Add Teacher" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+                  
+                  <!-- Selected Teachers List -->
+                  <ItemsControl ItemsSource="{Binding SelectedTeachers}" Margin="0,0,0,8">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="{DynamicResource BackgroundTertiaryBrush}" CornerRadius="4" Padding="8,4" Margin="3,2">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <Button Grid.Column="1" Content="×" FontSize="12" FontWeight="Bold"
+                                    Background="{DynamicResource TransparentColor}" BorderThickness="0" 
+                                    Foreground="{DynamicResource TextPrimaryBrush}" Padding="4,0"
+                                    Click="OnRemoveTeacherClick" Tag="{Binding}"
+                                    ToolTip.Tip="Remove teacher"/>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  
+                  <!-- Teacher Selection ComboBox (initially hidden) -->
+                  <ComboBox Name="TeacherBox" ItemsSource="{Binding AvailableTeachers}" 
+                            IsVisible="False" SelectionChanged="OnTeacherSelected" HorizontalAlignment="Stretch"/>
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
           
           <!-- Classroom Import Form -->
           <StackPanel IsVisible="{Binding IsClassroomMode}">
@@ -120,8 +211,9 @@
                       BorderThickness="1" 
                       CornerRadius="6" 
                       MinHeight="300"
-                      MaxHeight="600">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8,8,8,24">
+                      MaxHeight="600"
+                      ClipToBounds="False">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8,8,8,32">
                   <ItemsControl ItemsSource="{Binding GroupedClassroomStudents}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>

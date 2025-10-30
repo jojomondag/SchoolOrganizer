@@ -14,6 +14,7 @@ namespace SchoolOrganizer;
 
 public partial class App : Application
 {
+
     public override void Initialize()
     {
         // Initialize Serilog - show information and above in console, reduce file logging
@@ -64,25 +65,37 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
+    
+
     private void TrayIcon_Clicked(object? sender, EventArgs e)
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            if (desktop.MainWindow != null)
-            {
-                desktop.MainWindow.Show();
-                if (desktop.MainWindow.WindowState == WindowState.Minimized)
-                    desktop.MainWindow.WindowState = WindowState.Normal;
-                desktop.MainWindow.Activate();
-            }
+            var coordinator = SchoolOrganizer.Src.Services.AssignmentViewCoordinator.Instance;
+            var main = desktop.MainWindow;
+            var detached = coordinator.GetDetachedWindow();
 
-            // Also show detached assignment window if active
-            try
+            bool mainVisible = main?.IsVisible == true;
+            bool detachedVisible = coordinator.IsDetached && detached != null && detached.IsVisible;
+
+            // If both are visible → Hide both. Else → Show available windows.
+            if (mainVisible && detachedVisible)
             {
-                var coordinator = SchoolOrganizer.Src.Services.AssignmentViewCoordinator.Instance;
-                if (coordinator.IsDetached)
+                main?.Hide();
+                detached?.Hide();
+            }
+            else
+            {
+                if (main != null)
                 {
-                    var detached = coordinator.ActivateDetachedWindow();
+                    main.Show();
+                    if (main.WindowState == WindowState.Minimized)
+                        main.WindowState = WindowState.Normal;
+                    main.Activate();
+                }
+
+                if (coordinator.IsDetached && detached != null)
+                {
                     if (!detached.IsVisible)
                         detached.Show();
                     if (detached.WindowState == WindowState.Minimized)
@@ -90,7 +103,16 @@ public partial class App : Application
                     detached.Activate();
                 }
             }
-            catch { }
+
+            // Update the menu item header if the sender is the menu item
+            if (sender is Avalonia.Controls.NativeMenuItem menuItem)
+            {
+                // Re-evaluate visibility after action
+                mainVisible = desktop.MainWindow?.IsVisible == true;
+                detached = coordinator.GetDetachedWindow();
+                detachedVisible = coordinator.IsDetached && detached != null && detached.IsVisible;
+                menuItem.Header = (mainVisible && detachedVisible) ? "Hide" : "Show";
+            }
         }
     }
 

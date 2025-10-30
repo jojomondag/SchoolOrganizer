@@ -105,7 +105,7 @@ public partial class ImageCropView : UserControl
 
         if (_cropPreview != null)
         {
-            _cropPreview.BackClicked += (s, e) => ResetImageState();
+            _cropPreview.BackClicked += (s, e) => HandleCancel();
             _cropPreview.RotateLeftClicked += (s, e) => RotateImage(-90);
             _cropPreview.RotateRightClicked += (s, e) => RotateImage(90);
             _cropPreview.ResetClicked += (s, e) => { if (_currentBitmap != null) { UpdateCropSize(); UpdatePreview(); } };
@@ -149,8 +149,8 @@ public partial class ImageCropView : UserControl
 
     private void HandleCancel()
     {
-        // Only clear the image, don't close the entire crop view
         ResetImageState();
+        CancelRequested?.Invoke(this, EventArgs.Empty);
     }
     #endregion
 
@@ -271,10 +271,7 @@ public partial class ImageCropView : UserControl
     #region Image Loading
     private async Task OnImageAreaClicked()
     {
-        if (_currentBitmap == null)
-        {
-            await SelectImage();
-        }
+        await SelectImage();
     }
 
     private async Task SelectImage()

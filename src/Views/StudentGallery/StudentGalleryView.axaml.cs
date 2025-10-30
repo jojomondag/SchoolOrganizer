@@ -521,11 +521,14 @@ public partial class StudentGalleryView : UserControl
                 imageCropContainer.Child = imageCropView;
                 System.Diagnostics.Debug.WriteLine($"ImageCropView added to container");
 
-                // Load the image for the student
-                System.Diagnostics.Debug.WriteLine($"Calling LoadImageForStudentAsync with studentId: {student.Id}, originalPath: {student.OriginalImagePath}");
+                // Load the image for the student with fallback to PictureUrl when OriginalImagePath is missing
+                var originalPath = string.IsNullOrWhiteSpace(student.OriginalImagePath) && !string.IsNullOrWhiteSpace(student.PictureUrl) && System.IO.File.Exists(student.PictureUrl)
+                    ? student.PictureUrl
+                    : student.OriginalImagePath;
+                System.Diagnostics.Debug.WriteLine($"Calling LoadImageForStudentAsync with studentId: {student.Id}, originalPath: {originalPath}");
                 await imageCropView.LoadImageForStudentAsync(
                     student.Id,
-                    student.OriginalImagePath,
+                    originalPath,
                     student.CropSettings
                 );
                 System.Diagnostics.Debug.WriteLine($"LoadImageForStudentAsync completed");

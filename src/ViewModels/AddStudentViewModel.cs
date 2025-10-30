@@ -29,6 +29,9 @@ public partial class AddStudentViewModel : ObservableObject
 
     // Mode switching
     [ObservableProperty]
+    private bool isManualMode = false;
+
+    [ObservableProperty]
     private bool isClassroomMode = true;
 
     [ObservableProperty]
@@ -87,7 +90,7 @@ public partial class AddStudentViewModel : ObservableObject
         {
             if (IsEditMode)
                 return "Save Changes";
-            return "Import Selected Students";
+            return IsManualMode ? "Add Student" : "Import Selected Students";
         }
     }
 
@@ -128,8 +131,16 @@ public partial class AddStudentViewModel : ObservableObject
 
     // Commands for mode switching
     [RelayCommand]
+    private void SwitchToManualMode()
+    {
+        IsManualMode = true;
+        IsClassroomMode = false;
+    }
+
+    [RelayCommand]
     private void SwitchToClassroomMode()
     {
+        IsManualMode = false;
         IsClassroomMode = true;
         
         // Ensure classrooms are loaded when switching to classroom mode
@@ -142,7 +153,36 @@ public partial class AddStudentViewModel : ObservableObject
     [RelayCommand]
     private async Task AddStudent()
     {
-        await ImportFromClassroom();
+        if (IsManualMode)
+        {
+            if (string.IsNullOrWhiteSpace(StudentName))
+            {
+                ValidationText = "Name is required";
+                return;
+            }
+
+            var result = new AddedStudentResult
+            {
+                Name = StudentName,
+                ClassName = SelectedClassName,
+                Teachers = new List<string>(SelectedTeachers),
+                Email = StudentEmail,
+                EnrollmentDate = EnrollmentDate,
+                PicturePath = SelectedImagePath
+            };
+
+            StudentAdded?.Invoke(this, result);
+        }
+        else
+        {
+            await ImportFromClassroom();
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveTeacher(string teacher)
+    {
+        SelectedTeachers.Remove(teacher);
     }
 
     [RelayCommand]
@@ -155,13 +195,6 @@ public partial class AddStudentViewModel : ObservableObject
     private void Cancel()
     {
         Cancelled?.Invoke(this, EventArgs.Empty);
-    }
-
-
-    [RelayCommand]
-    private void RemoveTeacher(string teacher)
-    {
-        SelectedTeachers.Remove(teacher);
     }
 
     [RelayCommand]
@@ -415,6 +448,7 @@ public partial class AddStudentViewModel : ObservableObject
     public void InitializeForEdit(SchoolOrganizer.Src.Models.Students.Student student)
     {
         IsEditMode = true;
+        SwitchToManualMode(); // Always use manual mode for editing
         StudentName = student.Name;
         SelectedClassName = student.ClassName;
         
@@ -454,7 +488,7 @@ public partial class AddStudentViewModel : ObservableObject
         {
             OnPropertyChanged(nameof(IsImageMissing));
         }
-        else if (e.PropertyName == nameof(IsClassroomMode) || e.PropertyName == nameof(IsEditMode))
+        else if (e.PropertyName == nameof(IsManualMode) || e.PropertyName == nameof(IsClassroomMode) || e.PropertyName == nameof(IsEditMode))
         {
             OnPropertyChanged(nameof(PrimaryButtonText));
         }
