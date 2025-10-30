@@ -269,7 +269,7 @@
 
         <SplitView.Content>
             <!-- Main Content Area -->
-            <Border Background="White">
+            <Border Background="{DynamicResource BackgroundTertiaryBrush}">
             <ContentControl Content="{Binding CurrentViewModel}">
                 <ContentControl.DataTemplates>
                 <!-- Template for StudentGalleryViewModel -->

@@ -14,7 +14,7 @@
         <converters:ParameterizedConverter x:Key="ParameterizedConverter"/>
     </UserControl.Resources>
 
-    <Grid Background="Transparent">
+    <Grid Background="{DynamicResource BackgroundTertiaryBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />

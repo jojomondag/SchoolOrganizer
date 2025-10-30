@@ -13,7 +13,7 @@
     <vm:StudentDetailViewModel/>
   </Design.DataContext>
 
-  <Grid RowDefinitions="Auto,*">
+  <Grid RowDefinitions="Auto,*" Background="{DynamicResource BackgroundTertiaryBrush}">
     <!-- Header Bar with Student Name and Detach Button -->
     <Border Grid.Row="0" 
             Background="{DynamicResource HeaderBackgroundBrush}"
