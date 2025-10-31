@@ -24,20 +24,46 @@
       <!-- File Header -->
       <StackPanel Grid.Row="0" Margin="15,15,15,10">
         <Border Background="{DynamicResource AssignmentFileHeaderBrush}" CornerRadius="6">
-        <Grid Margin="0,0,0,5">
+        <Grid Margin="0">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
           </Grid.ColumnDefinitions>
           
-          <!-- Left side: Folder button + File name -->
+          <!-- Left side: Expand/Collapse + Folder button + File name -->
           <Grid Grid.Column="0">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+            <!-- File expand/collapse chevron -->
             <Button Grid.Column="0"
+                    x:Name="MaximizerButton"
+                    Padding="4"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    CornerRadius="4"
+                    Click="OnMaximizerClick"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,6,0">
+              <Button.IsVisible>
+                <MultiBinding Converter="{x:Static converters:OrConverter.Instance}">
+                  <Binding Path="IsCode"/>
+                  <Binding Path="IsText"/>
+                </MultiBinding>
+              </Button.IsVisible>
+              <materialIcons:MaterialIcon x:Name="MaximizerIcon"
+                                         Kind="{Binding IsExpanded, Converter={StaticResource ParameterizedConverter}, ConverterParameter=ExpandLess|ExpandMore}" 
+                                         Width="18" 
+                                         Height="18"
+                                         Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </Button>
+
+            <!-- Open containing folder -->
+            <Button Grid.Column="1"
                     Padding="4"
                     Background="Transparent"
                     BorderThickness="0"
@@ -53,7 +79,7 @@
                                            Height="18"
                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
             </Button>
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
               <TextBlock Text="{Binding FileName}" 
                          FontWeight="Bold" 
                          FontSize="14"
@@ -66,29 +92,7 @@
             </StackPanel>
           </Grid>
           
-          <!-- Center: Expand/Collapse Button (for code/text files) -->
-          <Button Grid.Column="1"
-                  x:Name="MaximizerButton"
-                  Padding="4"
-                  Background="Transparent"
-                  BorderThickness="0"
-                  CornerRadius="4"
-                  Click="OnMaximizerClick"
-                  VerticalAlignment="Center"
-                  HorizontalAlignment="Center"
-                  Margin="10,0,10,0">
-              <Button.IsVisible>
-                <MultiBinding Converter="{x:Static converters:OrConverter.Instance}">
-                  <Binding Path="IsCode"/>
-                  <Binding Path="IsText"/>
-                </MultiBinding>
-              </Button.IsVisible>
-              <materialIcons:MaterialIcon x:Name="MaximizerIcon"
-                                         Kind="{Binding IsExpanded, Converter={StaticResource ParameterizedConverter}, ConverterParameter=ExpandLess|ExpandMore}" 
-                                         Width="18" 
-                                         Height="18"
-                                         Foreground="{DynamicResource TextSecondaryBrush}"/>
-          </Button>
+          <!-- Center column left empty to keep right-side layout balanced -->
           
           <!-- Right side: Last modified date -->
           <TextBlock Grid.Column="2" 
