@@ -58,6 +58,7 @@
     <Grid Grid.Row="1">
       <!-- Show the assignment control when student is loaded -->
       <local:AssignmentViewControl x:Name="AssignmentControl"
+                                   DataContext="{Binding}"
                                    ShowInternalSidebar="False"
                                    IsVisible="{Binding StudentName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
       

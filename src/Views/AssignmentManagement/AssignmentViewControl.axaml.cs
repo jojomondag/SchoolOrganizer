@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
@@ -280,57 +281,233 @@ public partial class AssignmentViewControl : UserControl
     /// </summary>
     private void OnAssignmentClick(object sender, RoutedEventArgs e)
     {
+        Log.Information("OnAssignmentClick called - Sender: {SenderType}", sender?.GetType().Name);
+        ToggleAssignmentExpansion(sender);
+    }
+
+    /// <summary>
+    /// Handles assignment navigation button pointer pressed events (fallback if Click doesn't work)
+    /// </summary>
+    private void OnAssignmentPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        Log.Information("OnAssignmentPointerPressed called - Sender: {SenderType}", sender?.GetType().Name);
+        
+        // Only handle left mouse button clicks
+        if (sender is Visual visual && e.GetCurrentPoint(visual).Properties.IsLeftButtonPressed)
+        {
+            ToggleAssignmentExpansion(sender);
+            e.Handled = true; // Prevent event bubbling
+        }
+    }
+
+    /// <summary>
+    /// Common logic to toggle assignment expansion
+    /// </summary>
+    private void ToggleAssignmentExpansion(object? sender)
+    {
         try
         {
-            Log.Information("OnAssignmentClick called - Sender: {SenderType}, Tag: {Tag}",
-                sender?.GetType().Name, (sender as Button)?.Tag);
+            Log.Information("ToggleAssignmentExpansion called - Sender: {SenderType}", sender?.GetType().Name);
 
-            if (sender is Button button && button.Tag is string assignmentName)
+            if (sender is not Button button)
             {
-                if (DataContext is not StudentDetailViewModel viewModel)
-                {
-                    Log.Warning("OnAssignmentClick - DataContext is not StudentDetailViewModel");
-                    return;
-                }
+                Log.Warning("ToggleAssignmentExpansion - Invalid sender. Sender: {SenderType}",
+                    sender?.GetType().Name);
+                return;
+            }
 
-                // Find the assignment group
-                var assignmentGroup = viewModel.AllFilesGrouped.FirstOrDefault(ag => ag.AssignmentName == assignmentName);
-                if (assignmentGroup == null)
-                {
-                    Log.Warning("OnAssignmentClick - Assignment not found: {AssignmentName}", assignmentName);
-                    return;
-                }
-
-                // Collapse all other assignments
-                foreach (var group in viewModel.AllFilesGrouped)
-                {
-                    if (group.AssignmentName != assignmentName)
-                    {
-                        group.IsExpanded = false;
-                    }
-                }
-
-                // Toggle the clicked assignment (expand if collapsed, collapse if expanded)
-                assignmentGroup.IsExpanded = !assignmentGroup.IsExpanded;
-
-                Log.Information("Toggled assignment {AssignmentName} - IsExpanded: {IsExpanded}",
-                    assignmentName, assignmentGroup.IsExpanded);
-
-                // Scroll to the assignment after a small delay to ensure UI has updated
-                Dispatcher.UIThread.Post(() =>
-                {
-                    ScrollToAssignment(assignmentName);
-                }, DispatcherPriority.Loaded);
+            // The button's DataContext is the AssignmentGroup instance from the DataTemplate
+            // Since both ItemsControls bind to the same AllFilesGrouped collection,
+            // modifying this instance will update both views
+            AssignmentGroup? assignmentGroup = null;
+            
+            if (button.DataContext is AssignmentGroup directAssignmentGroup)
+            {
+                assignmentGroup = directAssignmentGroup;
             }
             else
             {
-                Log.Warning("OnAssignmentClick - Invalid sender or DataContext. Sender: {SenderType}, DataContext: {DataContextType}",
-                    sender?.GetType().Name, DataContext?.GetType().Name);
+                Log.Warning("ToggleAssignmentExpansion - Button DataContext is not AssignmentGroup. DataContext: {DataContextType}, Tag: {Tag}",
+                    button.DataContext?.GetType().Name ?? "null", button.Tag?.ToString() ?? "null");
+                
+                // Fallback: try to get from Tag
+                if (button.Tag is string tagAssignmentName && DataContext is StudentDetailViewModel fallbackViewModel)
+                {
+                    assignmentGroup = fallbackViewModel.AllFilesGrouped.FirstOrDefault(ag => ag.AssignmentName == tagAssignmentName);
+                    if (assignmentGroup == null)
+                    {
+                        Log.Warning("ToggleAssignmentExpansion - Assignment not found in AllFilesGrouped: {AssignmentName}", tagAssignmentName);
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            var assignmentName = assignmentGroup.AssignmentName;
+            var currentExpanded = assignmentGroup.IsExpanded;
+
+            Log.Information("ToggleAssignmentExpansion - Assignment: {AssignmentName}, Current IsExpanded: {IsExpanded}",
+                assignmentName, currentExpanded);
+
+            if (DataContext is not StudentDetailViewModel viewModel)
+            {
+                Log.Warning("ToggleAssignmentExpansion - Control DataContext is not StudentDetailViewModel");
+                return;
+            }
+
+            // Ensure navigation sidebar is open so user can see which assignment they clicked
+            if (!viewModel.IsNavigationOpen)
+            {
+                viewModel.IsNavigationOpen = true;
+            }
+
+            // Implement accordion behavior: if expanding, collapse all other assignments
+            if (!currentExpanded)
+            {
+                // Collapse all other assignments
+                if (viewModel.AllFilesGrouped != null)
+                {
+                    foreach (var otherGroup in viewModel.AllFilesGrouped)
+                    {
+                        if (otherGroup != assignmentGroup && otherGroup.IsExpanded)
+                        {
+                            otherGroup.IsExpanded = false;
+                            Log.Information("ToggleAssignmentExpansion - Collapsed other assignment: {AssignmentName}", otherGroup.AssignmentName);
+                        }
+                    }
+                }
+                
+                // Expand this assignment and auto-expand all its files
+                assignmentGroup.IsExpanded = true;
+                foreach (var file in assignmentGroup.Files)
+                {
+                    // Auto-expand files that have code or text content
+                    if (file.IsCode || file.IsText)
+                    {
+                        file.IsExpanded = true;
+                    }
+                }
+                
+                Log.Information("ToggleAssignmentExpansion - Expanded assignment: {AssignmentName} and auto-expanded {FileCount} files", 
+                    assignmentName, assignmentGroup.Files.Count(f => f.IsCode || f.IsText));
+            }
+            else
+            {
+                // Collapse this assignment
+                assignmentGroup.IsExpanded = false;
+                Log.Information("ToggleAssignmentExpansion - Collapsed assignment: {AssignmentName}", assignmentName);
+            }
+
+            // Scroll to the assignment after a short delay to allow layout to update
+            // Only scroll if expanding (if collapsing, we don't need to scroll)
+            if (assignmentGroup.IsExpanded)
+            {
+                _ = Task.Delay(100).ContinueWith(_ =>
+                {
+                    Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        ScrollToAssignmentAtTop(assignmentName);
+                    });
+                });
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Error handling assignment click - Sender: {SenderType}", sender?.GetType().Name);
+            Log.Error(ex, "Error toggling assignment expansion - Sender: {SenderType}", sender?.GetType().Name);
+        }
+    }
+
+    /// <summary>
+    /// Scrolls to a specific assignment and positions it at the top of the viewport
+    /// </summary>
+    private void ScrollToAssignmentAtTop(string assignmentName)
+    {
+        try
+        {
+            Log.Information("Scrolling to assignment at top: {AssignmentName}", assignmentName);
+
+            var mainScrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
+            if (mainScrollViewer == null)
+            {
+                Log.Warning("MainScrollViewer not found");
+                return;
+            }
+
+            // Find the assignment header with this name
+            var headers = mainScrollViewer.GetVisualDescendants()
+                .OfType<Border>()
+                .Where(b => b.Name == "AssignmentHeaderBorder")
+                .ToList();
+
+            var targetHeader = headers.FirstOrDefault(h =>
+                h.DataContext is AssignmentGroup ag && ag.AssignmentName == assignmentName);
+
+            if (targetHeader == null)
+            {
+                Log.Warning("Assignment header not found: {AssignmentName}", assignmentName);
+                return;
+            }
+
+            // Wait for layout to update before scrolling
+            EventHandler? layoutHandler = null;
+            var startTime = DateTime.Now;
+
+            layoutHandler = (s, e) =>
+            {
+                // Timeout protection
+                if ((DateTime.Now - startTime).TotalMilliseconds > 2000)
+                {
+                    mainScrollViewer.LayoutUpdated -= layoutHandler;
+                    Log.Warning("Layout update timeout, aborting scroll");
+                    return;
+                }
+
+                // Unsubscribe immediately to run only once
+                mainScrollViewer.LayoutUpdated -= layoutHandler;
+
+                // Find the ItemsControl container
+                var itemsControl = mainScrollViewer.GetVisualDescendants().OfType<ItemsControl>().FirstOrDefault();
+                if (itemsControl == null)
+                {
+                    Log.Warning("Could not find ItemsControl");
+                    return;
+                }
+
+                // Calculate the absolute position of the header relative to the ItemsControl
+                var absolutePoint = targetHeader.TranslatePoint(new Point(0, 0), itemsControl);
+                if (absolutePoint.HasValue)
+                {
+                    var targetY = absolutePoint.Value.Y;
+
+                    // Calculate max scroll position
+                    var extent = mainScrollViewer.Extent;
+                    var viewport = mainScrollViewer.Viewport;
+                    var maxScrollY = Math.Max(0, extent.Height - viewport.Height);
+
+                    // Scroll to position the header at the top
+                    var optimalY = Math.Min(targetY, maxScrollY);
+                    var currentOffset = mainScrollViewer.Offset;
+
+                    mainScrollViewer.Offset = new Vector(currentOffset.X, optimalY);
+
+                    Log.Information("Scrolled to assignment {AssignmentName} at top (Y: {Y})", assignmentName, optimalY);
+                }
+                else
+                {
+                    Log.Warning("Could not calculate position for assignment header");
+                    // Fallback to BringIntoView
+                    targetHeader.BringIntoView(new Rect(0, 0, 100, 100));
+                }
+            };
+
+            mainScrollViewer.LayoutUpdated += layoutHandler;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error scrolling to assignment at top: {AssignmentName}", assignmentName);
         }
     }
 
@@ -386,11 +563,37 @@ public partial class AssignmentViewControl : UserControl
                 return;
             }
 
-            // Toggle the expanded state
-            assignmentGroup.IsExpanded = !assignmentGroup.IsExpanded;
+            if (DataContext is not StudentDetailViewModel viewModel)
+            {
+                Log.Warning("OnAssignmentHeaderClick - DataContext is not StudentDetailViewModel");
+                return;
+            }
 
-            Log.Information("Toggled expansion for assignment {AssignmentName} - IsExpanded: {IsExpanded}",
-                assignmentGroup.AssignmentName, assignmentGroup.IsExpanded);
+            // Toggle this assignment (allow multiple assignments to be expanded in main view)
+            var currentExpanded = assignmentGroup.IsExpanded;
+            
+            if (!currentExpanded)
+            {
+                // Expand this assignment and auto-expand all its files
+                assignmentGroup.IsExpanded = true;
+                foreach (var file in assignmentGroup.Files)
+                {
+                    // Auto-expand files that have code or text content
+                    if (file.IsCode || file.IsText)
+                    {
+                        file.IsExpanded = true;
+                    }
+                }
+                
+                Log.Information("OnAssignmentHeaderClick - Expanded assignment: {AssignmentName} and auto-expanded {FileCount} files", 
+                    assignmentGroup.AssignmentName, assignmentGroup.Files.Count(f => f.IsCode || f.IsText));
+            }
+            else
+            {
+                // Collapse this assignment
+                assignmentGroup.IsExpanded = false;
+                Log.Information("OnAssignmentHeaderClick - Collapsed assignment: {AssignmentName}", assignmentGroup.AssignmentName);
+            }
         }
         catch (Exception ex)
         {
@@ -399,100 +602,102 @@ public partial class AssignmentViewControl : UserControl
     }
 
     /// <summary>
-    /// Public method to scroll to a specific assignment by name
+    /// Public method to scroll to a specific assignment by name and toggle its expansion
     /// </summary>
     public void ScrollToAssignment(string assignmentName)
     {
         try
         {
-            Log.Information("Scrolling to assignment: {AssignmentName}", assignmentName);
+            Log.Information("ScrollToAssignment called for: {AssignmentName}", assignmentName);
 
-            // Find the assignment header with this name and scroll to it
-            var mainScrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
-            if (mainScrollViewer != null)
+            // Wait a moment for DataContext to be set if it's not already
+            StudentDetailViewModel? viewModel = null;
+            
+            if (DataContext is StudentDetailViewModel directVM)
             {
-                // Find all assignment headers
-                var headers = mainScrollViewer.GetVisualDescendants()
-                    .OfType<Border>()
-                    .Where(b => b.Name == "AssignmentHeaderBorder")
-                    .ToList();
-
-                // Find the one with matching assignment name in its DataContext
-                var targetHeader = headers.FirstOrDefault(h =>
-                    h.DataContext is AssignmentGroup ag && ag.AssignmentName == assignmentName);
-
-                if (targetHeader != null)
+                viewModel = directVM;
+            }
+            else
+            {
+                Log.Warning("ScrollToAssignment - DataContext is not StudentDetailViewModel. DataContext type: {Type}", 
+                    DataContext?.GetType().Name ?? "null");
+                
+                // Try to get DataContext from parent
+                var parent = this.GetVisualParent();
+                while (parent != null && viewModel == null)
                 {
-                    // Use LayoutUpdated to ensure the layout is ready before scrolling
-                    EventHandler? layoutHandler = null;
-                    var startTime = DateTime.Now;
-                    
-                    layoutHandler = (s, e) =>
+                    if (parent.DataContext is StudentDetailViewModel parentVM)
                     {
-                        // Timeout protection
-                        if ((DateTime.Now - startTime).TotalMilliseconds > 1000)
-                        {
-                            mainScrollViewer.LayoutUpdated -= layoutHandler;
-                            Log.Warning("Layout update timeout, aborting scroll");
-                            return;
-                        }
-                        
-                        // Unsubscribe immediately to run only once
-                        mainScrollViewer.LayoutUpdated -= layoutHandler;
-                        
-                        // Find the ItemsControl that contains the assignments
-                        var itemsControl = mainScrollViewer.GetVisualDescendants()
-                            .OfType<ItemsControl>()
-                            .FirstOrDefault();
-                        
-                        if (itemsControl != null)
-                        {
-                            // Calculate the absolute position of the header relative to the ItemsControl
-                            var absolutePoint = targetHeader.TranslatePoint(new Point(0, 0), itemsControl);
-                            
-                            if (absolutePoint.HasValue)
-                            {
-                                var targetY = absolutePoint.Value.Y;
-                                
-                                // Calculate the optimal scroll position to show the header at the top
-                                var extent = mainScrollViewer.Extent;
-                                var viewport = mainScrollViewer.Viewport;
-                                var maxScrollY = Math.Max(0, extent.Height - viewport.Height);
-                                var optimalY = Math.Min(targetY, maxScrollY);
-                                
-                                // Get current offset for X coordinate (keep horizontal scroll unchanged)
-                                var currentOffset = mainScrollViewer.Offset;
-                                
-                                // Scroll to position the assignment header at the top of the viewport
-                                mainScrollViewer.Offset = new Vector(currentOffset.X, optimalY);
-                                
-                                Log.Information("Scrolled to assignment: {AssignmentName} at Y: {Y}", assignmentName, optimalY);
-                            }
-                            else
-                            {
-                                // Fallback to BringIntoView
-                                targetHeader.BringIntoView(new Rect(0, 0, 100, 100));
-                                Log.Information("Used BringIntoView fallback for assignment: {AssignmentName}", assignmentName);
-                            }
-                        }
-                        else
-                        {
-                            // Fallback to BringIntoView
-                            targetHeader.BringIntoView(new Rect(0, 0, 100, 100));
-                            Log.Information("ItemsControl not found, used BringIntoView fallback for assignment: {AssignmentName}", assignmentName);
-                        }
-                    };
-                    
-                    mainScrollViewer.LayoutUpdated += layoutHandler;
-                    
-                    // Also try immediate scroll as a fallback
-                    targetHeader.BringIntoView(new Rect(0, 0, 100, 100));
+                        viewModel = parentVM;
+                        Log.Information("ScrollToAssignment - Found StudentDetailViewModel in parent: {ParentType}", parent.GetType().Name);
+                        break;
+                    }
+                    parent = parent.GetVisualParent();
                 }
-                else
+                
+                if (viewModel == null)
                 {
-                    Log.Warning("Assignment header not found: {AssignmentName}", assignmentName);
+                    Log.Error("ScrollToAssignment - Could not find StudentDetailViewModel in DataContext or parent hierarchy");
+                    return;
                 }
             }
+
+            // Find the assignment group and toggle its expansion
+            var assignmentGroup = viewModel.AllFilesGrouped?.FirstOrDefault(ag => ag.AssignmentName == assignmentName);
+            if (assignmentGroup == null)
+            {
+                Log.Warning("ScrollToAssignment - Assignment not found: {AssignmentName}. Total assignments: {Count}", 
+                    assignmentName, viewModel.AllFilesGrouped?.Count ?? 0);
+                return;
+            }
+
+            // Implement accordion behavior: if expanding, collapse all other assignments
+            var wasExpanded = assignmentGroup.IsExpanded;
+            
+            if (!wasExpanded)
+            {
+                // Collapse all other assignments
+                if (viewModel.AllFilesGrouped != null)
+                {
+                    foreach (var otherGroup in viewModel.AllFilesGrouped)
+                    {
+                        if (otherGroup != assignmentGroup && otherGroup.IsExpanded)
+                        {
+                            otherGroup.IsExpanded = false;
+                            Log.Information("ScrollToAssignment - Collapsed other assignment: {AssignmentName}", otherGroup.AssignmentName);
+                        }
+                    }
+                }
+                
+                // Expand this assignment and auto-expand all its files
+                assignmentGroup.IsExpanded = true;
+                foreach (var file in assignmentGroup.Files)
+                {
+                    // Auto-expand files that have code or text content
+                    if (file.IsCode || file.IsText)
+                    {
+                        file.IsExpanded = true;
+                    }
+                }
+                
+                Log.Information("ScrollToAssignment - Expanded assignment: {AssignmentName} and auto-expanded {FileCount} files", 
+                    assignmentName, assignmentGroup.Files.Count(f => f.IsCode || f.IsText));
+            }
+            else
+            {
+                // Collapse this assignment
+                assignmentGroup.IsExpanded = false;
+                Log.Information("ScrollToAssignment - Collapsed assignment: {AssignmentName}", assignmentName);
+            }
+
+            // Scroll to the assignment after a short delay to allow layout to update
+            _ = Task.Delay(100).ContinueWith(_ =>
+            {
+                Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    ScrollToAssignmentAtTop(assignmentName);
+                });
+            });
         }
         catch (Exception ex)
         {

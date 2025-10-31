@@ -24,6 +24,7 @@ public class StudentFile : INotifyPropertyChanged
     private string _googleDocUrl = string.Empty;
     private string _googleDocEmbedUrl = string.Empty;
     private bool _showEmbeddedGoogleDoc = true;
+    private bool _isExpanded = false; // Default to collapsed state
 
     public string FileName { get; set; } = string.Empty;
     public string FilePath { get; set; } = string.Empty;
@@ -161,6 +162,19 @@ public class StudentFile : INotifyPropertyChanged
         {
             _showEmbeddedGoogleDoc = value;
             OnPropertyChanged();
+        }
+    }
+
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (_isExpanded != value)
+            {
+                _isExpanded = value;
+                OnPropertyChanged();
+            }
         }
     }
 

@@ -4,8 +4,13 @@
              xmlns:controls="using:SchoolOrganizer.Src.Controls"
              xmlns:components="using:SchoolOrganizer.Src.Views.Components"
              xmlns:models="using:SchoolOrganizer.Src.Models.Assignments"
+             xmlns:converters="using:SchoolOrganizer.Src.Converters"
              x:Class="SchoolOrganizer.Src.Views.Components.FilePreviewControl"
              x:DataType="models:StudentFile">
+
+  <UserControl.Resources>
+    <converters:ParameterizedConverter x:Key="ParameterizedConverter"/>
+  </UserControl.Resources>
 
   <Border Background="{DynamicResource BackgroundSecondaryBrush}" 
           Margin="0,0,0,0" 
@@ -62,7 +67,7 @@
                      VerticalAlignment="Center" 
                      Margin="10,0,5,0"/>
           
-          <!-- Maximizer Button -->
+          <!-- Expand/Collapse Button (for code/text files) -->
           <Button Grid.Column="3"
                   x:Name="MaximizerButton"
                   Padding="4"
@@ -70,8 +75,6 @@
                   BorderThickness="0"
                   CornerRadius="4"
                   Click="OnMaximizerClick"
-                  PointerEntered="OnMaximizerButtonPointerEntered"
-                  PointerExited="OnMaximizerButtonPointerExited"
                   VerticalAlignment="Center"
                   Margin="0,0,0,0">
               <materialIcons:MaterialIcon x:Name="MaximizerIcon"
@@ -88,9 +91,16 @@
                     x:Name="ContentScrollViewer"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Auto"
-                    MaxHeight="400"
                     Margin="0,0,0,0"
                     Padding="0">
+              <ScrollViewer.MaxHeight>
+                <Binding Path="IsExpanded">
+                  <Binding.Converter>
+                    <converters:ParameterizedConverter/>
+                  </Binding.Converter>
+                  <Binding.ConverterParameter>Infinity|400</Binding.ConverterParameter>
+                </Binding>
+              </ScrollViewer.MaxHeight>
           <Grid>
             <!-- Google Docs Viewer (Highest Priority) -->
             <components:GoogleDocsViewer IsVisible="{Binding IsGoogleDoc}"/>
@@ -137,8 +147,16 @@
                 CodeContent="{Binding CodeContent}"
                 FileExtension="{Binding FileExtension}"
                 IsVisible="{Binding IsCode}"
-                MaxHeight="300"
-                HorizontalAlignment="Stretch"/>
+                HorizontalAlignment="Stretch">
+              <controls:SyntaxHighlightedCodeViewer.MaxHeight>
+                <Binding Path="IsExpanded">
+                  <Binding.Converter>
+                    <converters:ParameterizedConverter/>
+                  </Binding.Converter>
+                  <Binding.ConverterParameter>Infinity|300</Binding.ConverterParameter>
+                </Binding>
+              </controls:SyntaxHighlightedCodeViewer.MaxHeight>
+            </controls:SyntaxHighlightedCodeViewer>
 
             <!-- Text Content -->
             <TextBlock Text="{Binding TextContent}"
@@ -146,9 +164,24 @@
                        FontSize="12"
                        TextWrapping="Wrap"
                        IsVisible="{Binding IsText}"
-                       MaxHeight="300"
-                       TextTrimming="CharacterEllipsis"
-                       HorizontalAlignment="Stretch"/>
+                       HorizontalAlignment="Stretch">
+              <TextBlock.MaxHeight>
+                <Binding Path="IsExpanded">
+                  <Binding.Converter>
+                    <converters:ParameterizedConverter/>
+                  </Binding.Converter>
+                  <Binding.ConverterParameter>Infinity|300</Binding.ConverterParameter>
+                </Binding>
+              </TextBlock.MaxHeight>
+              <TextBlock.TextTrimming>
+                <Binding Path="IsExpanded">
+                  <Binding.Converter>
+                    <converters:ParameterizedConverter/>
+                  </Binding.Converter>
+                  <Binding.ConverterParameter>None|CharacterEllipsis</Binding.ConverterParameter>
+                </Binding>
+              </TextBlock.TextTrimming>
+            </TextBlock>
 
             <!-- Binary/Unsupported Content (Lowest Priority - Fallback) -->
             <StackPanel IsVisible="{Binding IsBinary}"

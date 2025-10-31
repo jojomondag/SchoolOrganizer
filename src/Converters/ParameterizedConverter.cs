@@ -70,6 +70,33 @@ public class ParameterizedConverter : IValueConverter
                 return iconKind;
         }
 
+        // Handle TextTrimming struct (not an enum)
+        if (targetType == typeof(Avalonia.Media.TextTrimming))
+        {
+            return value.ToLowerInvariant() switch
+            {
+                "none" => Avalonia.Media.TextTrimming.None,
+                "characterellipsis" => Avalonia.Media.TextTrimming.CharacterEllipsis,
+                "wordellipsis" => Avalonia.Media.TextTrimming.WordEllipsis,
+                "prefixcharacterellipsis" => Avalonia.Media.TextTrimming.PrefixCharacterEllipsis,
+                _ => Avalonia.Media.TextTrimming.None
+            };
+        }
+        else if (targetType.IsGenericType && 
+                 targetType.GetGenericTypeDefinition() == typeof(Nullable<>) &&
+                 targetType.GetGenericArguments()[0] == typeof(Avalonia.Media.TextTrimming))
+        {
+            var trimming = value.ToLowerInvariant() switch
+            {
+                "none" => Avalonia.Media.TextTrimming.None,
+                "characterellipsis" => Avalonia.Media.TextTrimming.CharacterEllipsis,
+                "wordellipsis" => Avalonia.Media.TextTrimming.WordEllipsis,
+                "prefixcharacterellipsis" => Avalonia.Media.TextTrimming.PrefixCharacterEllipsis,
+                _ => Avalonia.Media.TextTrimming.None
+            };
+            return (Avalonia.Media.TextTrimming?)trimming;
+        }
+
         // Handle Colors and SolidColorBrush
         if (targetType == typeof(SolidColorBrush) || targetType == typeof(IBrush))
         {
@@ -116,8 +143,14 @@ public class ParameterizedConverter : IValueConverter
 
         if (targetType == typeof(double) || targetType == typeof(double?))
         {
+            // Handle special "Infinity" value
+            if (string.Equals(value, "Infinity", StringComparison.OrdinalIgnoreCase))
+            {
+                return targetType == typeof(double?) ? (double?)double.PositiveInfinity : double.PositiveInfinity;
+            }
+            
             if (double.TryParse(value, out var doubleValue))
-                return doubleValue;
+                return targetType == typeof(double?) ? (double?)doubleValue : doubleValue;
         }
 
         // Handle boolean

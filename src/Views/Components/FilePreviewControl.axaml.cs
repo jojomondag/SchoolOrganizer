@@ -84,53 +84,12 @@ public partial class FilePreviewControl : UserControl
 
     private void OnMaximizerClick(object? sender, RoutedEventArgs e)
     {
-        Serilog.Log.Information("FilePreviewControl.OnMaximizerClick called");
-        
-        if (sender is Button button)
+        // Toggle IsExpanded for code/text files to show/hide full content
+        if (DataContext is StudentFile file && (file.IsCode || file.IsText))
         {
-            Serilog.Log.Information("Button found, looking for ContentScrollViewer");
-            var contentScrollViewer = this.FindControl<ScrollViewer>("ContentScrollViewer");
-            var maximizerIcon = button.Content as Material.Icons.Avalonia.MaterialIcon;
-            
-            Serilog.Log.Information("ContentScrollViewer found: {HasScrollViewer}, MaximizerIcon found: {HasIcon}", 
-                contentScrollViewer != null, maximizerIcon != null);
-            
-            if (contentScrollViewer != null && maximizerIcon != null)
-            {
-                _isContentMaximized = !_isContentMaximized;
-                Serilog.Log.Information("Toggling content maximization. New state: {IsMaximized}", _isContentMaximized);
-                
-                _panelManagementService.ToggleContentMaximization(button, contentScrollViewer, maximizerIcon, !_isContentMaximized);
-                
-                // Raise the routed event to notify parent
-                Serilog.Log.Information("Raising MaximizeClickedEvent routed event");
-                RaiseEvent(new MaximizeClickedEventArgs(this));
-                Serilog.Log.Information("MaximizeClickedEvent raised successfully");
-            }
-            else
-            {
-                Serilog.Log.Warning("Cannot maximize: ContentScrollViewer or MaximizerIcon is null");
-            }
-        }
-        else
-        {
-            Serilog.Log.Warning("OnMaximizerClick called with non-Button sender: {SenderType}", sender?.GetType().Name);
-        }
-    }
-
-    private void OnMaximizerButtonPointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        if (sender is Button button && button.Content is Material.Icons.Avalonia.MaterialIcon icon)
-        {
-            icon.Kind = _isContentMaximized ? Material.Icons.MaterialIconKind.FullscreenExit : Material.Icons.MaterialIconKind.Fullscreen;
-        }
-    }
-
-    private void OnMaximizerButtonPointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        if (sender is Button button && button.Content is Material.Icons.Avalonia.MaterialIcon icon)
-        {
-            icon.Kind = _isContentMaximized ? Material.Icons.MaterialIconKind.FullscreenExit : Material.Icons.MaterialIconKind.Fullscreen;
+            file.IsExpanded = !file.IsExpanded;
+            Log.Information("FilePreviewControl - Toggled file expansion: {FileName}, IsExpanded: {IsExpanded}", 
+                file.FileName, file.IsExpanded);
         }
     }
 }

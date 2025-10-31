@@ -70,18 +70,31 @@
               <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Button HorizontalAlignment="Stretch" 
+                    <Button HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
                             Padding="12,8"
                             Background="Transparent"
                             BorderThickness="0"
                             CornerRadius="4"
                             Click="OnAssignmentClick"
-                            Tag="{Binding AssignmentName}">
+                            PointerPressed="OnAssignmentPointerPressed"
+                            Tag="{Binding AssignmentName}"
+                            DataContext="{Binding}">
                       <Button.Content>
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                          <materialIcons:MaterialIcon Kind="FileDocument" Width="20" Height="20"/>
-                          <TextBlock Text="{Binding AssignmentName}" VerticalAlignment="Center" 
+                          <!-- Chevron Icon to indicate expand/collapse state -->
+                          <materialIcons:MaterialIcon
+                            Kind="{Binding IsExpanded, Converter={StaticResource ParameterizedConverter}, ConverterParameter=ChevronDown|ChevronRight}"
+                            Width="20"
+                            Height="20"
+                            IsVisible="{Binding $parent[ItemsControl].((vm:StudentDetailViewModel)DataContext).IsNavigationOpen}"/>
+                          <!-- File Icon (only shown when menu is collapsed) -->
+                          <materialIcons:MaterialIcon
+                            Kind="FileDocument"
+                            Width="20"
+                            Height="20"
+                            IsVisible="{Binding !$parent[ItemsControl].((vm:StudentDetailViewModel)DataContext).IsNavigationOpen}"/>
+                          <TextBlock Text="{Binding AssignmentName}" VerticalAlignment="Center"
                                     IsVisible="{Binding $parent[ItemsControl].((vm:StudentDetailViewModel)DataContext).IsNavigationOpen}"/>
                         </StackPanel>
                       </Button.Content>
@@ -198,6 +211,7 @@
 
                     <!-- Assignment Files and Notes Sidebar -->
                     <Grid Grid.Row="1" x:Name="AssignmentContentGrid"
+                          DataContext="{Binding}"
                           IsVisible="{Binding IsExpanded}">
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
