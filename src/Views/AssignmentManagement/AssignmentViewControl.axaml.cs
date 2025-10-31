@@ -24,6 +24,7 @@ public partial class AssignmentViewControl : UserControl
 {
     private Dictionary<string, DispatcherTimer> _notesAutoSaveTimers = new();
     private Dictionary<string, DispatcherTimer> _widthAutoSaveTimers = new();
+    private Dictionary<string, bool> _notesJustOpened = new(); // Track when notes were just opened
 
     /// <summary>
     /// Property to control whether the internal sidebar is shown
@@ -273,6 +274,43 @@ public partial class AssignmentViewControl : UserControl
         catch (Exception ex)
         {
             Log.Error(ex, "Error handling notes splitter drag completed");
+        }
+    }
+
+    /// <summary>
+    /// Handles summary button click - scrolls to summary section
+    /// </summary>
+    private void OnSummaryClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Log.Information("OnSummaryClick called");
+            
+            // Find the main summary section (below assignments)
+            var summarySection = this.FindControl<Border>("SummarySectionMain");
+            if (summarySection != null)
+            {
+                // Find the ScrollViewer in the main content area
+                var scrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
+                if (scrollViewer != null)
+                {
+                    // Scroll to the summary section
+                    summarySection.BringIntoView();
+                    Log.Information("Scrolled to summary section");
+                }
+                else
+                {
+                    Log.Warning("Could not find MainScrollViewer to scroll to summary");
+                }
+            }
+            else
+            {
+                Log.Warning("Could not find SummarySectionMain to scroll to");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error scrolling to summary section");
         }
     }
 
@@ -1143,6 +1181,31 @@ public partial class AssignmentViewControl : UserControl
                     notesColumnDef.Width = new GridLength(width, GridUnitType.Pixel);
                     notesColumnDef.MinWidth = 150;
                     notesColumnDef.MaxWidth = 600;
+                    
+                    // Track that notes were just opened
+                    _notesJustOpened[assignmentGroup.AssignmentName] = true;
+                    
+                    // Focus the notes TextBox when opening
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        try
+                        {
+                            // Find the TextBox in the notes sidebar (Column 2 of the grid)
+                            var notesTextBox = grid.GetVisualDescendants()
+                                .OfType<TextBox>()
+                                .FirstOrDefault();
+                            
+                            if (notesTextBox != null)
+                            {
+                                notesTextBox.Focus();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "Could not focus notes TextBox");
+                        }
+                    }, DispatcherPriority.Loaded);
+                    
                     Log.Information("Opened notes sidebar for {Assignment} - restored width to {Width}",
                         assignmentGroup.AssignmentName, width);
                 }
@@ -1152,6 +1215,10 @@ public partial class AssignmentViewControl : UserControl
                     notesColumnDef.Width = new GridLength(0, GridUnitType.Pixel);
                     notesColumnDef.MinWidth = 0;
                     notesColumnDef.MaxWidth = double.PositiveInfinity;
+                    
+                    // Clear the just opened flag
+                    _notesJustOpened.Remove(assignmentGroup.AssignmentName);
+                    
                     Log.Information("Closed notes sidebar for {Assignment} - collapsed to 0",
                         assignmentGroup.AssignmentName);
                 }
@@ -1165,6 +1232,264 @@ public partial class AssignmentViewControl : UserControl
         {
             Log.Error(ex, "Error toggling notes");
         }
+    }
+
+    /// <summary>
+    /// Handles GotFocus event for notes TextBox to add date heading if needed
+    /// </summary>
+    private void OnNotesTextBoxGotFocus(object? sender, GotFocusEventArgs e)
+    {
+        try
+        {
+            if (sender is not TextBox textBox)
+            {
+                return;
+            }
+
+            // Get the assignment from the DataContext
+            if (textBox.DataContext is not AssignmentGroup assignmentGroup)
+            {
+                return;
+            }
+
+            var assignmentName = assignmentGroup.AssignmentName;
+            var notes = assignmentGroup.Notes ?? string.Empty;
+
+            // If notes are empty, add a date heading when user clicks to focus
+            if (string.IsNullOrWhiteSpace(notes))
+            {
+                var dateHeading = GetDateHeading(DateTime.Now);
+                assignmentGroup.Notes = dateHeading;
+                
+                // Move cursor to after the date heading
+                Dispatcher.UIThread.Post(() =>
+                {
+                    textBox.CaretIndex = textBox.Text?.Length ?? 0;
+                }, DispatcherPriority.Normal);
+            }
+            else
+            {
+                // Check if notes were just opened and we need to add a new date heading
+                if (_notesJustOpened.TryGetValue(assignmentName, out var justOpened) && justOpened)
+                {
+                    var todayHeading = GetDateHeading(DateTime.Now).Trim();
+                    var lastHeading = GetLastDateHeading(notes);
+
+                    // If last heading is not today's date, add a new date heading and move the caret under it
+                    if (lastHeading == null || !string.Equals(lastHeading.Trim(), todayHeading, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Avoid duplicate if text already ends with today's heading
+                        var endsWithToday = notes.TrimEnd().EndsWith(todayHeading, StringComparison.OrdinalIgnoreCase);
+                        if (!endsWithToday)
+                        {
+                            var newHeading = "\n\n" + todayHeading; // todayHeading already includes trailing \n\n
+                            assignmentGroup.Notes = notes + newHeading;
+
+                            // Move cursor to after the new date heading
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                textBox.CaretIndex = assignmentGroup.Notes.Length;
+                            }, DispatcherPriority.Normal);
+                        }
+                        else
+                        {
+                            // If it already ends with today's heading, just place caret at the end
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                textBox.CaretIndex = notes.Length;
+                            }, DispatcherPriority.Normal);
+                        }
+                    }
+
+                    // Clear the flag
+                    _notesJustOpened[assignmentName] = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error handling notes TextBox focus");
+        }
+    }
+
+    /// <summary>
+    /// Gets a formatted date heading (without ##, with capitalized month)
+    /// </summary>
+    private string GetDateHeading(DateTime date)
+    {
+        // Format: "October 31, 2025" - MMMM already capitalizes the month
+        return $"{date:MMMM d, yyyy}\n\n";
+    }
+
+    /// <summary>
+    /// Gets the last date heading from notes text
+    /// </summary>
+    private string? GetLastDateHeading(string notes)
+    {
+        if (string.IsNullOrWhiteSpace(notes))
+            return null;
+
+        // Look for the last date heading pattern (Month Day, Year)
+        // Pattern: "MonthName Day, Year" followed by optional whitespace and newlines
+        var lines = notes.Split('\n');
+        foreach (var line in lines.Reverse())
+        {
+            var trimmed = line.Trim();
+            // Check if line matches date pattern: "MonthName Day, Year" (no ##)
+            // Example: "October 31, 2025"
+            if (!string.IsNullOrWhiteSpace(trimmed) && 
+                trimmed.Contains(',') && 
+                !trimmed.StartsWith("##"))
+            {
+                // Check if it looks like a date (has month name pattern and comma)
+                // This is a simple check - month names are typically longer than 3 chars
+                var parts = trimmed.Split(',');
+                if (parts.Length == 2 && parts[0].Trim().Split(' ').Length >= 2)
+                {
+                    return trimmed;
+                }
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Removes date headings that don't have content below them
+    /// </summary>
+    private string CleanEmptyDateHeadings(string notes)
+    {
+        if (string.IsNullOrWhiteSpace(notes))
+            return notes;
+
+        // Split by date headings (pattern: "Month Day, Year" followed by newlines)
+        var lines = notes.Split('\n').ToList();
+        var cleaned = new List<string>();
+        
+        for (int i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            var trimmed = line.Trim();
+            
+            // Check if this line is a date heading (Month Day, Year pattern)
+            bool isDateHeading = !string.IsNullOrWhiteSpace(trimmed) && 
+                                 trimmed.Contains(',') && 
+                                 !trimmed.StartsWith("##") &&
+                                 trimmed.Split(',').Length == 2 &&
+                                 trimmed.Split(',')[0].Trim().Split(' ').Length >= 2;
+            
+            if (isDateHeading)
+            {
+                // Look ahead to see if there's actual content after this date heading
+                bool hasContent = false;
+                bool isLastHeading = true; // Check if this is the last date heading
+                
+                for (int j = i + 1; j < lines.Count; j++)
+                {
+                    var nextLine = lines[j].Trim();
+                    // Skip empty lines and newlines
+                    if (string.IsNullOrWhiteSpace(nextLine))
+                        continue;
+                    
+                    // Check if next non-empty line is another date heading
+                    bool nextIsDateHeading = nextLine.Contains(',') && 
+                                            !nextLine.StartsWith("##") &&
+                                            nextLine.Split(',').Length == 2 &&
+                                            nextLine.Split(',')[0].Trim().Split(' ').Length >= 2;
+                    
+                    if (nextIsDateHeading)
+                    {
+                        isLastHeading = false;
+                        // Found another date heading without content in between
+                        // This means the current date heading has no content
+                        break;
+                    }
+                    else
+                    {
+                        hasContent = true;
+                        break;
+                    }
+                }
+                
+                // Keep the date heading if:
+                // 1. It has content below it, OR
+                // 2. It's the last heading in the notes (user might be typing there)
+                if (hasContent || isLastHeading)
+                {
+                    cleaned.Add(line);
+                }
+                // Otherwise skip this date heading (it has no content and isn't the last one)
+            }
+            else
+            {
+                // Not a date heading, keep the line
+                cleaned.Add(line);
+            }
+        }
+        
+        var result = string.Join("\n", cleaned);
+        
+        // Final cleanup: if the result ends with only a date heading and whitespace (no content after it), remove it
+        // This handles the case where user added a date heading but never typed anything
+        var trimmedResult = result.TrimEnd();
+        if (!string.IsNullOrWhiteSpace(trimmedResult))
+        {
+            var resultLines = trimmedResult.Split('\n');
+            if (resultLines.Length > 0)
+            {
+                var lastLine = resultLines.Last().Trim();
+                // Check if last non-empty line is a date heading
+                bool lastLineIsDateHeading = !string.IsNullOrWhiteSpace(lastLine) && 
+                                            lastLine.Contains(',') && 
+                                            !lastLine.StartsWith("##") &&
+                                            lastLine.Split(',').Length == 2 &&
+                                            lastLine.Split(',')[0].Trim().Split(' ').Length >= 2;
+                
+                if (lastLineIsDateHeading)
+                {
+                    // Check if this is truly the last thing (no content after it)
+                    // Look backwards from the last line to see if there's any non-empty, non-date-heading content
+                    bool hasContentAfterLastHeading = false;
+                    for (int i = resultLines.Length - 2; i >= 0; i--)
+                    {
+                        var line = resultLines[i].Trim();
+                        if (string.IsNullOrWhiteSpace(line))
+                            continue;
+                        
+                        // Check if this line is a date heading
+                        bool isDateHeading = line.Contains(',') && 
+                                           !line.StartsWith("##") &&
+                                           line.Split(',').Length == 2 &&
+                                           line.Split(',')[0].Trim().Split(' ').Length >= 2;
+                        
+                        if (!isDateHeading)
+                        {
+                            // Found non-date-heading content after the last date heading
+                            hasContentAfterLastHeading = true;
+                            break;
+                        }
+                    }
+                    
+                    // Only remove the last date heading if there's NO content after it
+                    if (!hasContentAfterLastHeading)
+                    {
+                        // Find the position of this last date heading and remove everything from it to the end
+                        var lastHeadingIndex = trimmedResult.LastIndexOf(lastLine);
+                        if (lastHeadingIndex > 0)
+                        {
+                            // Check if there's content before this last heading
+                            var beforeHeading = trimmedResult.Substring(0, lastHeadingIndex).TrimEnd();
+                            // Only remove if there's actual content before it (not just whitespace)
+                            if (!string.IsNullOrWhiteSpace(beforeHeading))
+                            {
+                                return beforeHeading;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return result;
     }
 
     /// <summary>
@@ -1194,6 +1519,43 @@ public partial class AssignmentViewControl : UserControl
             }
 
             var assignmentName = assignmentGroup.AssignmentName;
+            var notes = assignmentGroup.Notes ?? string.Empty;
+
+            // Check if user is typing at the end and needs a new date heading
+            // This handles the case where user is continuing to type on a new day
+            // Only check on the first character typed (when text length just increased by 1)
+            if (!string.IsNullOrWhiteSpace(notes) && textBox.CaretIndex >= notes.Length - 1)
+            {
+                var todayHeading = GetDateHeading(DateTime.Now).Trim();
+                var lastHeading = GetLastDateHeading(notes);
+                
+                // If last heading exists but is not today's, and cursor is at the end, add new heading
+                if (lastHeading != null && !string.Equals(lastHeading.Trim(), todayHeading, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Check if the text doesn't already end with today's heading (avoid duplicates)
+                    var trimmedNotes = notes.TrimEnd();
+                    var trimmedTodayHeading = todayHeading.Trim();
+                    var todayHeadingFull = GetDateHeading(DateTime.Now).TrimEnd();
+                    
+                    // Only add if the notes don't already end with today's heading
+                    if (!trimmedNotes.EndsWith(trimmedTodayHeading, StringComparison.OrdinalIgnoreCase) &&
+                        !trimmedNotes.EndsWith(todayHeadingFull, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Add new date heading with line breaks before it
+                        var newHeading = $"\n\n{GetDateHeading(DateTime.Now)}";
+                        assignmentGroup.Notes = notes + newHeading;
+                        
+                        // Update cursor position
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            textBox.CaretIndex = assignmentGroup.Notes.Length;
+                        }, DispatcherPriority.Normal);
+                        
+                        // Return early to avoid triggering auto-save with the incomplete text
+                        return;
+                    }
+                }
+            }
 
             // Cancel existing timer if any
             if (_notesAutoSaveTimers.TryGetValue(assignmentName, out var existingTimer))
@@ -1216,7 +1578,18 @@ public partial class AssignmentViewControl : UserControl
                 try
                 {
                     Log.Information("Auto-saving notes for assignment {AssignmentName}", assignmentName);
-                    await viewModel.SaveAssignmentNoteAsync(assignmentName, assignmentGroup.Notes);
+                    
+                    // Clean notes: remove date headings that don't have content below them
+                    var notesToClean = assignmentGroup.Notes ?? string.Empty;
+                    var cleanedNotes = CleanEmptyDateHeadings(notesToClean);
+                    
+                    // Update the assignment group with cleaned notes so UI reflects the changes
+                    if (cleanedNotes != assignmentGroup.Notes)
+                    {
+                        assignmentGroup.Notes = cleanedNotes;
+                    }
+                    
+                    await viewModel.SaveAssignmentNoteAsync(assignmentName, cleanedNotes);
                     Log.Information("Notes auto-saved successfully for assignment {AssignmentName}", assignmentName);
                 }
                 catch (Exception ex)

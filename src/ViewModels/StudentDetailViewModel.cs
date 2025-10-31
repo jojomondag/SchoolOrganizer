@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -86,8 +88,93 @@ public class StudentDetailViewModel : ReactiveObject
     public ObservableCollection<AssignmentGroup> AllFilesGrouped
     {
         get => _allFilesGrouped;
-        set => this.RaiseAndSetIfChanged(ref _allFilesGrouped, value);
+        set
+        {
+            // Unsubscribe from old collection
+            if (_allFilesGrouped != null)
+            {
+                _allFilesGrouped.CollectionChanged -= OnAssignmentsCollectionChanged;
+                UnsubscribeFromAssignments(_allFilesGrouped);
+            }
+
+            this.RaiseAndSetIfChanged(ref _allFilesGrouped, value);
+
+            // Subscribe to new collection
+            if (_allFilesGrouped != null)
+            {
+                _allFilesGrouped.CollectionChanged += OnAssignmentsCollectionChanged;
+                SubscribeToAssignments(_allFilesGrouped);
+            }
+
+            UpdateSummary();
+        }
     }
+
+    /// <summary>
+    /// Gets a summary of all notes from all assignments
+    /// </summary>
+    public string SummaryNotes
+    {
+        get
+        {
+            if (AllFilesGrouped == null || AllFilesGrouped.Count == 0)
+                return string.Empty;
+
+            var notesList = new List<string>();
+            foreach (var assignment in AllFilesGrouped)
+            {
+                // Get notes from saved data (Student.AssignmentNotes) to ensure we get the full content
+                // This avoids issues where assignment.Notes might be temporarily cleaned
+                string? notes = null;
+                if (Student?.AssignmentNotes != null && 
+                    Student.AssignmentNotes.TryGetValue(assignment.AssignmentName, out var savedNotes))
+                {
+                    notes = savedNotes;
+                }
+                
+                // Fallback to assignment.Notes if not in saved data
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    notes = assignment.Notes;
+                }
+
+                if (!string.IsNullOrWhiteSpace(notes))
+                {
+                    notesList.Add($"{assignment.AssignmentName}\n{notes}");
+                }
+            }
+
+            return string.Join("\n\n", notesList);
+        }
+    }
+
+    /// <summary>
+    /// Gets a summary of all ratings from all assignments
+    /// </summary>
+    public string SummaryRatings
+    {
+        get
+        {
+            if (AllFilesGrouped == null || AllFilesGrouped.Count == 0)
+                return string.Empty;
+
+            var ratedAssignments = AllFilesGrouped.Where(a => a.Rating > 0).ToList();
+            if (ratedAssignments.Count == 0)
+                return "No ratings yet";
+
+            var ratingsList = ratedAssignments
+                .Select(a => $"{a.AssignmentName}: {new string('★', a.Rating)}{new string('☆', 5 - a.Rating)} ({a.Rating}/5)")
+                .ToList();
+
+            return string.Join("\n", ratingsList);
+        }
+    }
+
+    /// <summary>
+    /// Gets whether there are any notes or ratings to show in summary
+    /// </summary>
+    public bool HasSummaryContent => AllFilesGrouped != null && 
+        AllFilesGrouped.Any(a => a.Rating > 0 || !string.IsNullOrWhiteSpace(a.Notes));
 
     // Navigation properties
     public bool IsNavigationOpen
@@ -160,6 +247,10 @@ public class StudentDetailViewModel : ReactiveObject
             LoadAssignmentRatings();
             LoadAssignmentNotes();
             LoadAssignmentNotesSidebarWidths();
+
+            // Subscribe to assignment changes for summary updates
+            SubscribeToAssignments(AllFilesGrouped);
+            UpdateSummary();
 
             // Load content for all files to show images in the assignment gallery
             await LoadContentForAllFilesAsync();
@@ -666,5 +757,65 @@ public class StudentDetailViewModel : ReactiveObject
         {
             Log.Error(ex, "Error loading content for all files");
         }
+    }
+
+    /// <summary>
+    /// Handles collection changes to update summary when assignments are added/removed
+    /// </summary>
+    private void OnAssignmentsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+        {
+            SubscribeToAssignments(e.NewItems.Cast<AssignmentGroup>());
+        }
+        if (e.OldItems != null)
+        {
+            UnsubscribeFromAssignments(e.OldItems.Cast<AssignmentGroup>());
+        }
+        UpdateSummary();
+    }
+
+    /// <summary>
+    /// Subscribes to PropertyChanged events on assignments to update summary
+    /// </summary>
+    private void SubscribeToAssignments(IEnumerable<AssignmentGroup> assignments)
+    {
+        foreach (var assignment in assignments)
+        {
+            assignment.PropertyChanged += OnAssignmentPropertyChanged;
+        }
+    }
+
+    /// <summary>
+    /// Unsubscribes from PropertyChanged events on assignments
+    /// </summary>
+    private void UnsubscribeFromAssignments(IEnumerable<AssignmentGroup> assignments)
+    {
+        foreach (var assignment in assignments)
+        {
+            assignment.PropertyChanged -= OnAssignmentPropertyChanged;
+        }
+    }
+
+    /// <summary>
+    /// Handles property changes on assignments (Notes, Rating) to update summary
+    /// </summary>
+    private void OnAssignmentPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is AssignmentGroup && (e.PropertyName == nameof(AssignmentGroup.Notes) || 
+                                          e.PropertyName == nameof(AssignmentGroup.Rating)))
+        {
+            UpdateSummary();
+        }
+    }
+
+    /// <summary>
+    /// Updates the summary properties and notifies UI
+    /// </summary>
+    private void UpdateSummary()
+    {
+        this.RaisePropertyChanged(nameof(SummaryNotes));
+        this.RaisePropertyChanged(nameof(SummaryRatings));
+        this.RaisePropertyChanged(nameof(HasSummaryContent));
     }
 }

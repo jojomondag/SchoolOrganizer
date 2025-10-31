@@ -102,6 +102,51 @@
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
+
+              <!-- Summary Section Header -->
+              <TextBlock Text="Summary" 
+                        FontWeight="Bold" 
+                        FontSize="12" 
+                        Foreground="{DynamicResource TextSecondaryBrush}"
+                        Margin="0,24,0,8">
+                <TextBlock.IsVisible>
+                  <Binding Path="IsNavigationOpen"/>
+                </TextBlock.IsVisible>
+              </TextBlock>
+
+              <!-- Summary Button in Sidebar Navigation -->
+              <Button HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Left"
+                      Padding="12,8"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      CornerRadius="4"
+                      Click="OnSummaryClick"
+                      Margin="0,0,0,0"
+                      x:Name="SummaryNavigationButton">
+                <Button.IsEnabled>
+                  <Binding Path="HasSummaryContent"/>
+                </Button.IsEnabled>
+                <Button.Content>
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <!-- Icon shown when sidebar is open -->
+                    <materialIcons:MaterialIcon
+                      Kind="ViewList"
+                      Width="20"
+                      Height="20"
+                      IsVisible="{Binding IsNavigationOpen}"/>
+                    <!-- Icon shown when sidebar is collapsed -->
+                    <materialIcons:MaterialIcon
+                      Kind="NoteText"
+                      Width="20"
+                      Height="20"
+                      IsVisible="{Binding IsNavigationOpen, Converter={StaticResource ParameterizedConverter}, ConverterParameter=False|True}"/>
+                    <TextBlock Text="Summary" 
+                              VerticalAlignment="Center"
+                              IsVisible="{Binding IsNavigationOpen}"/>
+                  </StackPanel>
+                </Button.Content>
+              </Button>
             </StackPanel>
           </ScrollViewer>
         </Grid>
@@ -114,171 +159,224 @@
         <ScrollViewer Name="MainScrollViewer"
                       VerticalScrollBarVisibility="Auto" 
                       HorizontalScrollBarVisibility="Disabled"
+                      BringIntoViewOnFocusChange="False"
                       Padding="8,0,8,0">
-          <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Border Background="{DynamicResource BackgroundTertiaryBrush}"
-                        Margin="0,8,0,0"
-                        BorderBrush="{DynamicResource CardBorderBrush}"
-                        BorderThickness="0,0,0,1">
-                  <Grid>
-                    <Grid.RowDefinitions>
-                      <RowDefinition Height="Auto"/>
-                      <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+          <StackPanel>
+            <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Background="{DynamicResource BackgroundTertiaryBrush}"
+                          Margin="0,8,0,0"
+                          BorderBrush="{DynamicResource CardBorderBrush}"
+                          BorderThickness="0,0,0,1">
+                    <Grid>
+                      <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                      </Grid.RowDefinitions>
 
-                    <!-- Assignment Header -->
-                    <Border Grid.Row="0"
-                            x:Name="AssignmentHeaderBorder"
-                            BorderBrush="{DynamicResource CardBorderBrush}"
-                            BorderThickness="0,0,0,1"
-                            Padding="0"
-                            CornerRadius="6">
-                      <Border.Background>
-                        <Binding Path="IsGraded">
-                          <Binding.Converter>
-                            <converters:ParameterizedConverter/>
-                          </Binding.Converter>
-                          <Binding.ConverterParameter>#A5D6A7</Binding.ConverterParameter>
-                          <Binding.FallbackValue>
-                            <DynamicResource ResourceKey="HeaderBackgroundBrush"/>
-                          </Binding.FallbackValue>
-                        </Binding>
-                      </Border.Background>
-                      <Button Background="Transparent"
-                              BorderThickness="0"
-                              Padding="16,12"
-                              Click="OnAssignmentHeaderClick"
-                              HorizontalContentAlignment="Stretch"
-                              VerticalContentAlignment="Center"
-                              HorizontalAlignment="Stretch"
-                              DataContext="{Binding}">
-                        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center">
-                          <!-- Left accent strip -->
-                          <Border Background="{DynamicResource AccentBrush}"
-                                  Width="4"
-                                  HorizontalAlignment="Left"
-                                  CornerRadius="4,0,0,4"
-                                  Grid.ColumnSpan="4"/>
-                          <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                          </Grid.ColumnDefinitions>
-
-                          <!-- Chevron Icon -->
-                          <materialIcons:MaterialIcon Grid.Column="0"
-                                                       Width="20"
-                                                       Height="20"
-                                                       VerticalAlignment="Center"
-                                                       Margin="4,0,12,0"
-                                                       Kind="{Binding IsExpanded, Converter={StaticResource ParameterizedConverter}, ConverterParameter=ChevronDown|ChevronRight}"/>
-
-                          <!-- Left: Google Docs Button -->
-                          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="0,0,16,0">
-                            <!-- Open in Browser Button -->
-                            <Button Click="OnOpenInBrowserClick"
-                                    Padding="8"
-                                    ToolTip.Tip="Open Google Doc in browser"
-                                    Background="Transparent"
-                                    BorderThickness="0">
-                              <materialIcons:MaterialIcon Kind="GoogleDrive" Width="20" Height="20"/>
-                              <Button.IsVisible>
-                                <Binding Path="HasGoogleDocs"/>
-                              </Button.IsVisible>
-                            </Button>
-                          </StackPanel>
-
-                          <!-- Middle: Assignment Title -->
-                          <TextBlock Grid.Column="2"
-                                     Text="{Binding AssignmentName}"
-                                     FontWeight="Bold"
-                                     FontSize="18"
-                                     Foreground="{DynamicResource TextPrimaryBrush}"
-                                     VerticalAlignment="Center"
-                                     HorizontalAlignment="Stretch"
-                                     TextAlignment="Center"/>
-
-                          <!-- Right: Star Rating and Notes Button -->
-                          <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8">
-                            <components:StarRating VerticalAlignment="Center"
-                                                   Rating="{Binding Rating, Mode=TwoWay}"
-                                                   RatingChanged="OnAssignmentRatingChanged"/>
-
-                            <Button Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="8"
-                                    ToolTip.Tip="Toggle Notes"
-                                    Click="OnToggleNotesClick">
-                              <materialIcons:MaterialIcon Kind="NoteText" Width="20" Height="20"/>
-                            </Button>
-                          </StackPanel>
-                        </Grid>
-                      </Button>
-                    </Border>
-
-                    <!-- Assignment Files and Notes Sidebar -->
-                    <Grid Grid.Row="1" x:Name="AssignmentContentGrid"
-                          DataContext="{Binding}"
-                          IsVisible="{Binding IsExpanded}">
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="0"/>
-                      </Grid.ColumnDefinitions>
-
-                      <!-- Assignment Files -->
-                      <ItemsControl Grid.Column="0" ItemsSource="{Binding Files}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate>
-                            <components:FilePreviewControl/>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-
-                      <!-- GridSplitter for Resizing -->
-                      <GridSplitter Grid.Column="1"
-                                    Width="4"
-                                    Background="{DynamicResource CardBorderBrush}"
-                                    HorizontalAlignment="Center"
-                                    IsVisible="{Binding IsNotesExpanded}"
-                                    DragCompleted="OnNotesSplitterDragCompleted"/>
-
-                      <!-- Notes Sidebar -->
-                      <Border Grid.Column="2"
-                              Background="{DynamicResource BackgroundSecondaryBrush}"
+                      <!-- Assignment Header -->
+                      <Border Grid.Row="0"
+                              x:Name="AssignmentHeaderBorder"
                               BorderBrush="{DynamicResource CardBorderBrush}"
-                              BorderThickness="1,0,0,0"
-                              Padding="12"
-                              IsVisible="{Binding IsNotesExpanded}">
-                        <Grid RowDefinitions="*,Auto">
-                          <!-- Notes TextBox -->
-                          <TextBox Grid.Row="0"
-                                   Text="{Binding Notes, Mode=TwoWay}"
-                                   AcceptsReturn="True"
-                                   TextWrapping="Wrap"
-                                   Watermark="Add notes about this assignment..."
-                                   BorderThickness="0"
-                                   Background="Transparent"
-                                   TextChanged="OnNotesTextChanged"/>
+                              BorderThickness="0,0,0,1"
+                              Padding="0"
+                              CornerRadius="6">
+                        <Border.Background>
+                          <Binding Path="IsGraded">
+                            <Binding.Converter>
+                              <converters:ParameterizedConverter/>
+                            </Binding.Converter>
+                            <Binding.ConverterParameter>#A5D6A7</Binding.ConverterParameter>
+                            <Binding.FallbackValue>
+                              <DynamicResource ResourceKey="HeaderBackgroundBrush"/>
+                            </Binding.FallbackValue>
+                          </Binding>
+                        </Border.Background>
+                        <Button Background="Transparent"
+                                BorderThickness="0"
+                                Padding="16,12"
+                                Click="OnAssignmentHeaderClick"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                DataContext="{Binding}">
+                          <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                            <!-- Left accent strip -->
+                            <Border Background="{DynamicResource AccentBrush}"
+                                    Width="4"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="4,0,0,4"
+                                    Grid.ColumnSpan="4"/>
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="Auto"/>
+                              <ColumnDefinition Width="Auto"/>
+                              <ColumnDefinition Width="*"/>
+                              <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                          <!-- Timestamp -->
-                          <TextBlock Grid.Row="1"
-                                     Text="{Binding LastModifiedText}"
-                                     FontSize="11"
-                                     Foreground="{DynamicResource TextSecondaryBrush}"
-                                     Margin="0,8,0,0"
-                                     IsVisible="{Binding LastModified, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                        </Grid>
+                            <!-- Chevron Icon -->
+                            <materialIcons:MaterialIcon Grid.Column="0"
+                                                         Width="20"
+                                                         Height="20"
+                                                         VerticalAlignment="Center"
+                                                         Margin="4,0,12,0"
+                                                         Kind="{Binding IsExpanded, Converter={StaticResource ParameterizedConverter}, ConverterParameter=ChevronDown|ChevronRight}"/>
+
+                            <!-- Left: Google Docs Button -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="0,0,16,0">
+                              <!-- Open in Browser Button -->
+                              <Button Click="OnOpenInBrowserClick"
+                                      Padding="8"
+                                      ToolTip.Tip="Open Google Doc in browser"
+                                      Background="Transparent"
+                                      BorderThickness="0">
+                                <materialIcons:MaterialIcon Kind="GoogleDrive" Width="20" Height="20"/>
+                                <Button.IsVisible>
+                                  <Binding Path="HasGoogleDocs"/>
+                                </Button.IsVisible>
+                              </Button>
+                            </StackPanel>
+
+                            <!-- Middle: Assignment Title -->
+                            <TextBlock Grid.Column="2"
+                                       Text="{Binding AssignmentName}"
+                                       FontWeight="Bold"
+                                       FontSize="18"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Stretch"
+                                       TextAlignment="Center"/>
+
+                            <!-- Right: Star Rating and Notes Button -->
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8">
+                              <components:StarRating VerticalAlignment="Center"
+                                                     Rating="{Binding Rating, Mode=TwoWay}"
+                                                     RatingChanged="OnAssignmentRatingChanged"/>
+
+                              <Button Background="Transparent"
+                                      BorderThickness="0"
+                                      Padding="8"
+                                      ToolTip.Tip="Toggle Notes"
+                                      Click="OnToggleNotesClick">
+                                <materialIcons:MaterialIcon Kind="NoteText" Width="20" Height="20"/>
+                              </Button>
+                            </StackPanel>
+                          </Grid>
+                        </Button>
                       </Border>
+
+                      <!-- Assignment Files and Notes Sidebar -->
+                      <Grid Grid.Row="1" x:Name="AssignmentContentGrid"
+                            DataContext="{Binding}"
+                            IsVisible="{Binding IsExpanded}">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition Width="0"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Assignment Files -->
+                        <ItemsControl Grid.Column="0" ItemsSource="{Binding Files}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                              <components:FilePreviewControl/>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- GridSplitter for Resizing -->
+                        <GridSplitter Grid.Column="1"
+                                      Width="4"
+                                      Background="{DynamicResource CardBorderBrush}"
+                                      HorizontalAlignment="Center"
+                                      IsVisible="{Binding IsNotesExpanded}"
+                                      DragCompleted="OnNotesSplitterDragCompleted"/>
+
+                        <!-- Notes Sidebar -->
+                        <Border Grid.Column="2"
+                                Background="{DynamicResource BackgroundSecondaryBrush}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1,0,0,0"
+                                Padding="12"
+                                IsVisible="{Binding IsNotesExpanded}">
+                          <Grid RowDefinitions="*,Auto">
+                            <!-- Notes TextBox -->
+                            <TextBox Grid.Row="0"
+                                     x:Name="NotesTextBox"
+                                     Text="{Binding Notes, Mode=TwoWay}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     Watermark="Add notes about this assignment..."
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     TextChanged="OnNotesTextChanged"
+                                     GotFocus="OnNotesTextBoxGotFocus"/>
+
+                            <!-- Timestamp -->
+                            <TextBlock Grid.Row="1"
+                                       Text="{Binding LastModifiedText}"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0,8,0,0"
+                                       IsVisible="{Binding LastModified, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                          </Grid>
+                        </Border>
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Summary Section Below All Assignments -->
+            <Border Background="{DynamicResource BackgroundTertiaryBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="16"
+                    Margin="0,16,0,16"
+                    x:Name="SummarySectionMain"
+                    IsVisible="{Binding HasSummaryContent}">
+              <StackPanel Spacing="16">
+                <TextBlock Text="Summary" 
+                          FontWeight="Bold" 
+                          FontSize="18" 
+                          Foreground="{DynamicResource TextPrimaryBrush}"/>
+                
+                <!-- Ratings Summary -->
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Ratings" 
+                            FontWeight="SemiBold" 
+                            FontSize="14" 
+                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                  <TextBlock Text="{Binding SummaryRatings}"
+                            FontSize="12"
+                            Foreground="{DynamicResource TextPrimaryBrush}"
+                            TextWrapping="Wrap"
+                            Margin="8,0,0,0"/>
+                </StackPanel>
+                
+                <!-- Notes Summary -->
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Notes" 
+                            FontWeight="SemiBold" 
+                            FontSize="14" 
+                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                  <ScrollViewer MaxHeight="400" 
+                                VerticalScrollBarVisibility="Auto"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1"
+                                Padding="8">
+                    <TextBlock Text="{Binding SummaryNotes}"
+                              FontSize="12"
+                              Foreground="{DynamicResource TextPrimaryBrush}"
+                              TextWrapping="Wrap"/>
+                  </ScrollViewer>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
         </ScrollViewer>
       </Border>
     </SplitView.Content>

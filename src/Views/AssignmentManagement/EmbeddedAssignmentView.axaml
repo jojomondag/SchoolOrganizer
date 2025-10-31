@@ -5,6 +5,7 @@
              xmlns:vm="using:SchoolOrganizer.Src.ViewModels"
              xmlns:local="using:SchoolOrganizer.Src.Views.AssignmentManagement"
              xmlns:materialIcons="using:Material.Icons.Avalonia"
+             xmlns:converters="using:SchoolOrganizer.Src.Converters"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="SchoolOrganizer.Src.Views.AssignmentManagement.EmbeddedAssignmentView"
              x:DataType="vm:StudentDetailViewModel">
@@ -12,6 +13,10 @@
   <Design.DataContext>
     <vm:StudentDetailViewModel/>
   </Design.DataContext>
+
+  <UserControl.Resources>
+    <converters:UniversalImageConverter x:Key="UniversalImageConverter"/>
+  </UserControl.Resources>
 
   <Grid RowDefinitions="Auto,*" Background="{DynamicResource BackgroundTertiaryBrush}">
     <!-- Header Bar with Student Name and Detach Button -->
@@ -28,8 +33,26 @@
 
         <!-- Student Name and Info -->
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-          <materialIcons:MaterialIcon Kind="AccountCircle" Width="24" Height="24" 
-                                     Foreground="{DynamicResource TextPrimaryBrush}"/>
+          <!-- Student Profile Image or Fallback Icon -->
+          <Border Width="28" Height="28" CornerRadius="14" ClipToBounds="True"
+                  BorderBrush="{DynamicResource BlackBrush}"
+                  BorderThickness="1">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Ellipse Width="24" Height="24" 
+                       IsVisible="{Binding Student.PictureUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <Ellipse.Fill>
+                  <ImageBrush Source="{Binding Student.PictureUrl, Converter={StaticResource UniversalImageConverter}}" 
+                              Stretch="UniformToFill"/>
+                </Ellipse.Fill>
+              </Ellipse>
+              <!-- Fallback icon when no profile image -->
+              <materialIcons:MaterialIcon Kind="AccountCircle" Width="24" Height="24" 
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         IsVisible="{Binding Student.PictureUrl, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"/>
+            </Grid>
+          </Border>
           <StackPanel>
             <TextBlock Text="{Binding StudentName}" 
                       FontWeight="Bold" 

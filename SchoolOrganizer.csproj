@@ -39,11 +39,6 @@
     </Content>
     </ItemGroup>
 
-    <ItemGroup>
-      <AvaloniaResource Include="src/Views/Styles/Colors.axaml" />
-      <AvaloniaResource Include="src/Views/Styles/LightTheme.axaml" />
-      <AvaloniaResource Include="src/Views/Styles/DarkTheme.axaml" />
-  </ItemGroup>
 
 
   <ItemGroup>

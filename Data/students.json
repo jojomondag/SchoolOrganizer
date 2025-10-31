@@ -1,18 +1,18 @@
 [
   {
     "Teacher": "Josef Nobach",
-    "RoleInfo": "PROG1000X",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
     "SecondaryInfo": "Teacher: Josef Nobach",
     "Id": 1,
-    "Name": "Hadil Tlas",
-    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Hadil_Tlas_20251031_092232.jpg",
+    "Name": "Fahad Khan",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Fahad_Khan_20251031_121350.jpg",
     "OriginalImagePath": null,
-    "ClassName": "PROG1000X",
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
     "Teachers": [
       "Josef Nobach"
     ],
-    "Email": "hadil.tlas@elev.ga.ntig.se",
-    "EnrollmentDate": "2025-10-31T09:22:32.8722915",
+    "Email": "fahad.khan@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.7668148",
     "CropSettings": null,
     "AssignmentRatings": {},
     "AssignmentNotes": {},
@@ -21,32 +21,389 @@
   },
   {
     "Teacher": "Josef Nobach",
-    "RoleInfo": "PROG1000X",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
     "SecondaryInfo": "Teacher: Josef Nobach",
     "Id": 2,
-    "Name": "Emil Aspenberg",
-    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Emil_Aspenberg_20251031_092232.jpg",
+    "Name": "Mohamed Ramo",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Mohamed_Ramo_20251031_121350.jpg",
     "OriginalImagePath": null,
-    "ClassName": "PROG1000X",
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mohamed.ramo@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.8194163",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 3,
+    "Name": "Abdullah Hamdan",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Abdullah_Hamdan_20251031_121350.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "abdullah.hamdan@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.8324031",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 4,
+    "Name": "Ward Heidar",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Ward_Heidar_20251031_121350.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "ward.heidar@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.8530616",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 5,
+    "Name": "Shaza Zaher",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Shaza_Zaher_20251031_121350.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "shaza.zaher@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.8687081",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 6,
+    "Name": "Vildan Kapetanovic",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Vildan_Kapetanovic_20251031_121350.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "vildan.kapetanovic@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.8839233",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 7,
+    "Name": "Lujain Shaar",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Lujain_Shaar_20251031_121350.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "lujain.shaar@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.8981341",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 8,
+    "Name": "Oskar Hansson Berg",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Oskar_Hansson_Berg_20251031_121350.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "oskar.hanssonberg@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.9110625",
+    "CropSettings": null,
+    "AssignmentRatings": {
+      "1_Utskrifter_i_Java": 3,
+      "2_Variabler": 4
+    },
+    "AssignmentNotes": {
+      "1_Utskrifter_i_Java": "oktober 31, 2025\n\nwswswswswswsssw\r\nwdwqdqwdwdwdwadwadwqd"
+    },
+    "AssignmentNotesTimestamps": {
+      "1_Utskrifter_i_Java": "2025-10-31T12:19:06.4248293+01:00"
+    },
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 9,
+    "Name": "Mohammad Masri",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Mohammad_Masri_20251031_121350.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mohammad.masri@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.9253435",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 10,
+    "Name": "Neithan Jakobsen",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Neithan_Jakobsen_20251031_121350.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "neithan.jakobsen@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.9839541",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 11,
+    "Name": "Hadil Tlas",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Hadil_Tlas_20251031_121350.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "hadil.tlas@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:50.9970564",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 12,
+    "Name": "Dante Sj\u00F6vall Fridh",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Dante_Sj\u00F6vall_Fridh_20251031_121351.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "dante.sjovallfridh@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:51.0101891",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 13,
+    "Name": "Emil Aspenberg",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Emil_Aspenberg_20251031_121351.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
     "Teachers": [
       "Josef Nobach"
     ],
     "Email": "emil.aspenberg@elev.ga.ntig.se",
-    "EnrollmentDate": "2025-10-31T09:22:32.9290984",
+    "EnrollmentDate": "2025-10-31T12:13:51.0245861",
     "CropSettings": null,
-    "AssignmentRatings": {
-      "1_Utskrifter_i_Java": 1,
-      "2_Variabler": 4,
-      "3_If-satser_": 2
-    },
-    "AssignmentNotes": {
-      "3_If-satser_": "wdqwdwq",
-      "1_Utskrifter_i_Java": "Fin som en mandarin"
-    },
-    "AssignmentNotesTimestamps": {
-      "3_If-satser_": "2025-10-31T11:10:57.5693303+01:00",
-      "1_Utskrifter_i_Java": "2025-10-31T11:10:57.5672308+01:00"
-    },
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 14,
+    "Name": "Sixten \u00C5berg",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Sixten_\u00C5berg_20251031_121351.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "sixten.aberg@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:51.0376753",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 15,
+    "Name": "Oliver Wikstr\u00F6m",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Oliver_Wikstr\u00F6m_20251031_121351.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "oliver.wikstrom@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:51.0552282",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 16,
+    "Name": "Mathias Andersson",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Mathias_Andersson_20251031_121351.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "mathias.andersson@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:51.0717744",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 17,
+    "Name": "Majd Alshehadat",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Majd_Alshehadat_20251031_121351.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "majdaldin.alshehadat@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:51.0853257",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 18,
+    "Name": "Filip H\u00E5kansson",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Filip_H\u00E5kansson_20251031_121351.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "filip.hakansson@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:51.0985641",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 19,
+    "Name": "Milo Sandengrip",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Milo_Sandengrip_20251031_121351.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "milo.sandengrip@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:51.1124734",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
+    "AssignmentNotesSidebarWidths": {}
+  },
+  {
+    "Teacher": "Josef Nobach",
+    "RoleInfo": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "SecondaryInfo": "Teacher: Josef Nobach",
+    "Id": 20,
+    "Name": "Gunnar Nord",
+    "PictureUrl": "C:\\Users\\Josef\\Documents\\Github\\SchoolOrganizer\\bin\\Debug\\net9.0\\Data\\ProfileImages\\Gunnar_Nord_20251031_121351.jpg",
+    "OriginalImagePath": null,
+    "ClassName": "PROG1000X - 2025: 1_NAT_TEK_1, 1_NAT_TEK_DEM_3, 1_NAT_TEK:2",
+    "Teachers": [
+      "Josef Nobach"
+    ],
+    "Email": "gunnar.nord@elev.ga.ntig.se",
+    "EnrollmentDate": "2025-10-31T12:13:51.1267593",
+    "CropSettings": null,
+    "AssignmentRatings": {},
+    "AssignmentNotes": {},
+    "AssignmentNotesTimestamps": {},
     "AssignmentNotesSidebarWidths": {}
   }
 ]
