@@ -12,7 +12,6 @@ public partial class FilePreviewControl : UserControl
 {
     private readonly FileHandlingService _fileHandlingService;
     private readonly PanelManagementService _panelManagementService;
-    private bool _isContentMaximized = false;
 
     // Routed event to notify parent when maximize button is clicked
     public static readonly RoutedEvent MaximizeClickedEvent = 

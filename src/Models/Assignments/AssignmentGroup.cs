@@ -36,6 +36,7 @@ public class AssignmentGroup : INotifyPropertyChanged
             {
                 _rating = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(IsGraded)); // Notify that IsGraded may have changed
             }
         }
     }
@@ -49,9 +50,15 @@ public class AssignmentGroup : INotifyPropertyChanged
             {
                 _notes = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(IsGraded)); // Notify that IsGraded may have changed
             }
         }
     }
+
+    /// <summary>
+    /// Returns true if this assignment has been graded (has a rating/stars OR has notes)
+    /// </summary>
+    public bool IsGraded => Rating > 0 || !string.IsNullOrWhiteSpace(Notes);
 
     public DateTime? LastModified
     {

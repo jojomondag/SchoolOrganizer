@@ -73,6 +73,9 @@ namespace SchoolOrganizer.Src.Views.Components
     {
         try
         {
+            // Prevent event from bubbling to parent controls (e.g., assignment header button)
+            e.Handled = true;
+            
             if (sender is Button button && button.Tag is string tag)
             {
                 if (int.TryParse(tag, out int starNumber))

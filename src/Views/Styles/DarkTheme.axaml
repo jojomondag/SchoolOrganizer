@@ -29,6 +29,11 @@
     <SolidColorBrush x:Key="ContentBackgroundBrush" Color="{StaticResource ContentBackgroundColor}" />
     <SolidColorBrush x:Key="IconBrush" Color="{StaticResource TextSecondaryColor}" />
 
+    <!-- Assignment content grouping brushes -->
+    <!-- Slightly lighter than secondary for card body, and a notch lighter for header -->
+    <SolidColorBrush x:Key="AssignmentFileBackgroundBrush" Color="#2a2a2d" />
+    <SolidColorBrush x:Key="AssignmentFileHeaderBrush" Color="#323236" />
+
     <!-- Card Shadows for Dark Theme -->
     <BoxShadows x:Key="CardBoxShadows">0 2 8 0 #50000000, 0 4 16 0 #40000000</BoxShadows>
     <BoxShadows x:Key="CardBoxShadowsHover">0 4 12 0 #60000000, 0 8 24 0 #50000000</BoxShadows>

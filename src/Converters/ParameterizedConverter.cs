@@ -36,6 +36,11 @@ public class ParameterizedConverter : IValueConverter
                 
                 return boolValue ? ParseValue(trueValue, targetType) : ParseValue(falseValue, targetType);
             }
+            else if (parts.Length == 1 && boolValue)
+            {
+                // Single value provided - use it for true, return null for false
+                return ParseValue(parts[0].Trim(), targetType);
+            }
         }
 
         // Handle comparison operations

@@ -1081,6 +1081,24 @@ public partial class AssignmentViewControl : UserControl
             // Toggle the notes expanded state
             assignmentGroup.IsNotesExpanded = !assignmentGroup.IsNotesExpanded;
 
+            // Also expand the assignment content when opening notes
+            if (assignmentGroup.IsNotesExpanded && !assignmentGroup.IsExpanded)
+            {
+                assignmentGroup.IsExpanded = true;
+                
+                // Auto-expand all code/text files when assignment expands
+                foreach (var file in assignmentGroup.Files)
+                {
+                    if (file.IsCode || file.IsText)
+                    {
+                        file.IsExpanded = true;
+                    }
+                }
+                
+                Log.Information("Expanded assignment {AssignmentName} and auto-expanded files when opening notes",
+                    assignmentGroup.AssignmentName);
+            }
+
             Log.Information("Toggled notes for assignment {AssignmentName} - IsExpanded: {IsExpanded}",
                 assignmentGroup.AssignmentName, assignmentGroup.IsNotesExpanded);
 

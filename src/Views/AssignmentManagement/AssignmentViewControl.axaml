@@ -114,7 +114,7 @@
         <ScrollViewer Name="MainScrollViewer"
                       VerticalScrollBarVisibility="Auto" 
                       HorizontalScrollBarVisibility="Disabled"
-                      Padding="0">
+                      Padding="8,0,8,0">
           <ItemsControl ItemsSource="{Binding AllFilesGrouped}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
@@ -131,11 +131,21 @@
                     <!-- Assignment Header -->
                     <Border Grid.Row="0"
                             x:Name="AssignmentHeaderBorder"
-                            Background="{DynamicResource HeaderBackgroundBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
                             BorderThickness="0,0,0,1"
                             Padding="0"
                             CornerRadius="6">
+                      <Border.Background>
+                        <Binding Path="IsGraded">
+                          <Binding.Converter>
+                            <converters:ParameterizedConverter/>
+                          </Binding.Converter>
+                          <Binding.ConverterParameter>#A5D6A7</Binding.ConverterParameter>
+                          <Binding.FallbackValue>
+                            <DynamicResource ResourceKey="HeaderBackgroundBrush"/>
+                          </Binding.FallbackValue>
+                        </Binding>
+                      </Border.Background>
                       <Button Background="Transparent"
                               BorderThickness="0"
                               Padding="16,12"

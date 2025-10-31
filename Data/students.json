@@ -34,9 +34,19 @@
     "Email": "emil.aspenberg@elev.ga.ntig.se",
     "EnrollmentDate": "2025-10-31T09:22:32.9290984",
     "CropSettings": null,
-    "AssignmentRatings": {},
-    "AssignmentNotes": {},
-    "AssignmentNotesTimestamps": {},
+    "AssignmentRatings": {
+      "1_Utskrifter_i_Java": 1,
+      "2_Variabler": 4,
+      "3_If-satser_": 2
+    },
+    "AssignmentNotes": {
+      "3_If-satser_": "wdqwdwq",
+      "1_Utskrifter_i_Java": "Fin som en mandarin"
+    },
+    "AssignmentNotesTimestamps": {
+      "3_If-satser_": "2025-10-31T10:54:47.253938+01:00",
+      "1_Utskrifter_i_Java": "2025-10-31T10:54:47.2524137+01:00"
+    },
     "AssignmentNotesSidebarWidths": {}
   }
 ]
