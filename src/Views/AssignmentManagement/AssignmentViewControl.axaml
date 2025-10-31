@@ -5,6 +5,7 @@
              xmlns:vm="using:SchoolOrganizer.Src.ViewModels"
              xmlns:components="using:SchoolOrganizer.Src.Views.Components"
              xmlns:materialIcons="using:Material.Icons.Avalonia"
+             xmlns:converters="using:SchoolOrganizer.Src.Converters"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="SchoolOrganizer.Src.Views.AssignmentManagement.AssignmentViewControl"
              x:DataType="vm:StudentDetailViewModel">
@@ -12,6 +13,10 @@
   <Design.DataContext>
     <vm:StudentDetailViewModel/>
   </Design.DataContext>
+
+  <UserControl.Resources>
+    <converters:ParameterizedConverter x:Key="ParameterizedConverter"/>
+  </UserControl.Resources>
 
   <SplitView IsPaneOpen="{Binding IsNavigationOpen}" 
              DisplayMode="CompactInline" 
@@ -113,65 +118,87 @@
                     <!-- Assignment Header -->
                     <Border Grid.Row="0"
                             x:Name="AssignmentHeaderBorder"
-                            Background="{DynamicResource BackgroundSecondaryBrush}"
+                            Background="{DynamicResource HeaderBackgroundBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
                             BorderThickness="0,0,0,1"
-                            Padding="16,12"
+                            Padding="0"
                             CornerRadius="6">
-                      <Grid>
-                        <!-- Left accent strip -->
-                        <Border Background="{DynamicResource AccentBrush}"
-                                Width="4"
-                                HorizontalAlignment="Left"
-                                CornerRadius="4,0,0,4"
-                                Grid.ColumnSpan="3"/>
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="Auto"/>
-                          <ColumnDefinition Width="*"/>
-                          <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                      <Button Background="Transparent"
+                              BorderThickness="0"
+                              Padding="16,12"
+                              Click="OnAssignmentHeaderClick"
+                              HorizontalContentAlignment="Stretch"
+                              VerticalContentAlignment="Stretch"
+                              HorizontalAlignment="Stretch"
+                              DataContext="{Binding}">
+                        <Grid HorizontalAlignment="Stretch">
+                          <!-- Left accent strip -->
+                          <Border Background="{DynamicResource AccentBrush}"
+                                  Width="4"
+                                  HorizontalAlignment="Left"
+                                  CornerRadius="4,0,0,4"
+                                  Grid.ColumnSpan="4"/>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                          </Grid.ColumnDefinitions>
 
-                        <!-- Left: Google Docs Button -->
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="0,0,16,0">
-                          <!-- Open in Browser Button -->
-                          <Button Click="OnOpenInBrowserClick"
-                                  Padding="8"
-                                  ToolTip.Tip="Open Google Doc in browser">
-                            <materialIcons:MaterialIcon Kind="GoogleDrive" Width="20" Height="20"/>
-                            <Button.IsVisible>
-                              <Binding Path="HasGoogleDocs"/>
-                            </Button.IsVisible>
-                          </Button>
-                        </StackPanel>
+                          <!-- Chevron Icon -->
+                          <materialIcons:MaterialIcon Grid.Column="0"
+                                                       Width="20"
+                                                       Height="20"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,12,0"
+                                                       Kind="{Binding IsExpanded, Converter={StaticResource ParameterizedConverter}, ConverterParameter=ChevronDown|ChevronRight}"/>
 
-                        <!-- Middle: Assignment Title -->
-                        <TextBlock Grid.Column="1"
-                                   Text="{Binding AssignmentName}"
-                                   FontWeight="Bold"
-                                   FontSize="18"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Center"/>
+                          <!-- Left: Google Docs Button -->
+                          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="0,0,16,0">
+                            <!-- Open in Browser Button -->
+                            <Button Click="OnOpenInBrowserClick"
+                                    Padding="8"
+                                    ToolTip.Tip="Open Google Doc in browser"
+                                    Background="Transparent"
+                                    BorderThickness="0">
+                              <materialIcons:MaterialIcon Kind="GoogleDrive" Width="20" Height="20"/>
+                              <Button.IsVisible>
+                                <Binding Path="HasGoogleDocs"/>
+                              </Button.IsVisible>
+                            </Button>
+                          </StackPanel>
 
-                        <!-- Right: Star Rating and Notes Button -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                          <components:StarRating VerticalAlignment="Center"
-                                                 Rating="{Binding Rating, Mode=TwoWay}"
-                                                 RatingChanged="OnAssignmentRatingChanged"/>
+                          <!-- Middle: Assignment Title -->
+                          <TextBlock Grid.Column="2"
+                                     Text="{Binding AssignmentName}"
+                                     FontWeight="Bold"
+                                     FontSize="18"
+                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Stretch"
+                                     TextAlignment="Center"/>
 
-                          <Button Background="Transparent"
-                                  BorderThickness="0"
-                                  Padding="8"
-                                  ToolTip.Tip="Toggle Notes"
-                                  Click="OnToggleNotesClick">
-                            <materialIcons:MaterialIcon Kind="NoteText" Width="20" Height="20"/>
-                          </Button>
-                        </StackPanel>
-                      </Grid>
+                          <!-- Right: Star Rating and Notes Button -->
+                          <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8">
+                            <components:StarRating VerticalAlignment="Center"
+                                                   Rating="{Binding Rating, Mode=TwoWay}"
+                                                   RatingChanged="OnAssignmentRatingChanged"/>
+
+                            <Button Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="8"
+                                    ToolTip.Tip="Toggle Notes"
+                                    Click="OnToggleNotesClick">
+                              <materialIcons:MaterialIcon Kind="NoteText" Width="20" Height="20"/>
+                            </Button>
+                          </StackPanel>
+                        </Grid>
+                      </Button>
                     </Border>
 
                     <!-- Assignment Files and Notes Sidebar -->
-                    <Grid Grid.Row="1" x:Name="AssignmentContentGrid">
+                    <Grid Grid.Row="1" x:Name="AssignmentContentGrid"
+                          IsVisible="{Binding IsExpanded}">
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>

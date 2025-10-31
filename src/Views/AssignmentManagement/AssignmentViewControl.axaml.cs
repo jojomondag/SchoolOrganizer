@@ -287,7 +287,40 @@ public partial class AssignmentViewControl : UserControl
 
             if (sender is Button button && button.Tag is string assignmentName)
             {
-                ScrollToAssignment(assignmentName);
+                if (DataContext is not StudentDetailViewModel viewModel)
+                {
+                    Log.Warning("OnAssignmentClick - DataContext is not StudentDetailViewModel");
+                    return;
+                }
+
+                // Find the assignment group
+                var assignmentGroup = viewModel.AllFilesGrouped.FirstOrDefault(ag => ag.AssignmentName == assignmentName);
+                if (assignmentGroup == null)
+                {
+                    Log.Warning("OnAssignmentClick - Assignment not found: {AssignmentName}", assignmentName);
+                    return;
+                }
+
+                // Collapse all other assignments
+                foreach (var group in viewModel.AllFilesGrouped)
+                {
+                    if (group.AssignmentName != assignmentName)
+                    {
+                        group.IsExpanded = false;
+                    }
+                }
+
+                // Toggle the clicked assignment (expand if collapsed, collapse if expanded)
+                assignmentGroup.IsExpanded = !assignmentGroup.IsExpanded;
+
+                Log.Information("Toggled assignment {AssignmentName} - IsExpanded: {IsExpanded}",
+                    assignmentName, assignmentGroup.IsExpanded);
+
+                // Scroll to the assignment after a small delay to ensure UI has updated
+                Dispatcher.UIThread.Post(() =>
+                {
+                    ScrollToAssignment(assignmentName);
+                }, DispatcherPriority.Loaded);
             }
             else
             {
@@ -298,6 +331,70 @@ public partial class AssignmentViewControl : UserControl
         catch (Exception ex)
         {
             Log.Error(ex, "Error handling assignment click - Sender: {SenderType}", sender?.GetType().Name);
+        }
+    }
+
+    /// <summary>
+    /// Handles assignment header click to toggle expansion
+    /// </summary>
+    private void OnAssignmentHeaderClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not Button button)
+            {
+                Log.Warning("OnAssignmentHeaderClick - sender is not a Button");
+                return;
+            }
+
+            // Get the assignment from the DataContext
+            // First try the button's DataContext, then check the parent Border
+            AssignmentGroup? assignmentGroup = null;
+
+            if (button.DataContext is AssignmentGroup group)
+            {
+                assignmentGroup = group;
+            }
+            else
+            {
+                // Try to find the AssignmentGroup from the parent Border
+                var parentBorder = button.GetVisualAncestors()
+                    .OfType<Border>()
+                    .FirstOrDefault(b => b.Name == "AssignmentHeaderBorder");
+                
+                if (parentBorder?.DataContext is AssignmentGroup borderGroup)
+                {
+                    assignmentGroup = borderGroup;
+                }
+                else
+                {
+                    // Try to find from the parent Grid
+                    var parentGrid = button.GetVisualAncestors()
+                        .OfType<Grid>()
+                        .FirstOrDefault();
+                    
+                    if (parentGrid?.DataContext is AssignmentGroup gridGroup)
+                    {
+                        assignmentGroup = gridGroup;
+                    }
+                }
+            }
+
+            if (assignmentGroup == null)
+            {
+                Log.Warning("OnAssignmentHeaderClick - Could not find AssignmentGroup in DataContext");
+                return;
+            }
+
+            // Toggle the expanded state
+            assignmentGroup.IsExpanded = !assignmentGroup.IsExpanded;
+
+            Log.Information("Toggled expansion for assignment {AssignmentName} - IsExpanded: {IsExpanded}",
+                assignmentGroup.AssignmentName, assignmentGroup.IsExpanded);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error handling assignment header click");
         }
     }
 
@@ -326,8 +423,74 @@ public partial class AssignmentViewControl : UserControl
 
                 if (targetHeader != null)
                 {
+                    // Use LayoutUpdated to ensure the layout is ready before scrolling
+                    EventHandler? layoutHandler = null;
+                    var startTime = DateTime.Now;
+                    
+                    layoutHandler = (s, e) =>
+                    {
+                        // Timeout protection
+                        if ((DateTime.Now - startTime).TotalMilliseconds > 1000)
+                        {
+                            mainScrollViewer.LayoutUpdated -= layoutHandler;
+                            Log.Warning("Layout update timeout, aborting scroll");
+                            return;
+                        }
+                        
+                        // Unsubscribe immediately to run only once
+                        mainScrollViewer.LayoutUpdated -= layoutHandler;
+                        
+                        // Find the ItemsControl that contains the assignments
+                        var itemsControl = mainScrollViewer.GetVisualDescendants()
+                            .OfType<ItemsControl>()
+                            .FirstOrDefault();
+                        
+                        if (itemsControl != null)
+                        {
+                            // Calculate the absolute position of the header relative to the ItemsControl
+                            var absolutePoint = targetHeader.TranslatePoint(new Point(0, 0), itemsControl);
+                            
+                            if (absolutePoint.HasValue)
+                            {
+                                var targetY = absolutePoint.Value.Y;
+                                
+                                // Calculate the optimal scroll position to show the header at the top
+                                var extent = mainScrollViewer.Extent;
+                                var viewport = mainScrollViewer.Viewport;
+                                var maxScrollY = Math.Max(0, extent.Height - viewport.Height);
+                                var optimalY = Math.Min(targetY, maxScrollY);
+                                
+                                // Get current offset for X coordinate (keep horizontal scroll unchanged)
+                                var currentOffset = mainScrollViewer.Offset;
+                                
+                                // Scroll to position the assignment header at the top of the viewport
+                                mainScrollViewer.Offset = new Vector(currentOffset.X, optimalY);
+                                
+                                Log.Information("Scrolled to assignment: {AssignmentName} at Y: {Y}", assignmentName, optimalY);
+                            }
+                            else
+                            {
+                                // Fallback to BringIntoView
+                                targetHeader.BringIntoView(new Rect(0, 0, 100, 100));
+                                Log.Information("Used BringIntoView fallback for assignment: {AssignmentName}", assignmentName);
+                            }
+                        }
+                        else
+                        {
+                            // Fallback to BringIntoView
+                            targetHeader.BringIntoView(new Rect(0, 0, 100, 100));
+                            Log.Information("ItemsControl not found, used BringIntoView fallback for assignment: {AssignmentName}", assignmentName);
+                        }
+                    };
+                    
+                    mainScrollViewer.LayoutUpdated += layoutHandler;
+                    
+                    // Also try immediate scroll as a fallback
                     targetHeader.BringIntoView(new Rect(0, 0, 100, 100));
-                    Log.Information("Scrolled to assignment: {AssignmentName}", assignmentName);
+                }
+                else
+                {
+                    Log.Warning("Assignment header not found: {AssignmentName}", assignmentName);
                 }
             }
         }
@@ -694,6 +857,9 @@ public partial class AssignmentViewControl : UserControl
     {
         try
         {
+            // Prevent event from bubbling to header click handler
+            e.Handled = true;
+
             if (sender is not Button button)
             {
                 Log.Warning("OnToggleNotesClick - sender is not a Button");
@@ -852,6 +1018,9 @@ public partial class AssignmentViewControl : UserControl
     {
         try
         {
+            // Prevent event from bubbling to header click handler
+            e.Handled = true;
+
             if (sender is not Button button)
             {
                 Log.Warning("OnOpenInBrowserClick - sender is not a Button");

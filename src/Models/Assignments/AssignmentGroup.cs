@@ -17,6 +17,7 @@ public class AssignmentGroup : INotifyPropertyChanged
     private bool _isNotesExpanded;
     private double _notesSidebarWidth = 220; // Default width
     private bool _showEmbeddedGoogleDocForAssignment = true; // Default to embedded view
+    private bool _isExpanded = false; // Default to collapsed state
 
     public string AssignmentName { get; set; } = string.Empty;
     public List<StudentFile> Files { get; set; } = new();
@@ -107,6 +108,19 @@ public class AssignmentGroup : INotifyPropertyChanged
                 {
                     file.ShowEmbeddedGoogleDoc = value;
                 }
+            }
+        }
+    }
+
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (_isExpanded != value)
+            {
+                _isExpanded = value;
+                OnPropertyChanged();
             }
         }
     }
